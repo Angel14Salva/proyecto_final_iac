@@ -1,0 +1,42 @@
+application:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration: ${JWT_EXPIRATION} # en milisegundos (ejemplo: 86400000 = 1 día)
+      refresh-token:
+        expiration: ${JWT_REFRESH_EXPIRATION} # en milisegundos (ejemplo: 604800000 = 7 días)
+
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        format_sql: false
+        globally_quoted_identifiers: false
+  servlet:
+    multipart:
+      max-file-size: 5MB      # Límite por archivo
+      max-request-size: 10MB  # Límite total por petición
+
+server:
+  port: ${PORT:8080}
+
+cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
+
+n8n:
+    webhook:
+      new-report: ${N8N_NEW_REPORT}
+      new-task: ${N8N_NEW_TASK}
+
