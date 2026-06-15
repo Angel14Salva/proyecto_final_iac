@@ -1,0 +1,105 @@
+# =============================================================================
+# iam.tf — FASE 2: Roles IAM con principio de minimo privilegio
+# =============================================================================
+
+resource "aws_iam_role" "ecs_execution_role" {
+  name        = "${var.project_name}-ecs-execution-role"
+  description = "Permite a ECS Fargate descargar imagenes de ECR y enviar logs"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "ecs-tasks.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_execution_role_policy" {
+  role       = aws_iam_role.ecs_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy" "ecs_execution_secrets" {
+  name = "${var.project_name}-ecs-execution-secrets"
+  role = aws_iam_role.ecs_execution_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["secretsmanager:GetSecretValue", "ssm:GetParameters"]
+      Resource = "*"
+    }]
+  })
+}
+
+resource "aws_iam_role" "ecs_task_role" {
+  name        = "${var.project_name}-ecs-task-role"
+  description = "Permisos del monolito SEGAT: SQS, S3, DynamoDB, Secrets"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "ecs-tasks.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "ecs_task_permissions" {
+  name = "${var.project_name}-ecs-task-permissions"
+  role = aws_iam_role.ecs_task_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "SQSAccess"
+        Effect   = "Allow"
+        Action   = ["sqs:SendMessage","sqs:ReceiveMessage","sqs:DeleteMessage","sqs:GetQueueAttributes"]
+        Resource = "*"
+      },
+      {
+        Sid      = "S3ReportesAccess"
+        Effect   = "Allow"
+        Action   = ["s3:PutObject","s3:GetObject","s3:DeleteObject"]
+        Resource = "arn:aws:s3:::${var.project_name}-reportes-*/*"
+      },
+      {
+        Sid      = "DynamoDBAccess"
+        Effect   = "Allow"
+        Action   = ["dynamodb:PutItem","dynamodb:GetItem","dynamodb:UpdateItem","dynamodb:Query","dynamodb:Scan"]
+        Resource = "arn:aws:dynamodb:*:*:table/${var.project_name}-*"
+      },
+      {
+        Sid      = "SNSPublish"
+        Effect   = "Allow"
+        Action   = ["sns:Publish"]
+        Resource = "*"
+      },
+      {
+        Sid      = "SecretsAccess"
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = "arn:aws:secretsmanager:*:*:secret:${var.project_name}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role" "autoscaling_role" {
+  name        = "${var.project_name}-autoscaling-role"
+  description = "Permite a Auto Scaling ajustar las tareas ECS Fargate"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "application-autoscaling.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "autoscaling_role_policy" {
+  role       = aws_iam_role.autoscaling_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole"
+}
