@@ -24,7 +24,7 @@ resource "aws_db_instance" "postgresql" {
   vpc_security_group_ids  = [aws_security_group.rds.id]
   backup_retention_period = 1
   skip_final_snapshot     = true
-  deletion_protection     = false
+  deletion_protection     = true
   multi_az                = true
   copy_tags_to_snapshot               = true
   iam_database_authentication_enabled = true
