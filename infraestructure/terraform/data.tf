@@ -26,7 +26,11 @@ resource "aws_db_instance" "postgresql" {
   skip_final_snapshot     = true
   deletion_protection     = false
   multi_az                = true
-  copy_tags_to_snapshot   = true
+  copy_tags_to_snapshot               = true
+  iam_database_authentication_enabled = true
+  performance_insights_enabled        = true
+  enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
+  auto_minor_version_upgrade          = true
   tags = { Name = "${var.project_name}-postgresql" }
 }
 
