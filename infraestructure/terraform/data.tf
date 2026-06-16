@@ -31,6 +31,7 @@ resource "aws_db_instance" "postgresql" {
   performance_insights_enabled        = true
   enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
   auto_minor_version_upgrade          = true
+  monitoring_interval                 = 60
   tags = { Name = "${var.project_name}-postgresql" }
 }
 
