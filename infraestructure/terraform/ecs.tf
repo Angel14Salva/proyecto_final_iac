@@ -57,7 +57,7 @@ resource "aws_lb_listener" "http" {
 
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}/backend"
-  retention_in_days = 30
+  retention_in_days = 365
   tags              = { Name = "${var.project_name}-ecs-logs" }
 }
 
