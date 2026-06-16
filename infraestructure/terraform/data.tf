@@ -28,7 +28,8 @@ resource "aws_db_instance" "postgresql" {
   multi_az                = true
   copy_tags_to_snapshot               = true
   iam_database_authentication_enabled = true
-  performance_insights_enabled        = true
+  performance_insights_enabled              = true
+  performance_insights_kms_key_id           = "alias/aws/rds"
   enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
   auto_minor_version_upgrade          = true
   monitoring_interval                 = 60
