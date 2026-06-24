@@ -7,9 +7,9 @@ output "vpc_id" {
   value       = aws_vpc.main.id
 }
 
-output "alb_internal_dns" {
-  description = "DNS del ALB interno"
-  value       = aws_lb.internal.dns_name
+output "alb_external_dns" {
+  description = "DNS del ALB externo — apuntar el registro CNAME de tu dominio aqui"
+  value       = aws_lb.external.dns_name
 }
 
 output "ecs_cluster_name" {
@@ -28,9 +28,9 @@ output "rds_endpoint" {
   sensitive   = true
 }
 
-output "redis_endpoint" {
-  description = "Endpoint de ElastiCache Redis"
-  value       = aws_elasticache_cluster.redis.cache_nodes[0].address
+output "redis_primary_endpoint" {
+  description = "Endpoint primario de ElastiCache Redis (ReplicationGroup)"
+  value       = aws_elasticache_replication_group.redis.primary_endpoint_address
   sensitive   = true
 }
 
@@ -45,11 +45,26 @@ output "sqs_notificaciones_url" {
 }
 
 output "s3_reportes_bucket" {
-  description = "Nombre del bucket S3 para fotografias de reportes"
+  description = "Nombre del bucket S3 para fotografias de reportes (backup)"
   value       = aws_s3_bucket.reportes.bucket
 }
 
 output "dynamodb_gps_table" {
   description = "Nombre de la tabla DynamoDB para GPS"
   value       = aws_dynamodb_table.gps_locations.name
+}
+
+output "secret_cloudinary_arn" {
+  description = "ARN del secret de Cloudinary (para poblar manualmente antes del deploy)"
+  value       = aws_secretsmanager_secret.cloudinary.arn
+}
+
+output "secret_jwt_arn" {
+  description = "ARN del secret JWT (para poblar manualmente antes del deploy)"
+  value       = aws_secretsmanager_secret.jwt.arn
+}
+
+output "secret_n8n_arn" {
+  description = "ARN del secret n8n webhooks (para poblar manualmente antes del deploy)"
+  value       = aws_secretsmanager_secret.n8n.arn
 }
