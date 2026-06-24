@@ -126,8 +126,9 @@ resource "aws_route_table_association" "private_c2" {
 
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-sg-alb"
-  description = "Trafico HTTP y HTTPS hacia el ALB"
+  description = "Trafico HTTP y HTTPS hacia el ALB externo"
   vpc_id      = aws_vpc.main.id
+
   ingress {
     description = "HTTPS desde internet"
     from_port   = 443
@@ -135,20 +136,24 @@ resource "aws_security_group" "alb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   ingress {
-    description = "HTTP desde internet"
+    description = "HTTP desde internet (redireccion a HTTPS)"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  # El ALB necesita enviar trafico al puerto 8080 de los contenedores Fargate
   egress {
-    description = "Salida hacia los Fargate Tasks"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "Salida hacia Fargate Tasks en puerto 8080"
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_tasks.id]
   }
+
   tags = { Name = "${var.project_name}-sg-alb" }
 }
 
@@ -156,6 +161,7 @@ resource "aws_security_group" "ecs_tasks" {
   name        = "${var.project_name}-sg-ecs-tasks"
   description = "Trafico hacia Fargate solo desde el ALB"
   vpc_id      = aws_vpc.main.id
+
   ingress {
     description     = "Puerto 8080 solo desde el ALB"
     from_port       = 8080
@@ -163,13 +169,43 @@ resource "aws_security_group" "ecs_tasks" {
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
   }
+
+  # RDS PostgreSQL
   egress {
-    description = "Salida a internet via NAT Gateway"
+    description     = "Acceso a RDS PostgreSQL (5432)"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.rds.id]
+  }
+
+  # ElastiCache Redis
+  egress {
+    description     = "Acceso a ElastiCache Redis (6379)"
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = [aws_security_group.redis.id]
+  }
+
+  # Secrets Manager, ECR, CloudWatch, SQS, SNS, DynamoDB via NAT/VPC Endpoints
+  egress {
+    description = "HTTPS saliente (Secrets Manager, ECR, Cloudinary, etc.)"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  # n8n webhooks pueden usar HTTP
+  egress {
+    description = "HTTP saliente (n8n webhooks)"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = { Name = "${var.project_name}-sg-ecs-tasks" }
 }
 
