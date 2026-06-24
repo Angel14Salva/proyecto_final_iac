@@ -22,8 +22,9 @@ resource "aws_db_instance" "postgresql" {
   password                = var.db_password
   db_subnet_group_name    = aws_db_subnet_group.rds.name
   vpc_security_group_ids  = [aws_security_group.rds.id]
-  backup_retention_period = 1
-  skip_final_snapshot     = true
+  backup_retention_period = 7
+  skip_final_snapshot     = false
+  final_snapshot_identifier = "${var.project_name}-postgresql-final-snapshot"
   deletion_protection     = true
   multi_az                = true
   copy_tags_to_snapshot               = true
@@ -32,7 +33,9 @@ resource "aws_db_instance" "postgresql" {
   performance_insights_kms_key_id           = "alias/aws/rds"
   enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
   auto_minor_version_upgrade          = true
-  monitoring_interval                 = 60
+  # Enhanced Monitoring — requiere el rol IAM dedicado
+  monitoring_interval = 60
+  monitoring_role_arn = aws_iam_role.rds_monitoring.arn
   tags = { Name = "${var.project_name}-postgresql" }
 }
 
@@ -42,18 +45,24 @@ resource "aws_elasticache_subnet_group" "redis" {
   tags       = { Name = "${var.project_name}-redis-subnet-group" }
 }
 
-resource "aws_elasticache_cluster" "redis" {
-  cluster_id           = "${var.project_name}-redis"
-  engine               = "redis"
-  node_type            = "cache.t3.micro"
-  num_cache_nodes      = 1
-  parameter_group_name = "default.redis7"
-  engine_version       = "7.0"
-  port                 = 6379
-  subnet_group_name    = aws_elasticache_subnet_group.redis.name
-  security_group_ids   = [aws_security_group.redis.id]
-  snapshot_retention_limit = 1
-  tags = { Name = "${var.project_name}-redis-cache" }
+# ElastiCache Redis — ReplicationGroup Multi-AZ con failover automatico
+# Reemplaza aws_elasticache_cluster (single-node) por HA real
+resource "aws_elasticache_replication_group" "redis" {
+  replication_group_id       = "${var.project_name}-redis"
+  description                = "Redis Multi-AZ HA para SEGAT"
+  node_type                  = "cache.t3.micro"
+  num_cache_clusters         = 2
+  parameter_group_name       = "default.redis7"
+  engine_version             = "7.0"
+  port                       = 6379
+  subnet_group_name          = aws_elasticache_subnet_group.redis.name
+  security_group_ids         = [aws_security_group.redis.id]
+  automatic_failover_enabled = true
+  multi_az_enabled           = true
+  at_rest_encryption_enabled = true
+  transit_encryption_enabled = true
+  snapshot_retention_limit   = 7
+  tags = { Name = "${var.project_name}-redis-ha" }
 }
 
 resource "aws_dynamodb_table" "gps_locations" {
@@ -105,6 +114,15 @@ resource "aws_vpc_endpoint" "s3" {
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.private.id]
   tags = { Name = "${var.project_name}-vpc-endpoint-s3" }
+}
+
+# VPC Endpoint para DynamoDB — el trafico no sale por internet
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+  tags = { Name = "${var.project_name}-vpc-endpoint-dynamodb" }
 }
 
 resource "aws_s3_bucket" "reportes" {
