@@ -3,6 +3,11 @@
 # CloudWatch + Secrets Manager + CloudTrail
 # =============================================================================
 
+# =============================================================================
+# SECRETS MANAGER — Credenciales para el contenedor ECS
+# =============================================================================
+
+# Secret: credenciales RDS (ya existia)
 resource "aws_secretsmanager_secret" "db_credentials" {
   name        = "${var.project_name}/rds/credentials"
   description = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
@@ -17,8 +22,44 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
     host     = aws_db_instance.postgresql.address
     port     = 5432
     dbname   = var.db_name
+    # DATABASE_URL en formato JDBC para Spring Boot
+    url      = "jdbc:postgresql://${aws_db_instance.postgresql.address}:5432/${var.db_name}"
   })
 }
+
+# Secret: credenciales Cloudinary para subida de imagenes
+# Poblarlo manualmente en la consola AWS o via CLI antes del primer despliegue:
+# aws secretsmanager put-secret-value --secret-id segat/cloudinary/credentials \
+#   --secret-string '{"cloud_name":"xxx","api_key":"xxx","api_secret":"xxx"}'
+resource "aws_secretsmanager_secret" "cloudinary" {
+  name        = "${var.project_name}/cloudinary/credentials"
+  description = "Credenciales Cloudinary para el servicio de subida de imagenes"
+  tags = { Name = "${var.project_name}-secret-cloudinary" }
+}
+
+# Secret: JWT signing key y expiraciones
+# Poblar antes del primer despliegue:
+# aws secretsmanager put-secret-value --secret-id segat/jwt/config \
+#   --secret-string '{"secret":"<clave-256bits-base64>","expiration":"86400000","refresh_expiration":"604800000"}'
+resource "aws_secretsmanager_secret" "jwt" {
+  name        = "${var.project_name}/jwt/config"
+  description = "Configuracion JWT: secret, expiration y refresh_expiration en milisegundos"
+  tags = { Name = "${var.project_name}-secret-jwt" }
+}
+
+# Secret: URLs de los webhooks n8n para notificaciones
+# Poblar antes del primer despliegue:
+# aws secretsmanager put-secret-value --secret-id segat/n8n/webhooks \
+#   --secret-string '{"new_report":"https://n8n.tu-dominio.com/webhook/...","new_task":"https://n8n.tu-dominio.com/webhook/..."}'
+resource "aws_secretsmanager_secret" "n8n" {
+  name        = "${var.project_name}/n8n/webhooks"
+  description = "URLs de webhooks n8n para notificaciones de reportes y tareas"
+  tags = { Name = "${var.project_name}-secret-n8n" }
+}
+
+# =============================================================================
+# CLOUDWATCH ALARMS
+# =============================================================================
 
 resource "aws_cloudwatch_metric_alarm" "ecs_cpu_high" {
   alarm_name          = "${var.project_name}-ecs-cpu-high"
@@ -55,6 +96,10 @@ resource "aws_cloudwatch_metric_alarm" "reportes_dlq_depth" {
   alarm_actions       = [aws_sns_topic.alertas.arn]
   tags = { Name = "${var.project_name}-alarm-dlq-reportes" }
 }
+
+# =============================================================================
+# CLOUDTRAIL
+# =============================================================================
 
 resource "aws_s3_bucket" "cloudtrail_logs" {
   bucket        = "${var.project_name}-cloudtrail-logs-${var.environment}"
@@ -107,7 +152,8 @@ resource "aws_cloudtrail" "main" {
   include_global_service_events = true
   is_multi_region_trail         = true
   enable_log_file_validation    = true
-  sns_topic_name                = aws_sns_topic.alertas.arn
+  # Corrección: CloudTrail espera el NOMBRE del topic SNS, no el ARN
+  sns_topic_name = aws_sns_topic.alertas.name
   tags       = { Name = "${var.project_name}-cloudtrail" }
   depends_on = [aws_s3_bucket_policy.cloudtrail_logs]
 }
