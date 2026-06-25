@@ -100,7 +100,7 @@ resource "aws_dynamodb_table" "gps_locations" {
 
   server_side_encryption {
     enabled     = true
-
+    kms_key_arn = aws_kms_key.dynamodb.arn
   }
 
   point_in_time_recovery {
@@ -199,4 +199,16 @@ resource "aws_s3_bucket_lifecycle_configuration" "reportes" {
 
 data "aws_kms_key" "rds" {
   key_id = "alias/aws/rds"
+}
+
+resource "aws_kms_key" "dynamodb" {
+  description             = "KMS CMK para cifrado de tablas DynamoDB del proyecto SEGAT"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  tags = { Name = "${var.project_name}-kms-dynamodb" }
+}
+
+resource "aws_kms_alias" "dynamodb" {
+  name          = "alias/${var.project_name}/dynamodb"
+  target_key_id = aws_kms_key.dynamodb.key_id
 }
