@@ -30,7 +30,7 @@ resource "aws_db_instance" "postgresql" {
   iam_database_authentication_enabled = true
   performance_insights_enabled              = true
   performance_insights_kms_key_id           = "alias/aws/rds"
-  enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
+  enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade", "pgaudit"]
   auto_minor_version_upgrade          = true
   monitoring_interval                 = 60
   tags = { Name = "${var.project_name}-postgresql" }
@@ -78,7 +78,8 @@ resource "aws_dynamodb_table" "gps_locations" {
   }
 
   server_side_encryption {
-    enabled = true
+    enabled     = true
+    kms_key_arn = "alias/aws/dynamodb"
   }
 
   point_in_time_recovery {
@@ -105,7 +106,8 @@ resource "aws_dynamodb_table" "notifications" {
   }
 
   server_side_encryption {
-    enabled = true
+    enabled     = true
+    kms_key_arn = "alias/aws/dynamodb"
   }
 
   point_in_time_recovery {
@@ -166,6 +168,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "reportes" {
     status = "Enabled"
     expiration { days = 365 }
     noncurrent_version_expiration { noncurrent_days = 90 }
+    abort_incomplete_multipart_upload { days_after_initiation = 7 }
   }
 }
 

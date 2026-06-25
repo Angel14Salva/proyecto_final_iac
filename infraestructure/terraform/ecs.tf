@@ -53,6 +53,58 @@ resource "aws_s3_bucket" "alb_logs" {
   tags          = { Name = "${var.project_name}-s3-alb-logs" }
 }
 
+resource "aws_s3_bucket_versioning" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  versioning_configuration { status = "Enabled" }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = "alias/aws/s3"
+    }
+  }
+}
+
+resource "aws_s3_bucket_logging" "alb_logs" {
+  bucket        = aws_s3_bucket.alb_logs.id
+  target_bucket = aws_s3_bucket.alb_logs.id
+  target_prefix = "access-logs/"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    id     = "expire-alb-logs"
+    status = "Enabled"
+    expiration { days = 90 }
+    abort_incomplete_multipart_upload { days_after_initiation = 7 }
+  }
+}
+
+resource "aws_s3_bucket_notification" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  topic {
+    topic_arn = aws_sns_topic.alertas.arn
+    events    = ["s3:ObjectCreated:*"]
+  }
+}
+
+resource "aws_s3_bucket_replication_configuration" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  role   = aws_iam_role.ecs_execution_role.arn
+  rule {
+    id     = "replicate-alb-logs"
+    status = "Enabled"
+    destination {
+      bucket        = "arn:aws:s3:::${var.project_name}-alb-logs-replica-${var.environment}"
+      storage_class = "STANDARD_IA"
+    }
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "alb_logs" {
   bucket                  = aws_s3_bucket.alb_logs.id
   block_public_acls       = true

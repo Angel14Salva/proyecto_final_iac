@@ -85,6 +85,25 @@ resource "aws_kms_key" "sqs" {
   description             = "KMS CMK para cifrado de colas SQS del proyecto SEGAT"
   deletion_window_in_days = 7
   enable_key_rotation     = true
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "Enable IAM User Permissions"
+        Effect    = "Allow"
+        Principal = { AWS = "arn:aws:iam::*:root" }
+        Action    = "kms:*"
+        Resource  = "*"
+      },
+      {
+        Sid       = "Allow SQS to use this key"
+        Effect    = "Allow"
+        Principal = { Service = "sqs.amazonaws.com" }
+        Action    = ["kms:GenerateDataKey", "kms:Decrypt"]
+        Resource  = "*"
+      }
+    ]
+  })
   tags = { Name = "${var.project_name}-kms-sqs" }
 }
 
