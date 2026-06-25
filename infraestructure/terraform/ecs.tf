@@ -104,7 +104,7 @@ resource "aws_s3_bucket_policy" "alb_logs" {
 resource "aws_lb_target_group" "ecs" {
   name        = "${var.project_name}-tg-ecs"
   port        = 8080
-  protocol    = "HTTP"
+  protocol    = "HTTPS"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
   health_check {
@@ -151,6 +151,7 @@ resource "aws_lb_listener" "https" {
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}/backend"
   retention_in_days = 365
+  kms_key_id        = "alias/aws/logs"
   tags              = { Name = "${var.project_name}-ecs-logs" }
 }
 
