@@ -115,24 +115,29 @@ resource "aws_sns_topic_subscription" "negocio_to_notificaciones" {
   endpoint  = aws_sqs_queue.notificaciones.arn
 }
 
+# SQS Queue Policy — notificaciones
+
 resource "aws_sqs_queue_policy" "notificaciones_policy" {
   queue_url = aws_sqs_queue.notificaciones.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
+      Sid       = "AllowSNSToSendMessage"
       Effect    = "Allow"
       Principal = { Service = "sns.amazonaws.com" }
       Action    = "sqs:SendMessage"
       Resource  = aws_sqs_queue.notificaciones.arn
-      Condition = { ArnEquals = { "aws:SourceArn" = aws_sns_topic.negocio.arn } }
+      Condition = {
+        ArnEquals = { "aws:SourceArn" = aws_sns_topic.negocio.arn }
+      }
     }]
   })
 }
 
 resource "aws_sns_topic" "alertas" {
   name              = "${var.project_name}-sns-alertas"
-  kms_master_key_id = "alias/aws/sns"
-  tags = { Name = "${var.project_name}-sns-alertas" }
+  kms_master_key_id = aws_kms_key.messaging.id
+  tags              = { Name = "${var.project_name}-sns-alertas" }
 }
 
 resource "aws_sns_topic_subscription" "alertas_email" {
