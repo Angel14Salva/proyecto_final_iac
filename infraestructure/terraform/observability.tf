@@ -1,70 +1,14 @@
-
+# =============================================================================
 # observability.tf — FASE 6: Observabilidad y Seguridad
 # CloudWatch + Secrets Manager + CloudTrail
-
-resource "aws_kms_key" "secrets" {
-  description             = "CMK para Secrets Manager de ${var.project_name}"
-  deletion_window_in_days = 30
-  enable_key_rotation     = true
-  tags                    = { Name = "${var.project_name}-kms-secrets" }
-}
-
-resource "aws_kms_alias" "secrets" {
-  name          = "alias/${var.project_name}/secrets"
-  target_key_id = aws_kms_key.secrets.key_id
-}
-
-resource "aws_kms_key" "cloudtrail" {
-  description             = "CMK para CloudTrail de ${var.project_name}"
-  deletion_window_in_days = 30
-  enable_key_rotation     = true
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "Enable IAM User Permissions"
-        Effect    = "Allow"
-        Principal = { AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" }
-        Action    = "kms:*"
-        Resource  = "*"
-      },
-      {
-        Sid       = "Allow CloudTrail to encrypt logs"
-        Effect    = "Allow"
-        Principal = { Service = "cloudtrail.amazonaws.com" }
-        Action    = ["kms:GenerateDataKey*", "kms:DescribeKey"]
-        Resource  = "*"
-      },
-      {
-        Sid       = "Allow CloudTrail to describe key"
-        Effect    = "Allow"
-        Principal = { Service = "cloudtrail.amazonaws.com" }
-        Action    = "kms:DescribeKey"
-        Resource  = "*"
-      }
-    ]
-  })
-
-  tags = { Name = "${var.project_name}-kms-cloudtrail" }
-}
-
-resource "aws_kms_alias" "cloudtrail" {
-  name          = "alias/${var.project_name}/cloudtrail"
-  target_key_id = aws_kms_key.cloudtrail.key_id
-}
-
-data "aws_caller_identity" "current" {}
-
-# =============================================================================
-# SECRETS MANAGER — Credenciales para el contenedor ECS
 # =============================================================================
 
 resource "aws_secretsmanager_secret" "db_credentials" {
   name        = "${var.project_name}/rds/credentials"
   description = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
-  kms_key_id  = aws_kms_key.secrets.arn
-  tags        = { Name = "${var.project_name}-secret-rds" }
+  kms_key_id  = "alias/aws/secretsmanager"
+  recovery_window_in_days = 7
+  tags = { Name = "${var.project_name}-secret-rds" }
 }
 
 resource "aws_secretsmanager_secret_version" "db_credentials" {
@@ -75,35 +19,8 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
     host     = aws_db_instance.postgresql.address
     port     = 5432
     dbname   = var.db_name
-    url      = "jdbc:postgresql://${aws_db_instance.postgresql.address}:5432/${var.db_name}"
   })
 }
-
-# Secret: credenciales Cloudinary para subida de imagenes
-resource "aws_secretsmanager_secret" "cloudinary" {
-  name        = "${var.project_name}/cloudinary/credentials"
-  description = "Credenciales Cloudinary para el servicio de subida de imagenes"
-  kms_key_id  = aws_kms_key.secrets.arn
-  tags        = { Name = "${var.project_name}-secret-cloudinary" }
-}
-
-resource "aws_secretsmanager_secret" "jwt" {
-  name        = "${var.project_name}/jwt/config"
-  description = "Configuracion JWT: secret, expiration y refresh_expiration en milisegundos"
-  kms_key_id  = aws_kms_key.secrets.arn
-  tags        = { Name = "${var.project_name}-secret-jwt" }
-}
-
-resource "aws_secretsmanager_secret" "n8n" {
-  name        = "${var.project_name}/n8n/webhooks"
-  description = "URLs de webhooks n8n para notificaciones de reportes y tareas"
-  kms_key_id  = aws_kms_key.secrets.arn
-  tags        = { Name = "${var.project_name}-secret-n8n" }
-}
-
-# =============================================================================
-# CLOUDWATCH ALARMS
-# =============================================================================
 
 resource "aws_cloudwatch_metric_alarm" "ecs_cpu_high" {
   alarm_name          = "${var.project_name}-ecs-cpu-high"
@@ -140,10 +57,6 @@ resource "aws_cloudwatch_metric_alarm" "reportes_dlq_depth" {
   alarm_actions       = [aws_sns_topic.alertas.arn]
   tags = { Name = "${var.project_name}-alarm-dlq-reportes" }
 }
-
-# =============================================================================
-# CLOUDTRAIL
-# =============================================================================
 
 resource "aws_s3_bucket" "cloudtrail_logs" {
   bucket        = "${var.project_name}-cloudtrail-logs-${var.environment}"
@@ -192,33 +105,26 @@ resource "aws_s3_bucket_policy" "cloudtrail_logs" {
 
 resource "aws_cloudtrail" "main" {
   name                          = "${var.project_name}-cloudtrail"
+  kms_key_id                    = "alias/aws/cloudtrail"
   s3_bucket_name                = aws_s3_bucket.cloudtrail_logs.id
   include_global_service_events = true
   is_multi_region_trail         = true
   enable_log_file_validation    = true
-  sns_topic_name                = aws_sns_topic.alertas.name
-
-  kms_key_id = aws_kms_key.cloudtrail.arn
-
-  cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
-  cloud_watch_logs_role_arn  = aws_iam_role.cloudtrail_cw.arn
-
+  sns_topic_name                = aws_sns_topic.alertas.arn
+  cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
+  cloud_watch_logs_role_arn     = aws_iam_role.cloudtrail_cloudwatch.arn
   tags       = { Name = "${var.project_name}-cloudtrail" }
   depends_on = [aws_s3_bucket_policy.cloudtrail_logs]
 }
 
-# CloudWatch Log Group para CloudTrail
 resource "aws_cloudwatch_log_group" "cloudtrail" {
-  name              = "/cloudtrail/${var.project_name}"
+  name              = "/aws/cloudtrail/${var.project_name}"
   retention_in_days = 365
-  kms_key_id        = aws_kms_key.cloudtrail.arn
   tags              = { Name = "${var.project_name}-cloudtrail-logs" }
 }
 
-# Rol IAM para que CloudTrail pueda escribir en CloudWatch Logs
-resource "aws_iam_role" "cloudtrail_cw" {
-  name        = "${var.project_name}-cloudtrail-cw-role"
-  description = "Permite a CloudTrail enviar eventos a CloudWatch Logs"
+resource "aws_iam_role" "cloudtrail_cloudwatch" {
+  name = "${var.project_name}-cloudtrail-cloudwatch-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -229,9 +135,9 @@ resource "aws_iam_role" "cloudtrail_cw" {
   })
 }
 
-resource "aws_iam_role_policy" "cloudtrail_cw" {
-  name = "${var.project_name}-cloudtrail-cw-policy"
-  role = aws_iam_role.cloudtrail_cw.id
+resource "aws_iam_role_policy" "cloudtrail_cloudwatch" {
+  name = "${var.project_name}-cloudtrail-cloudwatch-policy"
+  role = aws_iam_role.cloudtrail_cloudwatch.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -241,3 +147,14 @@ resource "aws_iam_role_policy" "cloudtrail_cw" {
     }]
   })
 }
+
+# CKV2_AWS_57: Secrets Manager con rotacion automatica
+resource "aws_secretsmanager_secret_rotation" "db_credentials" {
+  secret_id           = aws_secretsmanager_secret.db_credentials.id
+  rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
+  rotation_rules {
+    automatically_after_days = 30
+  }
+}
+
+data "aws_caller_identity" "current" {}
