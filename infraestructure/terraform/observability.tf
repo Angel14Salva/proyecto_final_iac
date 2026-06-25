@@ -6,6 +6,8 @@
 resource "aws_secretsmanager_secret" "db_credentials" {
   name        = "${var.project_name}/rds/credentials"
   description = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
+  kms_key_id  = "alias/aws/secretsmanager"
+  recovery_window_in_days = 7
   tags = { Name = "${var.project_name}-secret-rds" }
 }
 
@@ -103,11 +105,56 @@ resource "aws_s3_bucket_policy" "cloudtrail_logs" {
 
 resource "aws_cloudtrail" "main" {
   name                          = "${var.project_name}-cloudtrail"
+  kms_key_id                    = "alias/aws/cloudtrail"
   s3_bucket_name                = aws_s3_bucket.cloudtrail_logs.id
   include_global_service_events = true
   is_multi_region_trail         = true
   enable_log_file_validation    = true
   sns_topic_name                = aws_sns_topic.alertas.arn
+  cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
+  cloud_watch_logs_role_arn     = aws_iam_role.cloudtrail_cloudwatch.arn
   tags       = { Name = "${var.project_name}-cloudtrail" }
   depends_on = [aws_s3_bucket_policy.cloudtrail_logs]
 }
+
+resource "aws_cloudwatch_log_group" "cloudtrail" {
+  name              = "/aws/cloudtrail/${var.project_name}"
+  retention_in_days = 365
+  tags              = { Name = "${var.project_name}-cloudtrail-logs" }
+}
+
+resource "aws_iam_role" "cloudtrail_cloudwatch" {
+  name = "${var.project_name}-cloudtrail-cloudwatch-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "cloudtrail.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "cloudtrail_cloudwatch" {
+  name = "${var.project_name}-cloudtrail-cloudwatch-policy"
+  role = aws_iam_role.cloudtrail_cloudwatch.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+      Resource = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
+    }]
+  })
+}
+
+# CKV2_AWS_57: Secrets Manager con rotacion automatica
+resource "aws_secretsmanager_secret_rotation" "db_credentials" {
+  secret_id           = aws_secretsmanager_secret.db_credentials.id
+  rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
+  rotation_rules {
+    automatically_after_days = 30
+  }
+}
+
+data "aws_caller_identity" "current" {}
