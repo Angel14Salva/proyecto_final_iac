@@ -28,7 +28,7 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
     Statement = [{
       Effect   = "Allow"
       Action   = ["secretsmanager:GetSecretValue", "ssm:GetParameters"]
-      Resource = "*"
+      Resource = "arn:aws:secretsmanager:*:*:secret:segat/*"
     }]
   })
 }
@@ -56,7 +56,7 @@ resource "aws_iam_role_policy" "ecs_task_permissions" {
         Sid      = "SQSAccess"
         Effect   = "Allow"
         Action   = ["sqs:SendMessage","sqs:ReceiveMessage","sqs:DeleteMessage","sqs:GetQueueAttributes"]
-        Resource = "*"
+        Resource = "arn:aws:sqs:*:*:segat-*"
       },
       {
         Sid      = "S3ReportesAccess"
@@ -74,7 +74,7 @@ resource "aws_iam_role_policy" "ecs_task_permissions" {
         Sid      = "SNSPublish"
         Effect   = "Allow"
         Action   = ["sns:Publish"]
-        Resource = "*"
+        Resource = "arn:aws:sns:*:*:segat-*"
       },
       {
         Sid      = "SecretsAccess"
