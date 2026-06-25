@@ -91,7 +91,7 @@ resource "aws_kms_key" "sqs" {
       {
         Sid       = "Enable IAM User Permissions"
         Effect    = "Allow"
-        Principal = { AWS = "arn:aws:iam::*:root" }
+        Principal = { AWS = "arn:aws:iam::662252246273:root" }
         Action    = "kms:*"
         Resource  = "*"
       },

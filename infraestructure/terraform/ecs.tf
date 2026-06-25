@@ -89,26 +89,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
   }
 }
 
-resource "aws_s3_bucket_notification" "alb_logs" {
-  bucket = aws_s3_bucket.alb_logs.id
-  topic {
-    topic_arn = aws_sns_topic.alertas.arn
-    events    = ["s3:ObjectCreated:*"]
-  }
-}
 
-resource "aws_s3_bucket_replication_configuration" "alb_logs" {
-  bucket = aws_s3_bucket.alb_logs.id
-  role   = aws_iam_role.ecs_execution_role.arn
-  rule {
-    id     = "replicate-alb-logs"
-    status = "Enabled"
-    destination {
-      bucket        = "arn:aws:s3:::${var.project_name}-alb-logs-replica-${var.environment}"
-      storage_class = "STANDARD_IA"
-    }
-  }
-}
+
+
 
 resource "aws_s3_bucket_public_access_block" "alb_logs" {
   bucket                  = aws_s3_bucket.alb_logs.id
@@ -185,22 +168,11 @@ resource "aws_lb_listener" "http_redirect" {
 
 # Listener HTTPS en puerto 443
 # ELBSecurityPolicy-TLS13-1-2-2021-06 soporta TLS 1.2 y 1.3, descarta cifrados debiles
-resource "aws_lb_listener" "https" {
-  load_balancer_arn = aws_lb.external.arn
-  port              = 443
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = var.acm_certificate_arn
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.ecs.arn
-  }
-}
+
 
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}/backend"
   retention_in_days = 365
-  kms_key_id        = "alias/aws/logs"
   tags              = { Name = "${var.project_name}-ecs-logs" }
 }
 
@@ -286,7 +258,7 @@ resource "aws_ecs_service" "segat_backend" {
   deployment_maximum_percent         = 200
 
   depends_on = [
-    aws_lb_listener.https,
+
     aws_lb_listener.http_redirect,
     aws_iam_role_policy_attachment.ecs_execution_role_policy
   ]

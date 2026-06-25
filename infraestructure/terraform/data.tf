@@ -53,6 +53,7 @@ resource "aws_db_instance" "postgresql" {
   enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
   auto_minor_version_upgrade          = true
   monitoring_interval                 = 60
+  monitoring_role_arn                 = aws_iam_role.rds_monitoring.arn
   tags = { Name = "${var.project_name}-postgresql" }
 }
 
@@ -192,27 +193,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "reportes" {
   }
 }
 
-resource "aws_s3_bucket_notification" "reportes" {
-  bucket = aws_s3_bucket.reportes.id
-  topic {
-    topic_arn     = aws_sns_topic.alertas.arn
-    events        = ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"]
-    filter_prefix = "reportes/"
-  }
-}
 
-resource "aws_s3_bucket_replication_configuration" "reportes" {
-  bucket = aws_s3_bucket.reportes.id
-  role   = aws_iam_role.ecs_execution_role.arn
-  rule {
-    id     = "replicate-to-us-west-2"
-    status = "Enabled"
-    destination {
-      bucket        = "arn:aws:s3:::${var.project_name}-reportes-replica-${var.environment}"
-      storage_class = "STANDARD_IA"
-    }
-  }
-}
+
+
 
 data "aws_kms_key" "rds" {
   key_id = "alias/aws/rds"

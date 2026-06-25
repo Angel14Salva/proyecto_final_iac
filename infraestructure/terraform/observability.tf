@@ -187,26 +187,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail_logs" {
   }
 }
 
-resource "aws_s3_bucket_notification" "cloudtrail_logs" {
-  bucket = aws_s3_bucket.cloudtrail_logs.id
-  topic {
-    topic_arn = aws_sns_topic.alertas.arn
-    events    = ["s3:ObjectCreated:*"]
-  }
-}
 
-resource "aws_s3_bucket_replication_configuration" "cloudtrail_logs" {
-  bucket = aws_s3_bucket.cloudtrail_logs.id
-  role   = aws_iam_role.ecs_execution_role.arn
-  rule {
-    id     = "replicate-cloudtrail-to-us-west-2"
-    status = "Enabled"
-    destination {
-      bucket        = "arn:aws:s3:::${var.project_name}-cloudtrail-replica-${var.environment}"
-      storage_class = "STANDARD_IA"
-    }
-  }
-}
+
+
 
 resource "aws_kms_key" "secrets" {
   description             = "KMS CMK para Secrets Manager y CloudTrail del proyecto SEGAT"
@@ -218,7 +201,7 @@ resource "aws_kms_key" "secrets" {
       {
         Sid       = "Enable IAM User Permissions"
         Effect    = "Allow"
-        Principal = { AWS = "arn:aws:iam::*:root" }
+        Principal = { AWS = "arn:aws:iam::662252246273:root" }
         Action    = "kms:*"
         Resource  = "*"
       },
