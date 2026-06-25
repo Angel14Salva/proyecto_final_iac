@@ -77,6 +77,14 @@ resource "aws_dynamodb_table" "gps_locations" {
     enabled        = true
   }
 
+  server_side_encryption {
+    enabled = true
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = { Name = "${var.project_name}-dynamodb-gps" }
 }
 
@@ -94,6 +102,14 @@ resource "aws_dynamodb_table" "notifications" {
   attribute {
     name = "user_id"
     type = "S"
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = { Name = "${var.project_name}-dynamodb-notifications" }
