@@ -43,6 +43,17 @@ resource "aws_kms_alias" "dynamodb" {
   target_key_id = aws_kms_key.dynamodb.key_id
 }
 
+resource "aws_kms_key" "s3_reportes" {
+  description             = "CMK para S3 reportes de ${var.project_name}"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  tags                    = { Name = "${var.project_name}-kms-s3-reportes" }
+}
+
+resource "aws_kms_alias" "s3_reportes" {
+  name          = "alias/${var.project_name}/s3-reportes"
+  target_key_id = aws_kms_key.s3_reportes.key_id
+}
 
 # =============================================================================
 # RDS POSTGRESQL
@@ -228,7 +239,29 @@ resource "aws_dynamodb_table" "notifications" {
   tags = { Name = "${var.project_name}-dynamodb-notifications" }
 }
 
-  tags = { Name = "${var.project_name}-vpc-endpoint-dynamodb" }
+# =============================================================================
+# VPC ENDPOINTS 
+# =============================================================================
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+  tags              = { Name = "${var.project_name}-vpc-endpoint-s3" }
+}
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+  tags              = { Name = "${var.project_name}-vpc-endpoint-dynamodb" }
+}
+
+# =============================================================================
+# S3 — BUCKET REPORTES
+# =============================================================================
 
 resource "aws_s3_bucket" "reportes" {
   bucket = "${var.project_name}-reportes-fotos-${var.environment}"
@@ -247,8 +280,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "reportes" {
   bucket = aws_s3_bucket.reportes.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_reportes.arn
     }
+    bucket_key_enabled = true # reduce el costo de llamadas KMS
   }
 }
 
@@ -256,5 +291,48 @@ resource "aws_s3_bucket_versioning" "reportes" {
   bucket = aws_s3_bucket.reportes.id
   versioning_configuration {
     status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket" "reportes_logs" {
+  bucket        = "${var.project_name}-reportes-access-logs-${var.environment}"
+  force_destroy = true
+  tags          = { Name = "${var.project_name}-s3-reportes-logs" }
+}
+
+resource "aws_s3_bucket_public_access_block" "reportes_logs" {
+  bucket                  = aws_s3_bucket.reportes_logs.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_logging" "reportes" {
+  bucket        = aws_s3_bucket.reportes.id
+  target_bucket = aws_s3_bucket.reportes_logs.id
+  target_prefix = "access-logs/"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "reportes" {
+  bucket = aws_s3_bucket.reportes.id
+
+  rule {
+    id     = "transition-to-ia"
+    status = "Enabled"
+
+    transition {
+      days          = 90
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 365
+      storage_class = "GLACIER"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
   }
 }
