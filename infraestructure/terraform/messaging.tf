@@ -6,7 +6,7 @@
 resource "aws_sqs_queue" "reportes_dlq" {
   name                      = "${var.project_name}-reportes-dlq"
   message_retention_seconds = 1209600
-  kms_master_key_id         = "alias/aws/sqs"
+  kms_master_key_id         = aws_kms_key.sqs.arn
   tags = { Name = "${var.project_name}-sqs-reportes-dlq" }
 }
 
@@ -15,7 +15,7 @@ resource "aws_sqs_queue" "reportes" {
   visibility_timeout_seconds = var.sqs_visibility_timeout
   message_retention_seconds  = var.sqs_message_retention
   receive_wait_time_seconds  = 20
-  kms_master_key_id          = "alias/aws/sqs"
+  kms_master_key_id          = aws_kms_key.sqs.arn
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.reportes_dlq.arn
     maxReceiveCount     = var.sqs_dlq_max_receive
@@ -26,7 +26,7 @@ resource "aws_sqs_queue" "reportes" {
 resource "aws_sqs_queue" "notificaciones_dlq" {
   name                      = "${var.project_name}-notificaciones-dlq"
   message_retention_seconds = 1209600
-  kms_master_key_id         = "alias/aws/sqs"
+  kms_master_key_id         = aws_kms_key.sqs.arn
   tags = { Name = "${var.project_name}-sqs-notificaciones-dlq" }
 }
 
@@ -35,7 +35,7 @@ resource "aws_sqs_queue" "notificaciones" {
   visibility_timeout_seconds = var.sqs_visibility_timeout
   message_retention_seconds  = var.sqs_message_retention
   receive_wait_time_seconds  = 20
-  kms_master_key_id          = "alias/aws/sqs"
+  kms_master_key_id          = aws_kms_key.sqs.arn
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.notificaciones_dlq.arn
     maxReceiveCount     = var.sqs_dlq_max_receive
@@ -79,4 +79,16 @@ resource "aws_sns_topic_subscription" "alertas_email" {
   topic_arn = aws_sns_topic.alertas.arn
   protocol  = "email"
   endpoint  = var.alert_email
+}
+
+resource "aws_kms_key" "sqs" {
+  description             = "KMS CMK para cifrado de colas SQS del proyecto SEGAT"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  tags = { Name = "${var.project_name}-kms-sqs" }
+}
+
+resource "aws_kms_alias" "sqs" {
+  name          = "alias/${var.project_name}/sqs"
+  target_key_id = aws_kms_key.sqs.key_id
 }
