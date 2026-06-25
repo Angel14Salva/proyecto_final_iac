@@ -158,3 +158,50 @@ resource "aws_secretsmanager_secret_rotation" "db_credentials" {
 }
 
 data "aws_caller_identity" "current" {}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "cloudtrail_logs" {
+  bucket = aws_s3_bucket.cloudtrail_logs.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = "alias/aws/s3"
+    }
+  }
+}
+
+resource "aws_s3_bucket_logging" "cloudtrail_logs" {
+  bucket        = aws_s3_bucket.cloudtrail_logs.id
+  target_bucket = aws_s3_bucket.cloudtrail_logs.id
+  target_prefix = "access-logs/"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail_logs" {
+  bucket = aws_s3_bucket.cloudtrail_logs.id
+  rule {
+    id     = "expire-old-logs"
+    status = "Enabled"
+    expiration { days = 365 }
+    noncurrent_version_expiration { noncurrent_days = 90 }
+  }
+}
+
+resource "aws_s3_bucket_notification" "cloudtrail_logs" {
+  bucket = aws_s3_bucket.cloudtrail_logs.id
+  topic {
+    topic_arn = aws_sns_topic.alertas.arn
+    events    = ["s3:ObjectCreated:*"]
+  }
+}
+
+resource "aws_s3_bucket_replication_configuration" "cloudtrail_logs" {
+  bucket = aws_s3_bucket.cloudtrail_logs.id
+  role   = aws_iam_role.ecs_execution_role.arn
+  rule {
+    id     = "replicate-cloudtrail-to-us-west-2"
+    status = "Enabled"
+    destination {
+      bucket        = "arn:aws:s3:::${var.project_name}-cloudtrail-replica-${var.environment}"
+      storage_class = "STANDARD_IA"
+    }
+  }
+}
