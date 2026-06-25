@@ -30,7 +30,7 @@ output "rds_endpoint" {
 
 output "redis_primary_endpoint" {
   description = "Endpoint primario de ElastiCache Redis (ReplicationGroup)"
-  value       = aws_elasticache_replication_group.redis.primary_endpoint_address
+  value       = aws_elasticache_cluster.redis.cache_nodes[0].address
   sensitive   = true
 }
 
@@ -54,17 +54,5 @@ output "dynamodb_gps_table" {
   value       = aws_dynamodb_table.gps_locations.name
 }
 
-output "secret_cloudinary_arn" {
-  description = "ARN del secret de Cloudinary (para poblar manualmente antes del deploy)"
-  value       = aws_secretsmanager_secret.cloudinary.arn
-}
 
-output "secret_jwt_arn" {
-  description = "ARN del secret JWT (para poblar manualmente antes del deploy)"
-  value       = aws_secretsmanager_secret.jwt.arn
-}
 
-output "secret_n8n_arn" {
-  description = "ARN del secret n8n webhooks (para poblar manualmente antes del deploy)"
-  value       = aws_secretsmanager_secret.n8n.arn
-}

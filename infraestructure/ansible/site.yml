@@ -1,0 +1,22 @@
+---
+# =============================================================================
+# site.yml — Playbook principal que orquesta todo el ciclo de vida
+# Uso: ansible-playbook site.yml --tags deploy|validate|destroy
+# =============================================================================
+- name: Ciclo de vida completo de infraestructura SEGAT
+  hosts: local
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: Validar seguridad del código IaC
+      import_tasks: "{{ playbook_dir }}/validate.yml"
+      tags: validate
+
+    - name: Desplegar infraestructura
+      import_tasks: "{{ playbook_dir }}/deploy.yml"
+      tags: deploy
+
+    - name: Destruir infraestructura
+      import_tasks: "{{ playbook_dir }}/destroy.yml"
+      tags: destroy

@@ -25,24 +25,11 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
   role = aws_iam_role.ecs_execution_role.id
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "SecretsManagerAccess"
-        Effect = "Allow"
-        Action = ["secretsmanager:GetSecretValue"]
-        # Restringido solo a los secrets del proyecto (evita acceso a toda la cuenta)
-        Resource = [
-          "arn:aws:secretsmanager:*:*:secret:${var.project_name}/*",
-        ]
-      },
-      {
-        Sid    = "SSMParametersAccess"
-        Effect = "Allow"
-        Action = ["ssm:GetParameters", "ssm:GetParameter"]
-        # Restringido al path del proyecto en Parameter Store
-        Resource = "arn:aws:ssm:*:*:parameter/${var.project_name}/*"
-      }
-    ]
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["secretsmanager:GetSecretValue", "ssm:GetParameters"]
+      Resource = "arn:aws:secretsmanager:*:*:secret:segat/*"
+    }]
   })
 }
 
@@ -66,40 +53,33 @@ resource "aws_iam_role_policy" "ecs_task_permissions" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "SQSAccess"
-        Effect = "Allow"
-        Action = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
-        # Restringido a las colas del proyecto (antes era "*")
-        Resource = [
-          "arn:aws:sqs:*:*:${var.project_name}-*",
-        ]
+        Sid      = "SQSAccess"
+        Effect   = "Allow"
+        Action   = ["sqs:SendMessage","sqs:ReceiveMessage","sqs:DeleteMessage","sqs:GetQueueAttributes"]
+        Resource = "arn:aws:sqs:*:*:segat-*"
       },
       {
         Sid      = "S3ReportesAccess"
         Effect   = "Allow"
-        Action   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
+        Action   = ["s3:PutObject","s3:GetObject","s3:DeleteObject"]
         Resource = "arn:aws:s3:::${var.project_name}-reportes-*/*"
       },
       {
-        Sid    = "DynamoDBAccess"
-        Effect = "Allow"
-        Action = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:Query", "dynamodb:Scan"]
-        Resource = [
-          "arn:aws:dynamodb:*:*:table/${var.project_name}-*",
-          "arn:aws:dynamodb:*:*:table/${var.project_name}-*/index/*",
-        ]
+        Sid      = "DynamoDBAccess"
+        Effect   = "Allow"
+        Action   = ["dynamodb:PutItem","dynamodb:GetItem","dynamodb:UpdateItem","dynamodb:Query","dynamodb:Scan"]
+        Resource = "arn:aws:dynamodb:*:*:table/${var.project_name}-*"
       },
       {
-        Sid    = "SNSPublish"
-        Effect = "Allow"
-        Action = ["sns:Publish"]
-        # Restringido a los topics del proyecto (antes era "*")
-        Resource = "arn:aws:sns:*:*:${var.project_name}-*"
+        Sid      = "SNSPublish"
+        Effect   = "Allow"
+        Action   = ["sns:Publish"]
+        Resource = "arn:aws:sns:*:*:segat-*"
       },
       {
-        Sid    = "SecretsAccess"
-        Effect = "Allow"
-        Action = ["secretsmanager:GetSecretValue"]
+        Sid      = "SecretsAccess"
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
         Resource = "arn:aws:secretsmanager:*:*:secret:${var.project_name}/*"
       }
     ]
@@ -124,14 +104,8 @@ resource "aws_iam_role_policy_attachment" "autoscaling_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole"
 }
 
-# =============================================================================
-# RDS Enhanced Monitoring Role
-# Requerido cuando monitoring_interval > 0 en aws_db_instance
-# =============================================================================
-
 resource "aws_iam_role" "rds_monitoring" {
-  name        = "${var.project_name}-rds-enhanced-monitoring"
-  description = "Permite a RDS enviar metricas de Enhanced Monitoring a CloudWatch"
+  name = "${var.project_name}-rds-monitoring-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{

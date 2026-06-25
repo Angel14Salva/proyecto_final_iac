@@ -16,7 +16,9 @@ resource "aws_wafv2_web_acl" "main" {
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
     priority = 1
-    override_action { none {} }
+    override_action {
+      none {}
+    }
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesCommonRuleSet"
@@ -34,7 +36,9 @@ resource "aws_wafv2_web_acl" "main" {
   rule {
     name     = "AWSManagedRulesBotControlRuleSet"
     priority = 2
-    override_action { none {} }
+    override_action {
+      none {}
+    }
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesBotControlRuleSet"
@@ -80,6 +84,24 @@ resource "aws_wafv2_web_acl" "main" {
   }
 
   tags = { Name = "${var.project_name}-waf" }
+  rule {
+    name     = "AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 4
+    override_action {
+      none {}
+    }
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "KnownBadInputs"
+      sampled_requests_enabled   = true
+    }
+  }
 }
 
 # Asociar el WAF al ALB externo

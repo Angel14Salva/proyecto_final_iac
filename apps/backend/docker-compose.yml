@@ -1,7 +1,32 @@
+# =============================================================================
+# docker-compose.yml — Entorno de desarrollo local SEGAT
+# =============================================================================
 services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: segat-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/reportes_db
+      SPRING_DATASOURCE_USERNAME: dev_user
+      SPRING_DATASOURCE_PASSWORD: dev_pass
+      APP_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
   postgres:
     image: postgis/postgis:15-3.3
-    container_name: reportes-db
+    container_name: segat-db
     environment:
       POSTGRES_DB: reportes_db
       POSTGRES_USER: dev_user
@@ -11,6 +36,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev_user -d reportes_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

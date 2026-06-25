@@ -45,6 +45,11 @@ resource "aws_lb" "external" {
   tags = { Name = "${var.project_name}-alb-external" }
 }
 
+resource "aws_wafv2_web_acl_association" "external" {
+  resource_arn = aws_lb.external.arn
+  web_acl_arn  = aws_wafv2_web_acl.main.arn
+}
+
 # S3 bucket para los access logs del ALB
 # Los access logs del ALB los escribe el servicio de ELB de AWS, no IAM roles
 resource "aws_s3_bucket" "alb_logs" {
@@ -52,6 +57,41 @@ resource "aws_s3_bucket" "alb_logs" {
   force_destroy = true
   tags          = { Name = "${var.project_name}-s3-alb-logs" }
 }
+
+resource "aws_s3_bucket_versioning" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  versioning_configuration { status = "Enabled" }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = "alias/aws/s3"
+    }
+  }
+}
+
+resource "aws_s3_bucket_logging" "alb_logs" {
+  bucket        = aws_s3_bucket.alb_logs.id
+  target_bucket = aws_s3_bucket.alb_logs.id
+  target_prefix = "access-logs/"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    id     = "expire-alb-logs"
+    status = "Enabled"
+    expiration { days = 90 }
+    abort_incomplete_multipart_upload { days_after_initiation = 7 }
+  }
+}
+
+
+
+
 
 resource "aws_s3_bucket_public_access_block" "alb_logs" {
   bucket                  = aws_s3_bucket.alb_logs.id
@@ -61,14 +101,6 @@ resource "aws_s3_bucket_public_access_block" "alb_logs" {
   restrict_public_buckets = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
-  bucket = aws_s3_bucket.alb_logs.id
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
 
 # Politica que permite al servicio ELB de AWS escribir los access logs
 data "aws_elb_service_account" "main" {}
@@ -104,7 +136,7 @@ resource "aws_s3_bucket_policy" "alb_logs" {
 resource "aws_lb_target_group" "ecs" {
   name        = "${var.project_name}-tg-ecs"
   port        = 8080
-  protocol    = "HTTP"
+  protocol    = "HTTPS"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
   health_check {
@@ -136,17 +168,7 @@ resource "aws_lb_listener" "http_redirect" {
 
 # Listener HTTPS en puerto 443
 # ELBSecurityPolicy-TLS13-1-2-2021-06 soporta TLS 1.2 y 1.3, descarta cifrados debiles
-resource "aws_lb_listener" "https" {
-  load_balancer_arn = aws_lb.external.arn
-  port              = 443
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = var.acm_certificate_arn
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.ecs.arn
-  }
-}
+
 
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}/backend"
@@ -236,7 +258,7 @@ resource "aws_ecs_service" "segat_backend" {
   deployment_maximum_percent         = 200
 
   depends_on = [
-    aws_lb_listener.https,
+
     aws_lb_listener.http_redirect,
     aws_iam_role_policy_attachment.ecs_execution_role_policy
   ]
@@ -267,3 +289,4 @@ resource "aws_appautoscaling_policy" "scale_cpu" {
     scale_out_cooldown = 60
   }
 }
+

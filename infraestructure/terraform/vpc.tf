@@ -14,61 +14,11 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-resource "aws_default_security_group" "default" {
-  vpc_id = aws_vpc.main.id
-  tags = { Name = "${var.project_name}-sg-default-blocked" }
-}
-
-resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
-  name              = "/vpc/${var.project_name}/flow-logs"
-  retention_in_days = 90
-  tags              = { Name = "${var.project_name}-vpc-flow-logs" }
-}
-
-resource "aws_iam_role" "vpc_flow_logs" {
-  name        = "${var.project_name}-vpc-flow-logs-role"
-  description = "Permite a VPC Flow Logs escribir en CloudWatch"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect    = "Allow"
-      Principal = { Service = "vpc-flow-logs.amazonaws.com" }
-      Action    = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy" "vpc_flow_logs" {
-  name = "${var.project_name}-vpc-flow-logs-policy"
-  role = aws_iam_role.vpc_flow_logs.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "logs:DescribeLogGroups",
-        "logs:DescribeLogStreams"
-      ]
-      Resource = "${aws_cloudwatch_log_group.vpc_flow_logs.arn}:*"
-    }]
-  })
-}
-
-resource "aws_flow_log" "main" {
-  iam_role_arn    = aws_iam_role.vpc_flow_logs.arn
-  log_destination = aws_cloudwatch_log_group.vpc_flow_logs.arn
-  traffic_type    = "ALL"
-  vpc_id          = aws_vpc.main.id
-  tags            = { Name = "${var.project_name}-vpc-flow-log" }
-}
-
 resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_public_cidr
   availability_zone       = data.aws_availability_zones.available.names[0]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags = { Name = "${var.project_name}-subnet-public-a", Tier = "Public" }
 }
 
@@ -76,7 +26,7 @@ resource "aws_subnet" "public_b" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_public_b_cidr
   availability_zone       = data.aws_availability_zones.available.names[1]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags = { Name = "${var.project_name}-subnet-public-b", Tier = "Public" }
 }
 
@@ -176,9 +126,8 @@ resource "aws_route_table_association" "private_c2" {
 
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-sg-alb"
-  description = "Trafico HTTP y HTTPS hacia el ALB externo"
+  description = "Trafico HTTP y HTTPS hacia el ALB"
   vpc_id      = aws_vpc.main.id
-
   ingress {
     description = "HTTPS desde internet"
     from_port   = 443
@@ -186,24 +135,13 @@ resource "aws_security_group" "alb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  ingress {
-    description = "HTTP desde internet (redireccion a HTTPS)"
-    from_port   = 80
-    to_port     = 80
+  egress {
+    description = "Salida hacia los Fargate Tasks"
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  # El ALB necesita enviar trafico al puerto 8080 de los contenedores Fargate
-  egress {
-    description     = "Salida hacia Fargate Tasks en puerto 8080"
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_tasks.id]
-  }
-
   tags = { Name = "${var.project_name}-sg-alb" }
 }
 
@@ -211,7 +149,6 @@ resource "aws_security_group" "ecs_tasks" {
   name        = "${var.project_name}-sg-ecs-tasks"
   description = "Trafico hacia Fargate solo desde el ALB"
   vpc_id      = aws_vpc.main.id
-
   ingress {
     description     = "Puerto 8080 solo desde el ALB"
     from_port       = 8080
@@ -219,43 +156,13 @@ resource "aws_security_group" "ecs_tasks" {
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
   }
-
-  # RDS PostgreSQL
   egress {
-    description     = "Acceso a RDS PostgreSQL (5432)"
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.rds.id]
-  }
-
-  # ElastiCache Redis
-  egress {
-    description     = "Acceso a ElastiCache Redis (6379)"
-    from_port       = 6379
-    to_port         = 6379
-    protocol        = "tcp"
-    security_groups = [aws_security_group.redis.id]
-  }
-
-  # Secrets Manager, ECR, CloudWatch, SQS, SNS, DynamoDB via NAT/VPC Endpoints
-  egress {
-    description = "HTTPS saliente (Secrets Manager, ECR, Cloudinary, etc.)"
+    description = "Salida a internet via NAT Gateway"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  # n8n webhooks pueden usar HTTP
-  egress {
-    description = "HTTP saliente (n8n webhooks)"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = { Name = "${var.project_name}-sg-ecs-tasks" }
 }
 
@@ -285,4 +192,23 @@ resource "aws_security_group" "redis" {
     security_groups = [aws_security_group.ecs_tasks.id]
   }
   tags = { Name = "${var.project_name}-sg-redis" }
+}
+
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
+  tags   = { Name = "${var.project_name}-default-sg-bloqueado" }
+}
+
+resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  name              = "/aws/vpc/flowlogs/${var.project_name}"
+  retention_in_days = 365
+  tags              = { Name = "${var.project_name}-vpc-flow-logs" }
+}
+
+resource "aws_flow_log" "main" {
+  vpc_id          = aws_vpc.main.id
+  traffic_type    = "ALL"
+  iam_role_arn    = aws_iam_role.ecs_execution_role.arn
+  log_destination = aws_cloudwatch_log_group.vpc_flow_logs.arn
+  tags            = { Name = "${var.project_name}-flow-log" }
 }

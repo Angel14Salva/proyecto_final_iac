@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
-<testsuites disabled="0" errors="0" failures="42" tests="188" time="0.0">
-	<testsuite disabled="0" errors="0" failures="42" name="terraform scan" skipped="0" tests="188" time="0">
+<testsuites disabled="0" errors="0" failures="16" tests="253" time="0.0">
+	<testsuite disabled="0" errors="0" failures="16" name="terraform scan" skipped="0" tests="253" time="0">
 		<properties>
 			<property name="directory" value="['/tf']"/>
 			<property name="add_check" value="False"/>
@@ -54,16 +54,33 @@
 		<testcase name="[NONE][CKV_AWS_322] Ensure ElastiCache for Redis cache clusters have auto minor version upgrades enabled" classname="/data.tf.aws_elasticache_cluster.redis" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_323] Ensure ElastiCache clusters do not use the default subnet group" classname="/data.tf.aws_elasticache_cluster.redis" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_134] Ensure that Amazon ElastiCache Redis clusters have automatic backup turned on" classname="/data.tf.aws_elasticache_cluster.redis" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_28] Ensure DynamoDB point in time recovery (backup) is enabled" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_28] Ensure DynamoDB point in time recovery (backup) is enabled" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_93] Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_56] Ensure S3 bucket has 'restrict_public_buckets' enabled" classname="/data.tf.aws_s3_bucket_public_access_block.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_55] Ensure S3 bucket has ignore public ACLs enabled" classname="/data.tf.aws_s3_bucket_public_access_block.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_53] Ensure S3 bucket has block public ACLS enabled" classname="/data.tf.aws_s3_bucket_public_access_block.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_54] Ensure S3 bucket has block public policy enabled" classname="/data.tf.aws_s3_bucket_public_access_block.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_300] Ensure S3 lifecycle configuration sets period for aborting failed uploads" classname="/data.tf.aws_s3_bucket_lifecycle_configuration.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_51] Ensure ECR Image Tags are immutable" classname="/ecs.tf.aws_ecr_repository.segat_backend" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_163] Ensure ECR image scanning on push is enabled" classname="/ecs.tf.aws_ecr_repository.segat_backend" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_136] Ensure that ECR repositories are encrypted using KMS" classname="/ecs.tf.aws_ecr_repository.segat_backend" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_65] Ensure container insights are enabled on ECS cluster" classname="/ecs.tf.aws_ecs_cluster.main" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_223] Ensure ECS Cluster enables logging of ECS Exec" classname="/ecs.tf.aws_ecs_cluster.main" file="/ecs.tf"/>
-		<testcase name="[NONE][CKV_AWS_328] Ensure that ALB is configured with defensive or strictest desync mitigation mode" classname="/ecs.tf.aws_lb.internal" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_328] Ensure that ALB is configured with defensive or strictest desync mitigation mode" classname="/ecs.tf.aws_lb.external" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_91] Ensure the ELBv2 (Application/Network) has access logging enabled" classname="/ecs.tf.aws_lb.external" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_150] Ensure that Load Balancer has deletion protection enabled" classname="/ecs.tf.aws_lb.external" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_131] Ensure that ALB drops HTTP headers" classname="/ecs.tf.aws_lb.external" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_93] Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_300] Ensure S3 lifecycle configuration sets period for aborting failed uploads" classname="/ecs.tf.aws_s3_bucket_lifecycle_configuration.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_56] Ensure S3 bucket has 'restrict_public_buckets' enabled" classname="/ecs.tf.aws_s3_bucket_public_access_block.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_55] Ensure S3 bucket has ignore public ACLs enabled" classname="/ecs.tf.aws_s3_bucket_public_access_block.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_53] Ensure S3 bucket has block public ACLS enabled" classname="/ecs.tf.aws_s3_bucket_public_access_block.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_54] Ensure S3 bucket has block public policy enabled" classname="/ecs.tf.aws_s3_bucket_public_access_block.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_70] Ensure S3 bucket does not allow an action with any Principal" classname="/ecs.tf.aws_s3_bucket_policy.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_93] Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)" classname="/ecs.tf.aws_s3_bucket_policy.alb_logs" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_261] Ensure HTTP HTTPS Target group defines Healthcheck" classname="/ecs.tf.aws_lb_target_group.ecs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_2] Ensure ALB protocol is HTTPS" classname="/ecs.tf.aws_lb_listener.http_redirect" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_338] Ensure CloudWatch log groups retains logs for at least 1 year" classname="/ecs.tf.aws_cloudwatch_log_group.ecs" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_66] Ensure that CloudWatch Log Group specifies retention days" classname="/ecs.tf.aws_cloudwatch_log_group.ecs" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_97] Ensure Encryption in transit is enabled for EFS volumes in ECS Task definitions" classname="/ecs.tf.aws_ecs_task_definition.segat_backend" file="/ecs.tf"/>
@@ -78,25 +95,34 @@
 		<testcase name="[NONE][CKV_AWS_274] Disallow IAM roles, users, and groups from using the AWS AdministratorAccess policy" classname="/iam.tf.aws_iam_role_policy_attachment.ecs_execution_role_policy" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_287] Ensure IAM policies does not allow credentials exposure" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_62] Ensure IAM policies that allow full &quot;*-*&quot; administrative privileges are not created" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
+		<testcase name="[NONE][CKV_AWS_355] Ensure no IAM policies documents allow &quot;*&quot; as a statement's resource for restrictable actions" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_289] Ensure IAM policies does not allow permissions management / resource exposure without constraints" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_286] Ensure IAM policies does not allow privilege escalation" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_63] Ensure no IAM policies documents allow &quot;*&quot; as a statement's actions" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_290] Ensure IAM policies does not allow write access without constraints" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
+		<testcase name="[NONE][CKV_AWS_288] Ensure IAM policies does not allow data exfiltration" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_61] Ensure AWS IAM policy does not allow assume role permission across all services" classname="/iam.tf.aws_iam_role.ecs_task_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_274] Disallow IAM roles, users, and groups from using the AWS AdministratorAccess policy" classname="/iam.tf.aws_iam_role.ecs_task_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_393] Ensure AWS GitHub Actions OIDC authorization policies only allow safe claims and claim order on IAM role" classname="/iam.tf.aws_iam_role.ecs_task_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_60] Ensure IAM role allows only specific services or principals to assume it" classname="/iam.tf.aws_iam_role.ecs_task_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_287] Ensure IAM policies does not allow credentials exposure" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_62] Ensure IAM policies that allow full &quot;*-*&quot; administrative privileges are not created" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
+		<testcase name="[NONE][CKV_AWS_355] Ensure no IAM policies documents allow &quot;*&quot; as a statement's resource for restrictable actions" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_289] Ensure IAM policies does not allow permissions management / resource exposure without constraints" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_286] Ensure IAM policies does not allow privilege escalation" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_63] Ensure no IAM policies documents allow &quot;*&quot; as a statement's actions" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
+		<testcase name="[NONE][CKV_AWS_290] Ensure IAM policies does not allow write access without constraints" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_288] Ensure IAM policies does not allow data exfiltration" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_61] Ensure AWS IAM policy does not allow assume role permission across all services" classname="/iam.tf.aws_iam_role.autoscaling_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_274] Disallow IAM roles, users, and groups from using the AWS AdministratorAccess policy" classname="/iam.tf.aws_iam_role.autoscaling_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_393] Ensure AWS GitHub Actions OIDC authorization policies only allow safe claims and claim order on IAM role" classname="/iam.tf.aws_iam_role.autoscaling_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_60] Ensure IAM role allows only specific services or principals to assume it" classname="/iam.tf.aws_iam_role.autoscaling_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_274] Disallow IAM roles, users, and groups from using the AWS AdministratorAccess policy" classname="/iam.tf.aws_iam_role_policy_attachment.autoscaling_role_policy" file="/iam.tf"/>
+		<testcase name="[NONE][CKV_AWS_61] Ensure AWS IAM policy does not allow assume role permission across all services" classname="/iam.tf.aws_iam_role.rds_monitoring" file="/iam.tf"/>
+		<testcase name="[NONE][CKV_AWS_274] Disallow IAM roles, users, and groups from using the AWS AdministratorAccess policy" classname="/iam.tf.aws_iam_role.rds_monitoring" file="/iam.tf"/>
+		<testcase name="[NONE][CKV_AWS_393] Ensure AWS GitHub Actions OIDC authorization policies only allow safe claims and claim order on IAM role" classname="/iam.tf.aws_iam_role.rds_monitoring" file="/iam.tf"/>
+		<testcase name="[NONE][CKV_AWS_60] Ensure IAM role allows only specific services or principals to assume it" classname="/iam.tf.aws_iam_role.rds_monitoring" file="/iam.tf"/>
+		<testcase name="[NONE][CKV_AWS_274] Disallow IAM roles, users, and groups from using the AWS AdministratorAccess policy" classname="/iam.tf.aws_iam_role_policy_attachment.rds_monitoring" file="/iam.tf"/>
 		<testcase name="[NONE][CKV_AWS_41] Ensure no hard coded AWS access key and secret key exists in provider" classname="/main.tf.aws.default" file="/main.tf"/>
 		<testcase name="[NONE][CKV_AWS_168] Ensure SQS queue policy is not public by only allowing specific services or principals to access it" classname="/messaging.tf.aws_sqs_queue.reportes_dlq" file="/messaging.tf"/>
 		<testcase name="[NONE][CKV_AWS_27] Ensure all data stored in the SQS queue is encrypted" classname="/messaging.tf.aws_sqs_queue.reportes_dlq" file="/messaging.tf"/>
@@ -111,6 +137,10 @@
 		<testcase name="[NONE][CKV_AWS_387] Ensure SQS policy does not allow public access through wildcards" classname="/messaging.tf.aws_sqs_queue_policy.notificaciones_policy" file="/messaging.tf"/>
 		<testcase name="[NONE][CKV_AWS_168] Ensure SQS queue policy is not public by only allowing specific services or principals to access it" classname="/messaging.tf.aws_sqs_queue_policy.notificaciones_policy" file="/messaging.tf"/>
 		<testcase name="[NONE][CKV_AWS_26] Ensure all data stored in the SNS topic is encrypted" classname="/messaging.tf.aws_sns_topic.alertas" file="/messaging.tf"/>
+		<testcase name="[NONE][CKV_AWS_227] Ensure KMS key is enabled" classname="/messaging.tf.aws_kms_key.sqs" file="/messaging.tf"/>
+		<testcase name="[NONE][CKV_AWS_7] Ensure rotation for customer created CMKs is enabled" classname="/messaging.tf.aws_kms_key.sqs" file="/messaging.tf"/>
+		<testcase name="[NONE][CKV_AWS_33] Ensure KMS key policy does not contain wildcard (*) principal" classname="/messaging.tf.aws_kms_key.sqs" file="/messaging.tf"/>
+		<testcase name="[NONE][CKV_AWS_149] Ensure that Secrets Manager secret is encrypted using KMS CMK" classname="/observability.tf.aws_secretsmanager_secret.db_credentials" file="/observability.tf"/>
 		<testcase name="[NONE][CKV_AWS_319] Ensure that CloudWatch alarm actions are enabled" classname="/observability.tf.aws_cloudwatch_metric_alarm.ecs_cpu_high" file="/observability.tf"/>
 		<testcase name="[NONE][CKV_AWS_319] Ensure that CloudWatch alarm actions are enabled" classname="/observability.tf.aws_cloudwatch_metric_alarm.reportes_dlq_depth" file="/observability.tf"/>
 		<testcase name="[NONE][CKV_AWS_93] Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
@@ -120,14 +150,41 @@
 		<testcase name="[NONE][CKV_AWS_54] Ensure S3 bucket has block public policy enabled" classname="/observability.tf.aws_s3_bucket_public_access_block.cloudtrail_logs" file="/observability.tf"/>
 		<testcase name="[NONE][CKV_AWS_93] Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)" classname="/observability.tf.aws_s3_bucket_policy.cloudtrail_logs" file="/observability.tf"/>
 		<testcase name="[NONE][CKV_AWS_36] Ensure CloudTrail log file validation is enabled" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_35] Ensure CloudTrail logs are encrypted at rest using KMS CMKs" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf"/>
 		<testcase name="[NONE][CKV_AWS_252] Ensure CloudTrail defines an SNS Topic" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf"/>
 		<testcase name="[NONE][CKV_AWS_67] Ensure CloudTrail is enabled in all Regions" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf"/>
 		<testcase name="[NONE][CKV_AWS_251] Ensure CloudTrail logging is enabled" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_158] Ensure that CloudWatch Log Group is encrypted by KMS" classname="/observability.tf.aws_cloudwatch_log_group.cloudtrail" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_338] Ensure CloudWatch log groups retains logs for at least 1 year" classname="/observability.tf.aws_cloudwatch_log_group.cloudtrail" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_66] Ensure that CloudWatch Log Group specifies retention days" classname="/observability.tf.aws_cloudwatch_log_group.cloudtrail" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_61] Ensure AWS IAM policy does not allow assume role permission across all services" classname="/observability.tf.aws_iam_role.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_274] Disallow IAM roles, users, and groups from using the AWS AdministratorAccess policy" classname="/observability.tf.aws_iam_role.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_393] Ensure AWS GitHub Actions OIDC authorization policies only allow safe claims and claim order on IAM role" classname="/observability.tf.aws_iam_role.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_60] Ensure IAM role allows only specific services or principals to assume it" classname="/observability.tf.aws_iam_role.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_287] Ensure IAM policies does not allow credentials exposure" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_62] Ensure IAM policies that allow full &quot;*-*&quot; administrative privileges are not created" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_355] Ensure no IAM policies documents allow &quot;*&quot; as a statement's resource for restrictable actions" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_289] Ensure IAM policies does not allow permissions management / resource exposure without constraints" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_286] Ensure IAM policies does not allow privilege escalation" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_63] Ensure no IAM policies documents allow &quot;*&quot; as a statement's actions" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_290] Ensure IAM policies does not allow write access without constraints" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_288] Ensure IAM policies does not allow data exfiltration" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_304] Ensure Secrets Manager secrets should be rotated within 90 days" classname="/observability.tf.aws_secretsmanager_secret_rotation.db_credentials" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_300] Ensure S3 lifecycle configuration sets period for aborting failed uploads" classname="/observability.tf.aws_s3_bucket_lifecycle_configuration.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_227] Ensure KMS key is enabled" classname="/observability.tf.aws_kms_key.secrets" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_7] Ensure rotation for customer created CMKs is enabled" classname="/observability.tf.aws_kms_key.secrets" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_33] Ensure KMS key policy does not contain wildcard (*) principal" classname="/observability.tf.aws_kms_key.secrets" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_149] Ensure that Secrets Manager secret is encrypted using KMS CMK" classname="/observability.tf.aws_secretsmanager_secret.cloudinary" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_149] Ensure that Secrets Manager secret is encrypted using KMS CMK" classname="/observability.tf.aws_secretsmanager_secret.jwt" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_149] Ensure that Secrets Manager secret is encrypted using KMS CMK" classname="/observability.tf.aws_secretsmanager_secret.n8n" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_130] Ensure VPC subnets do not assign public IP by default" classname="/vpc.tf.aws_subnet.public_a" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV_AWS_130] Ensure VPC subnets do not assign public IP by default" classname="/vpc.tf.aws_subnet.public_b" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_130] Ensure VPC subnets do not assign public IP by default" classname="/vpc.tf.aws_subnet.private_a" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_130] Ensure VPC subnets do not assign public IP by default" classname="/vpc.tf.aws_subnet.private_b" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_130] Ensure VPC subnets do not assign public IP by default" classname="/vpc.tf.aws_subnet.private_c" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_130] Ensure VPC subnets do not assign public IP by default" classname="/vpc.tf.aws_subnet.private_c2" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_277] Ensure no security groups allow ingress from 0.0.0.0:0 to port -1" classname="/vpc.tf.aws_security_group.alb" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV_AWS_260] Ensure no security groups allow ingress from 0.0.0.0:0 to port 80" classname="/vpc.tf.aws_security_group.alb" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_23] Ensure every security group and rule has a description" classname="/vpc.tf.aws_security_group.alb" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_382] Ensure no security groups allow egress from 0.0.0.0:0 to port -1" classname="/vpc.tf.aws_security_group.alb" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_24] Ensure no security groups allow ingress from 0.0.0.0:0 to port 22" classname="/vpc.tf.aws_security_group.alb" file="/vpc.tf"/>
@@ -150,830 +207,346 @@
 		<testcase name="[NONE][CKV_AWS_382] Ensure no security groups allow egress from 0.0.0.0:0 to port -1" classname="/vpc.tf.aws_security_group.redis" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_24] Ensure no security groups allow ingress from 0.0.0.0:0 to port 22" classname="/vpc.tf.aws_security_group.redis" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_25] Ensure no security groups allow ingress from 0.0.0.0:0 to port 3389" classname="/vpc.tf.aws_security_group.redis" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV_AWS_338] Ensure CloudWatch log groups retains logs for at least 1 year" classname="/vpc.tf.aws_cloudwatch_log_group.vpc_flow_logs" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV_AWS_66] Ensure that CloudWatch Log Group specifies retention days" classname="/vpc.tf.aws_cloudwatch_log_group.vpc_flow_logs" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV_AWS_342] Ensure WAF rule has any actions" classname="/waf.tf.aws_wafv2_web_acl.main" file="/waf.tf"/>
+		<testcase name="[NONE][CKV_AWS_175] Ensure WAF has associated rules" classname="/waf.tf.aws_wafv2_web_acl.main" file="/waf.tf"/>
+		<testcase name="[NONE][CKV_AWS_192] Ensure WAF prevents message lookup in Log4j2. See CVE-2021-44228 aka log4jshell" classname="/waf.tf.aws_wafv2_web_acl.main" file="/waf.tf"/>
+		<testcase name="[NONE][CKV_AWS_66] Ensure that CloudWatch Log Group specifies retention days" classname="/waf.tf.aws_cloudwatch_log_group.waf" file="/waf.tf"/>
 		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/iam.tf.aws_iam_role.ecs_execution_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/iam.tf.aws_iam_role_policy_attachment.ecs_execution_role_policy" file="/iam.tf"/>
 		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/iam.tf.aws_iam_role.ecs_task_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/iam.tf.aws_iam_role.autoscaling_role" file="/iam.tf"/>
 		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/iam.tf.aws_iam_role_policy_attachment.autoscaling_role_policy" file="/iam.tf"/>
-		<testcase name="[NONE][CKV2_AWS_69] Ensure AWS RDS database instance configured with encryption in transit" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
-		<testcase name="[NONE][CKV_AWS_20] S3 Bucket has an ACL defined which allows public READ access." classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
-		<testcase name="[NONE][CKV_AWS_20] S3 Bucket has an ACL defined which allows public READ access." classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
-		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
-		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
-		<testcase name="[NONE][CKV2_AWS_74] Ensure AWS Load Balancers use strong ciphers" classname="/ecs.tf.aws_lb_listener.http" file="/ecs.tf"/>
-		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
-		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
-		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
-		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
-		<testcase name="[NONE][CKV2_AWS_44] Ensure AWS route table with VPC peering does not contain routes overly permissive to all traffic" classname="/vpc.tf.aws_route_table.public" file="/vpc.tf"/>
-		<testcase name="[NONE][CKV2_AWS_44] Ensure AWS route table with VPC peering does not contain routes overly permissive to all traffic" classname="/vpc.tf.aws_route_table.private" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/iam.tf.aws_iam_role.rds_monitoring" file="/iam.tf"/>
+		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/iam.tf.aws_iam_role_policy_attachment.rds_monitoring" file="/iam.tf"/>
+		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/observability.tf.aws_iam_role.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_18] Ensure the S3 bucket has access logging enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_18] Ensure the S3 bucket has access logging enabled" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_18] Ensure the S3 bucket has access logging enabled" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_57] Ensure Secrets Manager secrets should have automatic rotation enabled" classname="/observability.tf.aws_secretsmanager_secret.db_credentials" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_19] Ensure that all EIP addresses allocated to a VPC are attached to EC2 instances" classname="/vpc.tf.aws_eip.nat" file="/vpc.tf"/>
-		<testcase name="[NONE][CKV2_AWS_60] Ensure RDS instance with copy tags to snapshots is enabled" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
-		<testcase name="[NONE][CKV2_AWS_6] Ensure that S3 bucket has a Public Access block" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
-		<testcase name="[NONE][CKV2_AWS_6] Ensure that S3 bucket has a Public Access block" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_378] Ensure AWS Load Balancer doesn't use HTTP protocol" classname="/ecs.tf.aws_lb_target_group.ecs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV2_AWS_30] Ensure Postgres RDS as aws_db_instance has Query Logging enabled" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_20] S3 Bucket has an ACL defined which allows public READ access." classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_20] S3 Bucket has an ACL defined which allows public READ access." classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_20] S3 Bucket has an ACL defined which allows public READ access." classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_69] Ensure AWS RDS database instance configured with encryption in transit" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_103] Ensure that load balancer is using at least TLS 1.2" classname="/ecs.tf.aws_lb_listener.http_redirect" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV2_AWS_20] Ensure that ALB redirects HTTP requests into HTTPS ones" classname="/ecs.tf.aws_lb.external" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_64] Ensure KMS key Policy is defined" classname="/messaging.tf.aws_kms_key.sqs" file="/messaging.tf"/>
+		<testcase name="[NONE][CKV2_AWS_64] Ensure KMS key Policy is defined" classname="/observability.tf.aws_kms_key.secrets" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_74] Ensure AWS Load Balancers use strong ciphers" classname="/ecs.tf.aws_lb_listener.http_redirect" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV2_AWS_31] Ensure WAF2 has a Logging Configuration" classname="/waf.tf.aws_wafv2_web_acl.main" file="/waf.tf"/>
 		<testcase name="[NONE][CKV2_AWS_40] Ensure AWS IAM policy does not allow full IAM privileges" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
 		<testcase name="[NONE][CKV2_AWS_40] Ensure AWS IAM policy does not allow full IAM privileges" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
+		<testcase name="[NONE][CKV2_AWS_40] Ensure AWS IAM policy does not allow full IAM privileges" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_145] Ensure that S3 buckets are encrypted with KMS by default" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_145] Ensure that S3 buckets are encrypted with KMS by default" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_145] Ensure that S3 buckets are encrypted with KMS by default" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_44] Ensure AWS route table with VPC peering does not contain routes overly permissive to all traffic" classname="/vpc.tf.aws_route_table.public" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV2_AWS_44] Ensure AWS route table with VPC peering does not contain routes overly permissive to all traffic" classname="/vpc.tf.aws_route_table.private" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV2_AWS_16] Ensure that Auto Scaling is enabled on your DynamoDB tables" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf"/>
+		<testcase name="[NONE][CKV2_AWS_16] Ensure that Auto Scaling is enabled on your DynamoDB tables" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf"/>
+		<testcase name="[NONE][CKV2_AWS_60] Ensure RDS instance with copy tags to snapshots is enabled" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
+		<testcase name="[NONE][CKV2_AWS_11] Ensure VPC flow logging is enabled in all VPCs" classname="/vpc.tf.aws_vpc.main" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV2_AWS_61] Ensure that an S3 bucket has a lifecycle configuration" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV2_AWS_61] Ensure that an S3 bucket has a lifecycle configuration" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV2_AWS_61] Ensure that an S3 bucket has a lifecycle configuration" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_5] Ensure that Security Groups are attached to another resource" classname="/vpc.tf.aws_security_group.rds" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_5] Ensure that Security Groups are attached to another resource" classname="/vpc.tf.aws_security_group.redis" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_5] Ensure that Security Groups are attached to another resource" classname="/vpc.tf.aws_security_group.alb" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_5] Ensure that Security Groups are attached to another resource" classname="/vpc.tf.aws_security_group.ecs_tasks" file="/vpc.tf"/>
-		<testcase name="[NONE][CKV2_AWS_16] Ensure that Auto Scaling is enabled on your DynamoDB tables" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf"/>
-		<testcase name="[NONE][CKV2_AWS_16] Ensure that Auto Scaling is enabled on your DynamoDB tables" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_35] AWS NAT Gateways should be utilized for the default route" classname="/vpc.tf.aws_route_table.public" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_35] AWS NAT Gateways should be utilized for the default route" classname="/vpc.tf.aws_route_table.private" file="/vpc.tf"/>
-		<testcase name="[NONE][CKV2_AWS_28] Ensure public facing ALB are protected by WAF" classname="/ecs.tf.aws_lb.internal" file="/ecs.tf"/>
-		<testcase name="[NONE][CKV2_AWS_76] Ensure AWS ALB attached WAFv2 WebACL is configured with AMR for Log4j Vulnerability" classname="/ecs.tf.aws_lb.internal" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV2_AWS_10] Ensure CloudTrail trails are integrated with CloudWatch Logs" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_6] Ensure that S3 bucket has a Public Access block" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV2_AWS_6] Ensure that S3 bucket has a Public Access block" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV2_AWS_6] Ensure that S3 bucket has a Public Access block" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_28] Ensure public facing ALB are protected by WAF" classname="/ecs.tf.aws_lb.external" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV2_AWS_12] Ensure the default security group of every VPC restricts all traffic" classname="/vpc.tf.aws_vpc.main" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_119] Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf">
 			<failure type="failure" message="Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK">
 Resource: aws_dynamodb_table.gps_locations
-File: /data.tf: 59-81
+File: /data.tf: 80-111
 Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-52
 
-		59 | resource &quot;aws_dynamodb_table&quot; &quot;gps_locations&quot; {
-		60 |   name         = &quot;${var.project_name}-gps-locations&quot;
-		61 |   billing_mode = &quot;PAY_PER_REQUEST&quot;
-		62 |   hash_key     = &quot;reporte_id&quot;
-		63 |   range_key    = &quot;timestamp&quot;
-		64 | 
-		65 |   attribute {
-		66 |     name = &quot;reporte_id&quot;
-		67 |     type = &quot;S&quot;
-		68 |   }
-		69 | 
-		70 |   attribute {
-		71 |     name = &quot;timestamp&quot;
-		72 |     type = &quot;S&quot;
-		73 |   }
-		74 | 
-		75 |   ttl {
-		76 |     attribute_name = &quot;expiration_time&quot;
-		77 |     enabled        = true
-		78 |   }
-		79 | 
-		80 |   tags = { Name = &quot;${var.project_name}-dynamodb-gps&quot; }
-		81 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_28] Ensure DynamoDB point in time recovery (backup) is enabled" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf">
-			<failure type="failure" message="Ensure DynamoDB point in time recovery (backup) is enabled">
-Resource: aws_dynamodb_table.gps_locations
-File: /data.tf: 59-81
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-6
-
-		59 | resource &quot;aws_dynamodb_table&quot; &quot;gps_locations&quot; {
-		60 |   name         = &quot;${var.project_name}-gps-locations&quot;
-		61 |   billing_mode = &quot;PAY_PER_REQUEST&quot;
-		62 |   hash_key     = &quot;reporte_id&quot;
-		63 |   range_key    = &quot;timestamp&quot;
-		64 | 
-		65 |   attribute {
-		66 |     name = &quot;reporte_id&quot;
-		67 |     type = &quot;S&quot;
-		68 |   }
-		69 | 
-		70 |   attribute {
-		71 |     name = &quot;timestamp&quot;
-		72 |     type = &quot;S&quot;
-		73 |   }
-		74 | 
-		75 |   ttl {
-		76 |     attribute_name = &quot;expiration_time&quot;
-		77 |     enabled        = true
-		78 |   }
-		79 | 
-		80 |   tags = { Name = &quot;${var.project_name}-dynamodb-gps&quot; }
-		81 | }
+		80  | resource &quot;aws_dynamodb_table&quot; &quot;gps_locations&quot; {
+		81  |   name         = &quot;${var.project_name}-gps-locations&quot;
+		82  |   billing_mode = &quot;PAY_PER_REQUEST&quot;
+		83  |   hash_key     = &quot;reporte_id&quot;
+		84  |   range_key    = &quot;timestamp&quot;
+		85  | 
+		86  |   attribute {
+		87  |     name = &quot;reporte_id&quot;
+		88  |     type = &quot;S&quot;
+		89  |   }
+		90  | 
+		91  |   attribute {
+		92  |     name = &quot;timestamp&quot;
+		93  |     type = &quot;S&quot;
+		94  |   }
+		95  | 
+		96  |   ttl {
+		97  |     attribute_name = &quot;expiration_time&quot;
+		98  |     enabled        = true
+		99  |   }
+		100 | 
+		101 |   server_side_encryption {
+		102 |     enabled     = true
+		103 | 
+		104 |   }
+		105 | 
+		106 |   point_in_time_recovery {
+		107 |     enabled = true
+		108 |   }
+		109 | 
+		110 |   tags = { Name = &quot;${var.project_name}-dynamodb-gps&quot; }
+		111 | }
 </failure>
 		</testcase>
 		<testcase name="[NONE][CKV_AWS_119] Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf">
 			<failure type="failure" message="Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK">
 Resource: aws_dynamodb_table.notifications
-File: /data.tf: 83-100
+File: /data.tf: 113-139
 Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-52
 
-		83  | resource &quot;aws_dynamodb_table&quot; &quot;notifications&quot; {
-		84  |   name         = &quot;${var.project_name}-notifications&quot;
-		85  |   billing_mode = &quot;PAY_PER_REQUEST&quot;
-		86  |   hash_key     = &quot;notification_id&quot;
-		87  |   range_key    = &quot;user_id&quot;
-		88  | 
-		89  |   attribute {
-		90  |     name = &quot;notification_id&quot;
-		91  |     type = &quot;S&quot;
-		92  |   }
-		93  | 
-		94  |   attribute {
-		95  |     name = &quot;user_id&quot;
-		96  |     type = &quot;S&quot;
-		97  |   }
-		98  | 
-		99  |   tags = { Name = &quot;${var.project_name}-dynamodb-notifications&quot; }
-		100 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_28] Ensure DynamoDB point in time recovery (backup) is enabled" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf">
-			<failure type="failure" message="Ensure DynamoDB point in time recovery (backup) is enabled">
-Resource: aws_dynamodb_table.notifications
-File: /data.tf: 83-100
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-6
-
-		83  | resource &quot;aws_dynamodb_table&quot; &quot;notifications&quot; {
-		84  |   name         = &quot;${var.project_name}-notifications&quot;
-		85  |   billing_mode = &quot;PAY_PER_REQUEST&quot;
-		86  |   hash_key     = &quot;notification_id&quot;
-		87  |   range_key    = &quot;user_id&quot;
-		88  | 
-		89  |   attribute {
-		90  |     name = &quot;notification_id&quot;
-		91  |     type = &quot;S&quot;
-		92  |   }
-		93  | 
-		94  |   attribute {
-		95  |     name = &quot;user_id&quot;
-		96  |     type = &quot;S&quot;
-		97  |   }
-		98  | 
-		99  |   tags = { Name = &quot;${var.project_name}-dynamodb-notifications&quot; }
-		100 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_51] Ensure ECR Image Tags are immutable" classname="/ecs.tf.aws_ecr_repository.segat_backend" file="/ecs.tf">
-			<failure type="failure" message="Ensure ECR Image Tags are immutable">
-Resource: aws_ecr_repository.segat_backend
-File: /ecs.tf: 6-11
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-general-24
-
-		6  | resource &quot;aws_ecr_repository&quot; &quot;segat_backend&quot; {
-		7  |   name                 = &quot;${var.project_name}/backend&quot;
-		8  |   image_tag_mutability = &quot;MUTABLE&quot;
-		9  |   image_scanning_configuration { scan_on_push = true }
-		10 |   tags = { Name = &quot;${var.project_name}-ecr-backend&quot; }
-		11 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_136] Ensure that ECR repositories are encrypted using KMS" classname="/ecs.tf.aws_ecr_repository.segat_backend" file="/ecs.tf">
-			<failure type="failure" message="Ensure that ECR repositories are encrypted using KMS">
-Resource: aws_ecr_repository.segat_backend
-File: /ecs.tf: 6-11
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-ecr-repositories-are-encrypted
-
-		6  | resource &quot;aws_ecr_repository&quot; &quot;segat_backend&quot; {
-		7  |   name                 = &quot;${var.project_name}/backend&quot;
-		8  |   image_tag_mutability = &quot;MUTABLE&quot;
-		9  |   image_scanning_configuration { scan_on_push = true }
-		10 |   tags = { Name = &quot;${var.project_name}-ecr-backend&quot; }
-		11 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_91] Ensure the ELBv2 (Application/Network) has access logging enabled" classname="/ecs.tf.aws_lb.internal" file="/ecs.tf">
-			<failure type="failure" message="Ensure the ELBv2 (Application/Network) has access logging enabled">
-Resource: aws_lb.internal
-File: /ecs.tf: 22-29
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-logging-22
-
-		22 | resource &quot;aws_lb&quot; &quot;internal&quot; {
-		23 |   name               = &quot;${var.project_name}-alb-internal&quot;
-		24 |   internal           = true
-		25 |   load_balancer_type = &quot;application&quot;
-		26 |   security_groups    = [aws_security_group.alb.id]
-		27 |   subnets            = [aws_subnet.private_a.id, aws_subnet.private_b.id]
-		28 |   tags               = { Name = &quot;${var.project_name}-alb-internal&quot; }
-		29 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_150] Ensure that Load Balancer has deletion protection enabled" classname="/ecs.tf.aws_lb.internal" file="/ecs.tf">
-			<failure type="failure" message="Ensure that Load Balancer has deletion protection enabled">
-Resource: aws_lb.internal
-File: /ecs.tf: 22-29
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-150
-
-		22 | resource &quot;aws_lb&quot; &quot;internal&quot; {
-		23 |   name               = &quot;${var.project_name}-alb-internal&quot;
-		24 |   internal           = true
-		25 |   load_balancer_type = &quot;application&quot;
-		26 |   security_groups    = [aws_security_group.alb.id]
-		27 |   subnets            = [aws_subnet.private_a.id, aws_subnet.private_b.id]
-		28 |   tags               = { Name = &quot;${var.project_name}-alb-internal&quot; }
-		29 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_131] Ensure that ALB drops HTTP headers" classname="/ecs.tf.aws_lb.internal" file="/ecs.tf">
-			<failure type="failure" message="Ensure that ALB drops HTTP headers">
-Resource: aws_lb.internal
-File: /ecs.tf: 22-29
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-that-alb-drops-http-headers
-
-		22 | resource &quot;aws_lb&quot; &quot;internal&quot; {
-		23 |   name               = &quot;${var.project_name}-alb-internal&quot;
-		24 |   internal           = true
-		25 |   load_balancer_type = &quot;application&quot;
-		26 |   security_groups    = [aws_security_group.alb.id]
-		27 |   subnets            = [aws_subnet.private_a.id, aws_subnet.private_b.id]
-		28 |   tags               = { Name = &quot;${var.project_name}-alb-internal&quot; }
-		29 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_2] Ensure ALB protocol is HTTPS" classname="/ecs.tf.aws_lb_listener.http" file="/ecs.tf">
-			<failure type="failure" message="Ensure ALB protocol is HTTPS">
-Resource: aws_lb_listener.http
-File: /ecs.tf: 48-56
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-29
-
-		48 | resource &quot;aws_lb_listener&quot; &quot;http&quot; {
-		49 |   load_balancer_arn = aws_lb.internal.arn
-		50 |   port              = 80
-		51 |   protocol          = &quot;HTTP&quot;
-		52 |   default_action {
-		53 |     type             = &quot;forward&quot;
-		54 |     target_group_arn = aws_lb_target_group.ecs.arn
-		55 |   }
-		56 | }
+		113 | resource &quot;aws_dynamodb_table&quot; &quot;notifications&quot; {
+		114 |   name         = &quot;${var.project_name}-notifications&quot;
+		115 |   billing_mode = &quot;PAY_PER_REQUEST&quot;
+		116 |   hash_key     = &quot;notification_id&quot;
+		117 |   range_key    = &quot;user_id&quot;
+		118 | 
+		119 |   attribute {
+		120 |     name = &quot;notification_id&quot;
+		121 |     type = &quot;S&quot;
+		122 |   }
+		123 | 
+		124 |   attribute {
+		125 |     name = &quot;user_id&quot;
+		126 |     type = &quot;S&quot;
+		127 |   }
+		128 | 
+		129 |   server_side_encryption {
+		130 |     enabled     = true
+		131 | 
+		132 |   }
+		133 | 
+		134 |   point_in_time_recovery {
+		135 |     enabled = true
+		136 |   }
+		137 | 
+		138 |   tags = { Name = &quot;${var.project_name}-dynamodb-notifications&quot; }
+		139 | }
 </failure>
 		</testcase>
 		<testcase name="[NONE][CKV_AWS_158] Ensure that CloudWatch Log Group is encrypted by KMS" classname="/ecs.tf.aws_cloudwatch_log_group.ecs" file="/ecs.tf">
 			<failure type="failure" message="Ensure that CloudWatch Log Group is encrypted by KMS">
 Resource: aws_cloudwatch_log_group.ecs
-File: /ecs.tf: 58-62
+File: /ecs.tf: 173-177
 Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-cloudwatch-log-group-is-encrypted-by-kms
 
-		58 | resource &quot;aws_cloudwatch_log_group&quot; &quot;ecs&quot; {
-		59 |   name              = &quot;/ecs/${var.project_name}/backend&quot;
-		60 |   retention_in_days = 365
-		61 |   tags              = { Name = &quot;${var.project_name}-ecs-logs&quot; }
-		62 | }
+		173 | resource &quot;aws_cloudwatch_log_group&quot; &quot;ecs&quot; {
+		174 |   name              = &quot;/ecs/${var.project_name}/backend&quot;
+		175 |   retention_in_days = 365
+		176 |   tags              = { Name = &quot;${var.project_name}-ecs-logs&quot; }
+		177 | }
 </failure>
 		</testcase>
-		<testcase name="[NONE][CKV_AWS_355] Ensure no IAM policies documents allow &quot;*&quot; as a statement's resource for restrictable actions" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf">
-			<failure type="failure" message="Ensure no IAM policies documents allow &quot;*&quot; as a statement's resource for restrictable actions">
-Resource: aws_iam_role_policy.ecs_execution_secrets
-File: /iam.tf: 23-34
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-355
+		<testcase name="[NONE][CKV_AWS_158] Ensure that CloudWatch Log Group is encrypted by KMS" classname="/vpc.tf.aws_cloudwatch_log_group.vpc_flow_logs" file="/vpc.tf">
+			<failure type="failure" message="Ensure that CloudWatch Log Group is encrypted by KMS">
+Resource: aws_cloudwatch_log_group.vpc_flow_logs
+File: /vpc.tf: 202-206
+Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-cloudwatch-log-group-is-encrypted-by-kms
 
-		23 | resource &quot;aws_iam_role_policy&quot; &quot;ecs_execution_secrets&quot; {
-		24 |   name = &quot;${var.project_name}-ecs-execution-secrets&quot;
-		25 |   role = aws_iam_role.ecs_execution_role.id
-		26 |   policy = jsonencode({
-		27 |     Version = &quot;2012-10-17&quot;
-		28 |     Statement = [{
-		29 |       Effect   = &quot;Allow&quot;
-		30 |       Action   = [&quot;secretsmanager:GetSecretValue&quot;, &quot;ssm:GetParameters&quot;]
-		31 |       Resource = &quot;*&quot;
-		32 |     }]
-		33 |   })
-		34 | }
+		202 | resource &quot;aws_cloudwatch_log_group&quot; &quot;vpc_flow_logs&quot; {
+		203 |   name              = &quot;/aws/vpc/flowlogs/${var.project_name}&quot;
+		204 |   retention_in_days = 365
+		205 |   tags              = { Name = &quot;${var.project_name}-vpc-flow-logs&quot; }
+		206 | }
 </failure>
 		</testcase>
-		<testcase name="[NONE][CKV_AWS_288] Ensure IAM policies does not allow data exfiltration" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf">
-			<failure type="failure" message="Ensure IAM policies does not allow data exfiltration">
-Resource: aws_iam_role_policy.ecs_execution_secrets
-File: /iam.tf: 23-34
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-288
+		<testcase name="[NONE][CKV_AWS_158] Ensure that CloudWatch Log Group is encrypted by KMS" classname="/waf.tf.aws_cloudwatch_log_group.waf" file="/waf.tf">
+			<failure type="failure" message="Ensure that CloudWatch Log Group is encrypted by KMS">
+Resource: aws_cloudwatch_log_group.waf
+File: /waf.tf: 114-119
+Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-cloudwatch-log-group-is-encrypted-by-kms
 
-		23 | resource &quot;aws_iam_role_policy&quot; &quot;ecs_execution_secrets&quot; {
-		24 |   name = &quot;${var.project_name}-ecs-execution-secrets&quot;
-		25 |   role = aws_iam_role.ecs_execution_role.id
-		26 |   policy = jsonencode({
-		27 |     Version = &quot;2012-10-17&quot;
-		28 |     Statement = [{
-		29 |       Effect   = &quot;Allow&quot;
-		30 |       Action   = [&quot;secretsmanager:GetSecretValue&quot;, &quot;ssm:GetParameters&quot;]
-		31 |       Resource = &quot;*&quot;
-		32 |     }]
-		33 |   })
-		34 | }
+		114 | resource &quot;aws_cloudwatch_log_group&quot; &quot;waf&quot; {
+		115 |   # Los log groups del WAF DEBEN tener el prefijo &quot;aws-waf-logs-&quot;
+		116 |   name              = &quot;aws-waf-logs-${var.project_name}&quot;
+		117 |   retention_in_days = 90
+		118 |   tags              = { Name = &quot;${var.project_name}-waf-logs&quot; }
+		119 | }
 </failure>
 		</testcase>
-		<testcase name="[NONE][CKV_AWS_355] Ensure no IAM policies documents allow &quot;*&quot; as a statement's resource for restrictable actions" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf">
-			<failure type="failure" message="Ensure no IAM policies documents allow &quot;*&quot; as a statement's resource for restrictable actions">
-Resource: aws_iam_role_policy.ecs_task_permissions
-File: /iam.tf: 49-87
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-355
+		<testcase name="[NONE][CKV_AWS_338] Ensure CloudWatch log groups retains logs for at least 1 year" classname="/waf.tf.aws_cloudwatch_log_group.waf" file="/waf.tf">
+			<failure type="failure" message="Ensure CloudWatch log groups retains logs for at least 1 year">
+Resource: aws_cloudwatch_log_group.waf
+File: /waf.tf: 114-119
+Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-338
 
-		49 | resource &quot;aws_iam_role_policy&quot; &quot;ecs_task_permissions&quot; {
-		50 |   name = &quot;${var.project_name}-ecs-task-permissions&quot;
-		51 |   role = aws_iam_role.ecs_task_role.id
-		52 |   policy = jsonencode({
-		53 |     Version = &quot;2012-10-17&quot;
-		54 |     Statement = [
-		55 |       {
-		56 |         Sid      = &quot;SQSAccess&quot;
-		57 |         Effect   = &quot;Allow&quot;
-		58 |         Action   = [&quot;sqs:SendMessage&quot;,&quot;sqs:ReceiveMessage&quot;,&quot;sqs:DeleteMessage&quot;,&quot;sqs:GetQueueAttributes&quot;]
-		59 |         Resource = &quot;*&quot;
-		60 |       },
-		61 |       {
-		62 |         Sid      = &quot;S3ReportesAccess&quot;
-		63 |         Effect   = &quot;Allow&quot;
-		64 |         Action   = [&quot;s3:PutObject&quot;,&quot;s3:GetObject&quot;,&quot;s3:DeleteObject&quot;]
-		65 |         Resource = &quot;arn:aws:s3:::${var.project_name}-reportes-*/*&quot;
-		66 |       },
-		67 |       {
-		68 |         Sid      = &quot;DynamoDBAccess&quot;
-		69 |         Effect   = &quot;Allow&quot;
-		70 |         Action   = [&quot;dynamodb:PutItem&quot;,&quot;dynamodb:GetItem&quot;,&quot;dynamodb:UpdateItem&quot;,&quot;dynamodb:Query&quot;,&quot;dynamodb:Scan&quot;]
-		71 |         Resource = &quot;arn:aws:dynamodb:*:*:table/${var.project_name}-*&quot;
-		72 |       },
-		73 |       {
-		74 |         Sid      = &quot;SNSPublish&quot;
-		75 |         Effect   = &quot;Allow&quot;
-		76 |         Action   = [&quot;sns:Publish&quot;]
-		77 |         Resource = &quot;*&quot;
-		78 |       },
-		79 |       {
-		80 |         Sid      = &quot;SecretsAccess&quot;
-		81 |         Effect   = &quot;Allow&quot;
-		82 |         Action   = [&quot;secretsmanager:GetSecretValue&quot;]
-		83 |         Resource = &quot;arn:aws:secretsmanager:*:*:secret:${var.project_name}/*&quot;
-		84 |       }
-		85 |     ]
-		86 |   })
-		87 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_290] Ensure IAM policies does not allow write access without constraints" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf">
-			<failure type="failure" message="Ensure IAM policies does not allow write access without constraints">
-Resource: aws_iam_role_policy.ecs_task_permissions
-File: /iam.tf: 49-87
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-290
-
-		49 | resource &quot;aws_iam_role_policy&quot; &quot;ecs_task_permissions&quot; {
-		50 |   name = &quot;${var.project_name}-ecs-task-permissions&quot;
-		51 |   role = aws_iam_role.ecs_task_role.id
-		52 |   policy = jsonencode({
-		53 |     Version = &quot;2012-10-17&quot;
-		54 |     Statement = [
-		55 |       {
-		56 |         Sid      = &quot;SQSAccess&quot;
-		57 |         Effect   = &quot;Allow&quot;
-		58 |         Action   = [&quot;sqs:SendMessage&quot;,&quot;sqs:ReceiveMessage&quot;,&quot;sqs:DeleteMessage&quot;,&quot;sqs:GetQueueAttributes&quot;]
-		59 |         Resource = &quot;*&quot;
-		60 |       },
-		61 |       {
-		62 |         Sid      = &quot;S3ReportesAccess&quot;
-		63 |         Effect   = &quot;Allow&quot;
-		64 |         Action   = [&quot;s3:PutObject&quot;,&quot;s3:GetObject&quot;,&quot;s3:DeleteObject&quot;]
-		65 |         Resource = &quot;arn:aws:s3:::${var.project_name}-reportes-*/*&quot;
-		66 |       },
-		67 |       {
-		68 |         Sid      = &quot;DynamoDBAccess&quot;
-		69 |         Effect   = &quot;Allow&quot;
-		70 |         Action   = [&quot;dynamodb:PutItem&quot;,&quot;dynamodb:GetItem&quot;,&quot;dynamodb:UpdateItem&quot;,&quot;dynamodb:Query&quot;,&quot;dynamodb:Scan&quot;]
-		71 |         Resource = &quot;arn:aws:dynamodb:*:*:table/${var.project_name}-*&quot;
-		72 |       },
-		73 |       {
-		74 |         Sid      = &quot;SNSPublish&quot;
-		75 |         Effect   = &quot;Allow&quot;
-		76 |         Action   = [&quot;sns:Publish&quot;]
-		77 |         Resource = &quot;*&quot;
-		78 |       },
-		79 |       {
-		80 |         Sid      = &quot;SecretsAccess&quot;
-		81 |         Effect   = &quot;Allow&quot;
-		82 |         Action   = [&quot;secretsmanager:GetSecretValue&quot;]
-		83 |         Resource = &quot;arn:aws:secretsmanager:*:*:secret:${var.project_name}/*&quot;
-		84 |       }
-		85 |     ]
-		86 |   })
-		87 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_149] Ensure that Secrets Manager secret is encrypted using KMS CMK" classname="/observability.tf.aws_secretsmanager_secret.db_credentials" file="/observability.tf">
-			<failure type="failure" message="Ensure that Secrets Manager secret is encrypted using KMS CMK">
-Resource: aws_secretsmanager_secret.db_credentials
-File: /observability.tf: 6-10
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-secrets-manager-secret-is-encrypted-using-kms
-
-		6  | resource &quot;aws_secretsmanager_secret&quot; &quot;db_credentials&quot; {
-		7  |   name        = &quot;${var.project_name}/rds/credentials&quot;
-		8  |   description = &quot;Credenciales de RDS PostgreSQL para el monolito SEGAT&quot;
-		9  |   tags = { Name = &quot;${var.project_name}-secret-rds&quot; }
-		10 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_35] Ensure CloudTrail logs are encrypted at rest using KMS CMKs" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf">
-			<failure type="failure" message="Ensure CloudTrail logs are encrypted at rest using KMS CMKs">
-Resource: aws_cloudtrail.main
-File: /observability.tf: 104-113
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/logging-7
-
-		104 | resource &quot;aws_cloudtrail&quot; &quot;main&quot; {
-		105 |   name                          = &quot;${var.project_name}-cloudtrail&quot;
-		106 |   s3_bucket_name                = aws_s3_bucket.cloudtrail_logs.id
-		107 |   include_global_service_events = true
-		108 |   is_multi_region_trail         = true
-		109 |   enable_log_file_validation    = true
-		110 |   sns_topic_name                = aws_sns_topic.alertas.arn
-		111 |   tags       = { Name = &quot;${var.project_name}-cloudtrail&quot; }
-		112 |   depends_on = [aws_s3_bucket_policy.cloudtrail_logs]
-		113 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_130] Ensure VPC subnets do not assign public IP by default" classname="/vpc.tf.aws_subnet.public_a" file="/vpc.tf">
-			<failure type="failure" message="Ensure VPC subnets do not assign public IP by default">
-Resource: aws_subnet.public_a
-File: /vpc.tf: 17-23
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-vpc-subnets-do-not-assign-public-ip-by-default
-
-		17 | resource &quot;aws_subnet&quot; &quot;public_a&quot; {
-		18 |   vpc_id                  = aws_vpc.main.id
-		19 |   cidr_block              = var.subnet_public_cidr
-		20 |   availability_zone       = data.aws_availability_zones.available.names[0]
-		21 |   map_public_ip_on_launch = true
-		22 |   tags = { Name = &quot;${var.project_name}-subnet-public-a&quot;, Tier = &quot;Public&quot; }
-		23 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_130] Ensure VPC subnets do not assign public IP by default" classname="/vpc.tf.aws_subnet.public_b" file="/vpc.tf">
-			<failure type="failure" message="Ensure VPC subnets do not assign public IP by default">
-Resource: aws_subnet.public_b
-File: /vpc.tf: 25-31
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-vpc-subnets-do-not-assign-public-ip-by-default
-
-		25 | resource &quot;aws_subnet&quot; &quot;public_b&quot; {
-		26 |   vpc_id                  = aws_vpc.main.id
-		27 |   cidr_block              = var.subnet_public_b_cidr
-		28 |   availability_zone       = data.aws_availability_zones.available.names[1]
-		29 |   map_public_ip_on_launch = true
-		30 |   tags = { Name = &quot;${var.project_name}-subnet-public-b&quot;, Tier = &quot;Public&quot; }
-		31 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_260] Ensure no security groups allow ingress from 0.0.0.0:0 to port 80" classname="/vpc.tf.aws_security_group.alb" file="/vpc.tf">
-			<failure type="failure" message="Ensure no security groups allow ingress from 0.0.0.0:0 to port 80">
-Resource: aws_security_group.alb
-File: /vpc.tf: 127-153
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-security-groups-do-not-allow-ingress-from-00000-to-port-80
-
-		127 | resource &quot;aws_security_group&quot; &quot;alb&quot; {
-		128 |   name        = &quot;${var.project_name}-sg-alb&quot;
-		129 |   description = &quot;Trafico HTTP y HTTPS hacia el ALB&quot;
-		130 |   vpc_id      = aws_vpc.main.id
-		131 |   ingress {
-		132 |     description = &quot;HTTPS desde internet&quot;
-		133 |     from_port   = 443
-		134 |     to_port     = 443
-		135 |     protocol    = &quot;tcp&quot;
-		136 |     cidr_blocks = [&quot;0.0.0.0/0&quot;]
-		137 |   }
-		138 |   ingress {
-		139 |     description = &quot;HTTP desde internet&quot;
-		140 |     from_port   = 80
-		141 |     to_port     = 80
-		142 |     protocol    = &quot;tcp&quot;
-		143 |     cidr_blocks = [&quot;0.0.0.0/0&quot;]
-		144 |   }
-		145 |   egress {
-		146 |     description = &quot;Salida hacia los Fargate Tasks&quot;
-		147 |     from_port   = 443
-		148 |     to_port     = 443
-		149 |     protocol    = &quot;tcp&quot;
-		150 |     cidr_blocks = [&quot;0.0.0.0/0&quot;]
-		151 |   }
-		152 |   tags = { Name = &quot;${var.project_name}-sg-alb&quot; }
-		153 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_73] Ensure AWS SQS uses CMK not AWS default keys for encryption" classname="/messaging.tf.aws_sqs_queue.reportes_dlq" file="/messaging.tf">
-			<failure type="failure" message="Ensure AWS SQS uses CMK not AWS default keys for encryption">
-Resource: aws_sqs_queue.reportes_dlq
-File: /messaging.tf: 6-11
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-2-73
-
-		6  | resource &quot;aws_sqs_queue&quot; &quot;reportes_dlq&quot; {
-		7  |   name                      = &quot;${var.project_name}-reportes-dlq&quot;
-		8  |   message_retention_seconds = 1209600
-		9  |   kms_master_key_id         = &quot;alias/aws/sqs&quot;
-		10 |   tags = { Name = &quot;${var.project_name}-sqs-reportes-dlq&quot; }
-		11 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_73] Ensure AWS SQS uses CMK not AWS default keys for encryption" classname="/messaging.tf.aws_sqs_queue.reportes" file="/messaging.tf">
-			<failure type="failure" message="Ensure AWS SQS uses CMK not AWS default keys for encryption">
-Resource: aws_sqs_queue.reportes
-File: /messaging.tf: 13-24
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-2-73
-
-		13 | resource &quot;aws_sqs_queue&quot; &quot;reportes&quot; {
-		14 |   name                       = &quot;${var.project_name}-cola-reportes&quot;
-		15 |   visibility_timeout_seconds = var.sqs_visibility_timeout
-		16 |   message_retention_seconds  = var.sqs_message_retention
-		17 |   receive_wait_time_seconds  = 20
-		18 |   kms_master_key_id          = &quot;alias/aws/sqs&quot;
-		19 |   redrive_policy = jsonencode({
-		20 |     deadLetterTargetArn = aws_sqs_queue.reportes_dlq.arn
-		21 |     maxReceiveCount     = var.sqs_dlq_max_receive
-		22 |   })
-		23 |   tags = { Name = &quot;${var.project_name}-sqs-reportes&quot; }
-		24 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_73] Ensure AWS SQS uses CMK not AWS default keys for encryption" classname="/messaging.tf.aws_sqs_queue.notificaciones_dlq" file="/messaging.tf">
-			<failure type="failure" message="Ensure AWS SQS uses CMK not AWS default keys for encryption">
-Resource: aws_sqs_queue.notificaciones_dlq
-File: /messaging.tf: 26-31
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-2-73
-
-		26 | resource &quot;aws_sqs_queue&quot; &quot;notificaciones_dlq&quot; {
-		27 |   name                      = &quot;${var.project_name}-notificaciones-dlq&quot;
-		28 |   message_retention_seconds = 1209600
-		29 |   kms_master_key_id         = &quot;alias/aws/sqs&quot;
-		30 |   tags = { Name = &quot;${var.project_name}-sqs-notificaciones-dlq&quot; }
-		31 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_73] Ensure AWS SQS uses CMK not AWS default keys for encryption" classname="/messaging.tf.aws_sqs_queue.notificaciones" file="/messaging.tf">
-			<failure type="failure" message="Ensure AWS SQS uses CMK not AWS default keys for encryption">
-Resource: aws_sqs_queue.notificaciones
-File: /messaging.tf: 33-44
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-2-73
-
-		33 | resource &quot;aws_sqs_queue&quot; &quot;notificaciones&quot; {
-		34 |   name                       = &quot;${var.project_name}-cola-notificaciones&quot;
-		35 |   visibility_timeout_seconds = var.sqs_visibility_timeout
-		36 |   message_retention_seconds  = var.sqs_message_retention
-		37 |   receive_wait_time_seconds  = 20
-		38 |   kms_master_key_id          = &quot;alias/aws/sqs&quot;
-		39 |   redrive_policy = jsonencode({
-		40 |     deadLetterTargetArn = aws_sqs_queue.notificaciones_dlq.arn
-		41 |     maxReceiveCount     = var.sqs_dlq_max_receive
-		42 |   })
-		43 |   tags = { Name = &quot;${var.project_name}-sqs-notificaciones&quot; }
-		44 | }
+		114 | resource &quot;aws_cloudwatch_log_group&quot; &quot;waf&quot; {
+		115 |   # Los log groups del WAF DEBEN tener el prefijo &quot;aws-waf-logs-&quot;
+		116 |   name              = &quot;aws-waf-logs-${var.project_name}&quot;
+		117 |   retention_in_days = 90
+		118 |   tags              = { Name = &quot;${var.project_name}-waf-logs&quot; }
+		119 | }
 </failure>
 		</testcase>
 		<testcase name="[NONE][CKV2_AWS_62] Ensure S3 buckets should have event notifications enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf">
 			<failure type="failure" message="Ensure S3 buckets should have event notifications enabled">
 Resource: aws_s3_bucket.reportes
-File: /data.tf: 110-113
+File: /data.tf: 149-152
 Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-62
 
-		110 | resource &quot;aws_s3_bucket&quot; &quot;reportes&quot; {
-		111 |   bucket = &quot;${var.project_name}-reportes-fotos-${var.environment}&quot;
-		112 |   tags   = { Name = &quot;${var.project_name}-s3-reportes&quot; }
-		113 | }
+		149 | resource &quot;aws_s3_bucket&quot; &quot;reportes&quot; {
+		150 |   bucket = &quot;${var.project_name}-reportes-fotos-${var.environment}&quot;
+		151 |   tags   = { Name = &quot;${var.project_name}-s3-reportes&quot; }
+		152 | }
+</failure>
+		</testcase>
+		<testcase name="[NONE][CKV2_AWS_62] Ensure S3 buckets should have event notifications enabled" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf">
+			<failure type="failure" message="Ensure S3 buckets should have event notifications enabled">
+Resource: aws_s3_bucket.alb_logs
+File: /ecs.tf: 55-59
+Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-62
+
+		55 | resource &quot;aws_s3_bucket&quot; &quot;alb_logs&quot; {
+		56 |   bucket        = &quot;${var.project_name}-alb-logs-${var.environment}&quot;
+		57 |   force_destroy = true
+		58 |   tags          = { Name = &quot;${var.project_name}-s3-alb-logs&quot; }
+		59 | }
 </failure>
 		</testcase>
 		<testcase name="[NONE][CKV2_AWS_62] Ensure S3 buckets should have event notifications enabled" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf">
 			<failure type="failure" message="Ensure S3 buckets should have event notifications enabled">
 Resource: aws_s3_bucket.cloudtrail_logs
-File: /observability.tf: 59-63
+File: /observability.tf: 61-65
 Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-62
 
-		59 | resource &quot;aws_s3_bucket&quot; &quot;cloudtrail_logs&quot; {
-		60 |   bucket        = &quot;${var.project_name}-cloudtrail-logs-${var.environment}&quot;
-		61 |   force_destroy = true
-		62 |   tags = { Name = &quot;${var.project_name}-s3-cloudtrail&quot; }
-		63 | }
+		61 | resource &quot;aws_s3_bucket&quot; &quot;cloudtrail_logs&quot; {
+		62 |   bucket        = &quot;${var.project_name}-cloudtrail-logs-${var.environment}&quot;
+		63 |   force_destroy = true
+		64 |   tags = { Name = &quot;${var.project_name}-s3-cloudtrail&quot; }
+		65 | }
 </failure>
 		</testcase>
-		<testcase name="[NONE][CKV2_AWS_30] Ensure Postgres RDS as aws_db_instance has Query Logging enabled" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf">
-			<failure type="failure" message="Ensure Postgres RDS as aws_db_instance has Query Logging enabled">
-Resource: aws_db_instance.postgresql
-File: /data.tf: 12-37
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-postgres-rds-has-query-logging-enabled
-
-		12 | resource &quot;aws_db_instance&quot; &quot;postgresql&quot; {
-		13 |   identifier              = &quot;${var.project_name}-postgresql&quot;
-		14 |   engine                  = &quot;postgres&quot;
-		15 |   engine_version          = &quot;15.7&quot;
-		16 |   instance_class          = &quot;db.t3.micro&quot;
-		17 |   allocated_storage       = 20
-		18 |   storage_type            = &quot;gp2&quot;
-		19 |   storage_encrypted       = true
-		20 |   db_name                 = var.db_name
-		21 |   username                = var.db_username
-		22 |   password                = var.db_password
-		23 |   db_subnet_group_name    = aws_db_subnet_group.rds.name
-		24 |   vpc_security_group_ids  = [aws_security_group.rds.id]
-		25 |   backup_retention_period = 1
-		26 |   skip_final_snapshot     = true
-		27 |   deletion_protection     = true
-		28 |   multi_az                = true
-		29 |   copy_tags_to_snapshot               = true
-		30 |   iam_database_authentication_enabled = true
-		31 |   performance_insights_enabled              = true
-		32 |   performance_insights_kms_key_id           = &quot;alias/aws/rds&quot;
-		33 |   enabled_cloudwatch_logs_exports     = [&quot;postgresql&quot;, &quot;upgrade&quot;]
-		34 |   auto_minor_version_upgrade          = true
-		35 |   monitoring_interval                 = 60
-		36 |   tags = { Name = &quot;${var.project_name}-postgresql&quot; }
-		37 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_57] Ensure Secrets Manager secrets should have automatic rotation enabled" classname="/observability.tf.aws_secretsmanager_secret.db_credentials" file="/observability.tf">
+		<testcase name="[NONE][CKV2_AWS_57] Ensure Secrets Manager secrets should have automatic rotation enabled" classname="/observability.tf.aws_secretsmanager_secret.cloudinary" file="/observability.tf">
 			<failure type="failure" message="Ensure Secrets Manager secrets should have automatic rotation enabled">
-Resource: aws_secretsmanager_secret.db_credentials
-File: /observability.tf: 6-10
+Resource: aws_secretsmanager_secret.cloudinary
+File: /observability.tf: 220-225
 Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-2-57
 
-		6  | resource &quot;aws_secretsmanager_secret&quot; &quot;db_credentials&quot; {
-		7  |   name        = &quot;${var.project_name}/rds/credentials&quot;
-		8  |   description = &quot;Credenciales de RDS PostgreSQL para el monolito SEGAT&quot;
-		9  |   tags = { Name = &quot;${var.project_name}-secret-rds&quot; }
-		10 | }
+		220 | resource &quot;aws_secretsmanager_secret&quot; &quot;cloudinary&quot; {
+		221 |   name        = &quot;${var.project_name}/cloudinary&quot;
+		222 |   description = &quot;Credenciales de Cloudinary para el proyecto SEGAT&quot;
+		223 |   kms_key_id  = aws_kms_key.secrets.arn
+		224 |   tags        = { Name = &quot;${var.project_name}-secret-cloudinary&quot; }
+		225 | }
 </failure>
 		</testcase>
-		<testcase name="[NONE][CKV_AWS_18] Ensure the S3 bucket has access logging enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf">
-			<failure type="failure" message="Ensure the S3 bucket has access logging enabled">
-Resource: aws_s3_bucket.reportes
-File: /data.tf: 110-113
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-13-enable-logging
+		<testcase name="[NONE][CKV2_AWS_57] Ensure Secrets Manager secrets should have automatic rotation enabled" classname="/observability.tf.aws_secretsmanager_secret.jwt" file="/observability.tf">
+			<failure type="failure" message="Ensure Secrets Manager secrets should have automatic rotation enabled">
+Resource: aws_secretsmanager_secret.jwt
+File: /observability.tf: 227-232
+Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-2-57
 
-		110 | resource &quot;aws_s3_bucket&quot; &quot;reportes&quot; {
-		111 |   bucket = &quot;${var.project_name}-reportes-fotos-${var.environment}&quot;
-		112 |   tags   = { Name = &quot;${var.project_name}-s3-reportes&quot; }
-		113 | }
+		227 | resource &quot;aws_secretsmanager_secret&quot; &quot;jwt&quot; {
+		228 |   name        = &quot;${var.project_name}/jwt&quot;
+		229 |   description = &quot;Secretos JWT para autenticacion del proyecto SEGAT&quot;
+		230 |   kms_key_id  = aws_kms_key.secrets.arn
+		231 |   tags        = { Name = &quot;${var.project_name}-secret-jwt&quot; }
+		232 | }
 </failure>
 		</testcase>
-		<testcase name="[NONE][CKV_AWS_18] Ensure the S3 bucket has access logging enabled" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf">
-			<failure type="failure" message="Ensure the S3 bucket has access logging enabled">
-Resource: aws_s3_bucket.cloudtrail_logs
-File: /observability.tf: 59-63
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-13-enable-logging
+		<testcase name="[NONE][CKV2_AWS_57] Ensure Secrets Manager secrets should have automatic rotation enabled" classname="/observability.tf.aws_secretsmanager_secret.n8n" file="/observability.tf">
+			<failure type="failure" message="Ensure Secrets Manager secrets should have automatic rotation enabled">
+Resource: aws_secretsmanager_secret.n8n
+File: /observability.tf: 234-239
+Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-2-57
 
-		59 | resource &quot;aws_s3_bucket&quot; &quot;cloudtrail_logs&quot; {
-		60 |   bucket        = &quot;${var.project_name}-cloudtrail-logs-${var.environment}&quot;
-		61 |   force_destroy = true
-		62 |   tags = { Name = &quot;${var.project_name}-s3-cloudtrail&quot; }
-		63 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_103] Ensure that load balancer is using at least TLS 1.2" classname="/ecs.tf.aws_lb_listener.http" file="/ecs.tf">
-			<failure type="failure" message="Ensure that load balancer is using at least TLS 1.2">
-Resource: aws_lb_listener.http
-File: /ecs.tf: 48-56
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-general-43
-
-		48 | resource &quot;aws_lb_listener&quot; &quot;http&quot; {
-		49 |   load_balancer_arn = aws_lb.internal.arn
-		50 |   port              = 80
-		51 |   protocol          = &quot;HTTP&quot;
-		52 |   default_action {
-		53 |     type             = &quot;forward&quot;
-		54 |     target_group_arn = aws_lb_target_group.ecs.arn
-		55 |   }
-		56 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_20] Ensure that ALB redirects HTTP requests into HTTPS ones" classname="/ecs.tf.aws_lb.internal" file="/ecs.tf">
-			<failure type="failure" message="Ensure that ALB redirects HTTP requests into HTTPS ones">
-Resource: aws_lb.internal
-File: /ecs.tf: 22-29
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-that-alb-redirects-http-requests-into-https-ones
-
-		22 | resource &quot;aws_lb&quot; &quot;internal&quot; {
-		23 |   name               = &quot;${var.project_name}-alb-internal&quot;
-		24 |   internal           = true
-		25 |   load_balancer_type = &quot;application&quot;
-		26 |   security_groups    = [aws_security_group.alb.id]
-		27 |   subnets            = [aws_subnet.private_a.id, aws_subnet.private_b.id]
-		28 |   tags               = { Name = &quot;${var.project_name}-alb-internal&quot; }
-		29 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_378] Ensure AWS Load Balancer doesn't use HTTP protocol" classname="/ecs.tf.aws_lb_target_group.ecs" file="/ecs.tf">
-			<failure type="failure" message="Ensure AWS Load Balancer doesn't use HTTP protocol">
-Resource: aws_lb_target_group.ecs
-File: /ecs.tf: 31-46
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-378
-
-		31 | resource &quot;aws_lb_target_group&quot; &quot;ecs&quot; {
-		32 |   name        = &quot;${var.project_name}-tg-ecs&quot;
-		33 |   port        = 8080
-		34 |   protocol    = &quot;HTTP&quot;
-		35 |   vpc_id      = aws_vpc.main.id
-		36 |   target_type = &quot;ip&quot;
-		37 |   health_check {
-		38 |     path                = &quot;/health&quot;
-		39 |     interval            = 30
-		40 |     timeout             = 5
-		41 |     healthy_threshold   = 2
-		42 |     unhealthy_threshold = 3
-		43 |     matcher             = &quot;200&quot;
-		44 |   }
-		45 |   tags = { Name = &quot;${var.project_name}-tg-ecs&quot; }
-		46 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_145] Ensure that S3 buckets are encrypted with KMS by default" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf">
-			<failure type="failure" message="Ensure that S3 buckets are encrypted with KMS by default">
-Resource: aws_s3_bucket.reportes
-File: /data.tf: 110-113
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-buckets-are-encrypted-with-kms-by-default
-
-		110 | resource &quot;aws_s3_bucket&quot; &quot;reportes&quot; {
-		111 |   bucket = &quot;${var.project_name}-reportes-fotos-${var.environment}&quot;
-		112 |   tags   = { Name = &quot;${var.project_name}-s3-reportes&quot; }
-		113 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_145] Ensure that S3 buckets are encrypted with KMS by default" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf">
-			<failure type="failure" message="Ensure that S3 buckets are encrypted with KMS by default">
-Resource: aws_s3_bucket.cloudtrail_logs
-File: /observability.tf: 59-63
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-buckets-are-encrypted-with-kms-by-default
-
-		59 | resource &quot;aws_s3_bucket&quot; &quot;cloudtrail_logs&quot; {
-		60 |   bucket        = &quot;${var.project_name}-cloudtrail-logs-${var.environment}&quot;
-		61 |   force_destroy = true
-		62 |   tags = { Name = &quot;${var.project_name}-s3-cloudtrail&quot; }
-		63 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_61] Ensure that an S3 bucket has a lifecycle configuration" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf">
-			<failure type="failure" message="Ensure that an S3 bucket has a lifecycle configuration">
-Resource: aws_s3_bucket.reportes
-File: /data.tf: 110-113
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-61
-
-		110 | resource &quot;aws_s3_bucket&quot; &quot;reportes&quot; {
-		111 |   bucket = &quot;${var.project_name}-reportes-fotos-${var.environment}&quot;
-		112 |   tags   = { Name = &quot;${var.project_name}-s3-reportes&quot; }
-		113 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_61] Ensure that an S3 bucket has a lifecycle configuration" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf">
-			<failure type="failure" message="Ensure that an S3 bucket has a lifecycle configuration">
-Resource: aws_s3_bucket.cloudtrail_logs
-File: /observability.tf: 59-63
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-61
-
-		59 | resource &quot;aws_s3_bucket&quot; &quot;cloudtrail_logs&quot; {
-		60 |   bucket        = &quot;${var.project_name}-cloudtrail-logs-${var.environment}&quot;
-		61 |   force_destroy = true
-		62 |   tags = { Name = &quot;${var.project_name}-s3-cloudtrail&quot; }
-		63 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_11] Ensure VPC flow logging is enabled in all VPCs" classname="/vpc.tf.aws_vpc.main" file="/vpc.tf">
-			<failure type="failure" message="Ensure VPC flow logging is enabled in all VPCs">
-Resource: aws_vpc.main
-File: /vpc.tf: 6-11
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/logging-9-enable-vpc-flow-logging
-
-		6  | resource &quot;aws_vpc&quot; &quot;main&quot; {
-		7  |   cidr_block           = var.vpc_cidr
-		8  |   enable_dns_hostnames = true
-		9  |   enable_dns_support   = true
-		10 |   tags = { Name = &quot;${var.project_name}-vpc&quot; }
-		11 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_12] Ensure the default security group of every VPC restricts all traffic" classname="/vpc.tf.aws_vpc.main" file="/vpc.tf">
-			<failure type="failure" message="Ensure the default security group of every VPC restricts all traffic">
-Resource: aws_vpc.main
-File: /vpc.tf: 6-11
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-4
-
-		6  | resource &quot;aws_vpc&quot; &quot;main&quot; {
-		7  |   cidr_block           = var.vpc_cidr
-		8  |   enable_dns_hostnames = true
-		9  |   enable_dns_support   = true
-		10 |   tags = { Name = &quot;${var.project_name}-vpc&quot; }
-		11 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV2_AWS_10] Ensure CloudTrail trails are integrated with CloudWatch Logs" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf">
-			<failure type="failure" message="Ensure CloudTrail trails are integrated with CloudWatch Logs">
-Resource: aws_cloudtrail.main
-File: /observability.tf: 104-113
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/ensure-cloudtrail-trails-are-integrated-with-cloudwatch-logs
-
-		104 | resource &quot;aws_cloudtrail&quot; &quot;main&quot; {
-		105 |   name                          = &quot;${var.project_name}-cloudtrail&quot;
-		106 |   s3_bucket_name                = aws_s3_bucket.cloudtrail_logs.id
-		107 |   include_global_service_events = true
-		108 |   is_multi_region_trail         = true
-		109 |   enable_log_file_validation    = true
-		110 |   sns_topic_name                = aws_sns_topic.alertas.arn
-		111 |   tags       = { Name = &quot;${var.project_name}-cloudtrail&quot; }
-		112 |   depends_on = [aws_s3_bucket_policy.cloudtrail_logs]
-		113 | }
+		234 | resource &quot;aws_secretsmanager_secret&quot; &quot;n8n&quot; {
+		235 |   name        = &quot;${var.project_name}/n8n&quot;
+		236 |   description = &quot;Webhooks de n8n para el proyecto SEGAT&quot;
+		237 |   kms_key_id  = aws_kms_key.secrets.arn
+		238 |   tags        = { Name = &quot;${var.project_name}-secret-n8n&quot; }
+		239 | }
 </failure>
 		</testcase>
 		<testcase name="[NONE][CKV_AWS_144] Ensure that S3 bucket has cross-region replication enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf">
 			<failure type="failure" message="Ensure that S3 bucket has cross-region replication enabled">
 Resource: aws_s3_bucket.reportes
-File: /data.tf: 110-113
+File: /data.tf: 149-152
 Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-bucket-has-cross-region-replication-enabled
 
-		110 | resource &quot;aws_s3_bucket&quot; &quot;reportes&quot; {
-		111 |   bucket = &quot;${var.project_name}-reportes-fotos-${var.environment}&quot;
-		112 |   tags   = { Name = &quot;${var.project_name}-s3-reportes&quot; }
-		113 | }
+		149 | resource &quot;aws_s3_bucket&quot; &quot;reportes&quot; {
+		150 |   bucket = &quot;${var.project_name}-reportes-fotos-${var.environment}&quot;
+		151 |   tags   = { Name = &quot;${var.project_name}-s3-reportes&quot; }
+		152 | }
+</failure>
+		</testcase>
+		<testcase name="[NONE][CKV_AWS_144] Ensure that S3 bucket has cross-region replication enabled" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf">
+			<failure type="failure" message="Ensure that S3 bucket has cross-region replication enabled">
+Resource: aws_s3_bucket.alb_logs
+File: /ecs.tf: 55-59
+Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-bucket-has-cross-region-replication-enabled
+
+		55 | resource &quot;aws_s3_bucket&quot; &quot;alb_logs&quot; {
+		56 |   bucket        = &quot;${var.project_name}-alb-logs-${var.environment}&quot;
+		57 |   force_destroy = true
+		58 |   tags          = { Name = &quot;${var.project_name}-s3-alb-logs&quot; }
+		59 | }
 </failure>
 		</testcase>
 		<testcase name="[NONE][CKV_AWS_144] Ensure that S3 bucket has cross-region replication enabled" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf">
 			<failure type="failure" message="Ensure that S3 bucket has cross-region replication enabled">
 Resource: aws_s3_bucket.cloudtrail_logs
-File: /observability.tf: 59-63
+File: /observability.tf: 61-65
 Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-bucket-has-cross-region-replication-enabled
 
-		59 | resource &quot;aws_s3_bucket&quot; &quot;cloudtrail_logs&quot; {
-		60 |   bucket        = &quot;${var.project_name}-cloudtrail-logs-${var.environment}&quot;
-		61 |   force_destroy = true
-		62 |   tags = { Name = &quot;${var.project_name}-s3-cloudtrail&quot; }
-		63 | }
+		61 | resource &quot;aws_s3_bucket&quot; &quot;cloudtrail_logs&quot; {
+		62 |   bucket        = &quot;${var.project_name}-cloudtrail-logs-${var.environment}&quot;
+		63 |   force_destroy = true
+		64 |   tags = { Name = &quot;${var.project_name}-s3-cloudtrail&quot; }
+		65 | }
+</failure>
+		</testcase>
+		<testcase name="[NONE][CKV2_AWS_76] Ensure AWS ALB attached WAFv2 WebACL is configured with AMR for Log4j Vulnerability" classname="/ecs.tf.aws_lb.external" file="/ecs.tf">
+			<failure type="failure" message="Ensure AWS ALB attached WAFv2 WebACL is configured with AMR for Log4j Vulnerability">
+Resource: aws_lb.external
+File: /ecs.tf: 27-46
+Guideline: None
+
+		27 | resource &quot;aws_lb&quot; &quot;external&quot; {
+		28 |   name               = &quot;${var.project_name}-alb-external&quot;
+		29 |   internal           = false
+		30 |   load_balancer_type = &quot;application&quot;
+		31 |   security_groups    = [aws_security_group.alb.id]
+		32 |   subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+		33 | 
+		34 |   drop_invalid_header_fields = true
+		35 | 
+		36 |   enable_deletion_protection = true
+		37 | 
+		38 |   access_logs {
+		39 |     bucket  = aws_s3_bucket.alb_logs.id
+		40 |     prefix  = &quot;alb&quot;
+		41 |     enabled = true
+		42 |   }
+		43 | 
+		44 | 
+		45 |   tags = { Name = &quot;${var.project_name}-alb-external&quot; }
+		46 | }
 </failure>
 		</testcase>
 	</testsuite>
