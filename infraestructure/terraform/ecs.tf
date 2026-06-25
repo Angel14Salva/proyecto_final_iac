@@ -30,7 +30,75 @@ resource "aws_lb" "external" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
   subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id]
-  tags               = { Name = "${var.project_name}-alb-external" }
+
+  drop_invalid_header_fields = true
+
+  enable_deletion_protection = true
+
+  access_logs {
+    bucket  = aws_s3_bucket.alb_logs.id
+    prefix  = "alb"
+    enabled = true
+  }
+
+
+  tags = { Name = "${var.project_name}-alb-external" }
+}
+
+# S3 bucket para los access logs del ALB
+# Los access logs del ALB los escribe el servicio de ELB de AWS, no IAM roles
+resource "aws_s3_bucket" "alb_logs" {
+  bucket        = "${var.project_name}-alb-logs-${var.environment}"
+  force_destroy = true
+  tags          = { Name = "${var.project_name}-s3-alb-logs" }
+}
+
+resource "aws_s3_bucket_public_access_block" "alb_logs" {
+  bucket                  = aws_s3_bucket.alb_logs.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+# Politica que permite al servicio ELB de AWS escribir los access logs
+data "aws_elb_service_account" "main" {}
+
+resource "aws_s3_bucket_policy" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = { AWS = data.aws_elb_service_account.main.arn }
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb/AWSLogs/*"
+      },
+      {
+        Effect    = "Allow"
+        Principal = { Service = "delivery.logs.amazonaws.com" }
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb/AWSLogs/*"
+        Condition = { StringEquals = { "s3:x-amz-acl" = "bucket-owner-full-control" } }
+      },
+      {
+        Effect    = "Allow"
+        Principal = { Service = "delivery.logs.amazonaws.com" }
+        Action    = "s3:GetBucketAcl"
+        Resource  = aws_s3_bucket.alb_logs.arn
+      }
+    ]
+  })
 }
 
 resource "aws_lb_target_group" "ecs" {
@@ -67,8 +135,7 @@ resource "aws_lb_listener" "http_redirect" {
 }
 
 # Listener HTTPS en puerto 443
-# Nota: para HTTPS se necesita un certificado ACM. Si no tienes uno,
-# puedes usar el listener HTTP apuntando directamente al TG mientras pruebas.
+# ELBSecurityPolicy-TLS13-1-2-2021-06 soporta TLS 1.2 y 1.3, descarta cifrados debiles
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.external.arn
   port              = 443
