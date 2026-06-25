@@ -77,6 +77,10 @@ resource "aws_dynamodb_table" "gps_locations" {
     enabled        = true
   }
 
+  server_side_encryption {
+    enabled = true
+  }
+
   tags = { Name = "${var.project_name}-dynamodb-gps" }
 }
 
