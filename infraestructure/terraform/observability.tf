@@ -105,7 +105,7 @@ resource "aws_s3_bucket_policy" "cloudtrail_logs" {
 
 resource "aws_cloudtrail" "main" {
   name                          = "${var.project_name}-cloudtrail"
-  kms_key_id                    = "alias/aws/cloudtrail"
+  kms_key_id                    = aws_kms_key.secrets.arn
   s3_bucket_name                = aws_s3_bucket.cloudtrail_logs.id
   include_global_service_events = true
   is_multi_region_trail         = true
@@ -232,4 +232,25 @@ resource "aws_kms_key" "secrets" {
     ]
   })
   tags = { Name = "${var.project_name}-kms-secrets" }
+}
+
+resource "aws_secretsmanager_secret" "cloudinary" {
+  name        = "${var.project_name}/cloudinary"
+  description = "Credenciales de Cloudinary para el proyecto SEGAT"
+  kms_key_id  = aws_kms_key.secrets.arn
+  tags        = { Name = "${var.project_name}-secret-cloudinary" }
+}
+
+resource "aws_secretsmanager_secret" "jwt" {
+  name        = "${var.project_name}/jwt"
+  description = "Secretos JWT para autenticacion del proyecto SEGAT"
+  kms_key_id  = aws_kms_key.secrets.arn
+  tags        = { Name = "${var.project_name}-secret-jwt" }
+}
+
+resource "aws_secretsmanager_secret" "n8n" {
+  name        = "${var.project_name}/n8n"
+  description = "Webhooks de n8n para el proyecto SEGAT"
+  kms_key_id  = aws_kms_key.secrets.arn
+  tags        = { Name = "${var.project_name}-secret-n8n" }
 }

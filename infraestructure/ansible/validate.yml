@@ -1,0 +1,45 @@
+---
+# =============================================================================
+# validate.yml — Playbook de validación de seguridad con Checkov
+# =============================================================================
+- name: Validación de seguridad IaC con Checkov
+  hosts: local
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: Verificar que Docker está disponible
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Mostrar versión de Docker
+      debug:
+        msg: "{{ docker_version.stdout }}"
+
+    - name: Ejecutar análisis Checkov
+      command: >
+        docker run --rm
+        -v {{ terraform_dir }}:/tf
+        {{ checkov_image }}
+        --directory /tf
+        --output junitxml
+        --output-file-path console
+      register: checkov_output
+      failed_when: false
+
+    - name: Guardar reporte Checkov
+      copy:
+        content: "{{ checkov_output.stdout }}"
+        dest: "{{ terraform_dir }}/reporte_checkov_final.xml"
+
+    - name: Contar errores detectados
+      shell: >
+        echo "{{ checkov_output.stdout }}" |
+        grep -c "<failure" || true
+      register: failure_count
+      changed_when: false
+
+    - name: Mostrar resumen de seguridad
+      debug:
+        msg: "Checkov encontró {{ failure_count.stdout }} errores de seguridad"

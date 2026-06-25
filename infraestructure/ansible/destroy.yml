@@ -1,0 +1,38 @@
+---
+# =============================================================================
+# destroy.yml — Playbook de destrucción segura de infraestructura SEGAT
+# =============================================================================
+- name: Destrucción de infraestructura SEGAT
+  hosts: local
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: Verificar credenciales AWS
+      command: aws sts get-caller-identity
+      register: aws_identity
+      changed_when: false
+
+    - name: Confirmar destrucción
+      pause:
+        prompt: |
+          ⚠️  ADVERTENCIA: Esto destruirá TODA la infraestructura SEGAT en AWS.
+          Cuenta: {{ (aws_identity.stdout | from_json).Account }}
+          Región: {{ aws_region }}
+          Escribe 'SI' para confirmar
+      register: confirmacion
+
+    - name: Cancelar si no se confirmó
+      fail:
+        msg: "Destrucción cancelada por el usuario"
+      when: confirmacion.user_input != "SI"
+
+    - name: Ejecutar terraform destroy
+      command: terraform destroy -auto-approve
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: tf_destroy
+
+    - name: Confirmar destrucción exitosa
+      debug:
+        msg: "✅ Infraestructura destruida correctamente"

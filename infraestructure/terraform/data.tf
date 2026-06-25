@@ -49,8 +49,8 @@ resource "aws_db_instance" "postgresql" {
   copy_tags_to_snapshot               = true
   iam_database_authentication_enabled = true
   performance_insights_enabled              = true
-  performance_insights_kms_key_id           = "alias/aws/rds"
-  enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade", "pgaudit"]
+  performance_insights_kms_key_id           = data.aws_kms_key.rds.arn
+  enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
   auto_minor_version_upgrade          = true
   monitoring_interval                 = 60
   tags = { Name = "${var.project_name}-postgresql" }
@@ -99,7 +99,7 @@ resource "aws_dynamodb_table" "gps_locations" {
 
   server_side_encryption {
     enabled     = true
-    kms_key_arn = "alias/aws/dynamodb"
+
   }
 
   point_in_time_recovery {
@@ -127,7 +127,7 @@ resource "aws_dynamodb_table" "notifications" {
 
   server_side_encryption {
     enabled     = true
-    kms_key_arn = "alias/aws/dynamodb"
+
   }
 
   point_in_time_recovery {
@@ -212,4 +212,8 @@ resource "aws_s3_bucket_replication_configuration" "reportes" {
       storage_class = "STANDARD_IA"
     }
   }
+}
+
+data "aws_kms_key" "rds" {
+  key_id = "alias/aws/rds"
 }

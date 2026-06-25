@@ -1,0 +1,61 @@
+---
+# =============================================================================
+# deploy.yml — Playbook de despliegue de infraestructura SEGAT
+# Orquesta: terraform init → plan → apply
+# =============================================================================
+- name: Despliegue de infraestructura SEGAT en AWS
+  hosts: local
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: Verificar que Terraform está instalado
+      command: terraform --version
+      register: terraform_version
+      changed_when: false
+
+    - name: Mostrar versión de Terraform
+      debug:
+        msg: "{{ terraform_version.stdout_lines[0] }}"
+
+    - name: Verificar credenciales AWS
+      command: aws sts get-caller-identity
+      register: aws_identity
+      changed_when: false
+
+    - name: Mostrar cuenta AWS activa
+      debug:
+        msg: "Cuenta AWS: {{ (aws_identity.stdout | from_json).Account }}"
+
+    - name: Inicializar Terraform
+      command: terraform init
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: tf_init
+
+    - name: Ejecutar Terraform Plan
+      command: terraform plan -out=tfplan
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: tf_plan
+
+    - name: Mostrar resumen del plan
+      debug:
+        msg: "{{ tf_plan.stdout_lines[-5:] }}"
+
+    - name: Aplicar infraestructura
+      command: terraform apply -auto-approve tfplan
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: tf_apply
+
+    - name: Mostrar outputs
+      command: terraform output
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: tf_outputs
+      changed_when: false
+
+    - name: Mostrar outputs de la infraestructura
+      debug:
+        msg: "{{ tf_outputs.stdout_lines }}"

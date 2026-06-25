@@ -116,7 +116,9 @@ variable "alert_email" {
 variable "acm_certificate_arn" {
   description = "ARN del certificado SSL/TLS en AWS Certificate Manager para el listener HTTPS del ALB"
   type        = string
+  default     = ""
   # Ejemplo: arn:aws:acm:us-east-1:123456789012:certificate/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
   # Debes crear el certificado en ACM antes del despliegue para tu dominio (ej: api.segat.gob.pe)
 }
+
 
