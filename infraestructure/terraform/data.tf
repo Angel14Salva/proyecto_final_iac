@@ -19,6 +19,18 @@ resource "aws_kms_alias" "rds" {
   target_key_id = aws_kms_key.rds.key_id
 }
 
+resource "aws_kms_key" "redis" {
+  description             = "CMK para ElastiCache Redis de ${var.project_name}"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  tags                    = { Name = "${var.project_name}-kms-redis" }
+}
+
+resource "aws_kms_alias" "redis" {
+  name          = "alias/${var.project_name}/redis"
+  target_key_id = aws_kms_key.redis.key_id
+}
+
 
 # =============================================================================
 # RDS POSTGRESQL
@@ -97,6 +109,8 @@ resource "aws_db_instance" "postgresql" {
 }
 
 # =============================================================================
+# ELASTICACHE REDIS
+# =============================================================================
 
 resource "aws_elasticache_subnet_group" "redis" {
   name       = "${var.project_name}-redis-subnet-group"
@@ -104,25 +118,40 @@ resource "aws_elasticache_subnet_group" "redis" {
   tags       = { Name = "${var.project_name}-redis-subnet-group" }
 }
 
-# ElastiCache Redis — ReplicationGroup Multi-AZ con failover automatico
-# Reemplaza aws_elasticache_cluster (single-node) por HA real
+# Secret para el auth token de Redis
+resource "aws_secretsmanager_secret" "redis_auth" {
+  name        = "${var.project_name}/redis/auth-token"
+  description = "Auth token para ElastiCache Redis (requerido con TLS)"
+  kms_key_id  = aws_kms_key.redis.arn
+  tags        = { Name = "${var.project_name}-secret-redis-auth" }
+}
+
+resource "aws_secretsmanager_secret_version" "redis_auth" {
+  secret_id     = aws_secretsmanager_secret.redis_auth.id
+  secret_string = var.redis_auth_token
+}
+
 resource "aws_elasticache_replication_group" "redis" {
-  replication_group_id       = "${var.project_name}-redis"
-  description                = "Redis Multi-AZ HA para SEGAT"
-  node_type                  = "cache.t3.micro"
-  num_cache_clusters         = 2
-  parameter_group_name       = "default.redis7"
-  engine_version             = "7.0"
-  port                       = 6379
-  subnet_group_name          = aws_elasticache_subnet_group.redis.name
-  security_group_ids         = [aws_security_group.redis.id]
+  replication_group_id = "${var.project_name}-redis"
+  description          = "Redis Multi-AZ HA para SEGAT"
+  node_type            = "cache.t3.micro"
+  num_cache_clusters   = 2
+  parameter_group_name = "default.redis7"
+  engine_version       = "7.0"
+  port                 = 6379
+  subnet_group_name    = aws_elasticache_subnet_group.redis.name
+  security_group_ids   = [aws_security_group.redis.id]
   automatic_failover_enabled = true
   multi_az_enabled           = true
   at_rest_encryption_enabled = true
+  kms_key_id                 = aws_kms_key.redis.arn
   transit_encryption_enabled = true
-  snapshot_retention_limit   = 7
-  tags = { Name = "${var.project_name}-redis-ha" }
+  auth_token                 = var.redis_auth_token
+  snapshot_retention_limit = 7
+  tags                     = { Name = "${var.project_name}-redis-ha" }
 }
+
+# =============================================================================
 
 resource "aws_dynamodb_table" "gps_locations" {
   name         = "${var.project_name}-gps-locations"
