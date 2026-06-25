@@ -1,7 +1,6 @@
-# =============================================================================
+
 # observability.tf — FASE 6: Observabilidad y Seguridad
 # CloudWatch + Secrets Manager + CloudTrail
-# =============================================================================
 
 resource "aws_kms_key" "secrets" {
   description             = "CMK para Secrets Manager de ${var.project_name}"
@@ -15,12 +14,52 @@ resource "aws_kms_alias" "secrets" {
   target_key_id = aws_kms_key.secrets.key_id
 }
 
+resource "aws_kms_key" "cloudtrail" {
+  description             = "CMK para CloudTrail de ${var.project_name}"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "Enable IAM User Permissions"
+        Effect    = "Allow"
+        Principal = { AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" }
+        Action    = "kms:*"
+        Resource  = "*"
+      },
+      {
+        Sid       = "Allow CloudTrail to encrypt logs"
+        Effect    = "Allow"
+        Principal = { Service = "cloudtrail.amazonaws.com" }
+        Action    = ["kms:GenerateDataKey*", "kms:DescribeKey"]
+        Resource  = "*"
+      },
+      {
+        Sid       = "Allow CloudTrail to describe key"
+        Effect    = "Allow"
+        Principal = { Service = "cloudtrail.amazonaws.com" }
+        Action    = "kms:DescribeKey"
+        Resource  = "*"
+      }
+    ]
+  })
+
+  tags = { Name = "${var.project_name}-kms-cloudtrail" }
+}
+
+resource "aws_kms_alias" "cloudtrail" {
+  name          = "alias/${var.project_name}/cloudtrail"
+  target_key_id = aws_kms_key.cloudtrail.key_id
+}
+
+data "aws_caller_identity" "current" {}
 
 # =============================================================================
 # SECRETS MANAGER — Credenciales para el contenedor ECS
 # =============================================================================
 
-# Secret: credenciales RDS
 resource "aws_secretsmanager_secret" "db_credentials" {
   name        = "${var.project_name}/rds/credentials"
   description = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
@@ -61,7 +100,6 @@ resource "aws_secretsmanager_secret" "n8n" {
   kms_key_id  = aws_kms_key.secrets.arn
   tags        = { Name = "${var.project_name}-secret-n8n" }
 }
-
 
 # =============================================================================
 # CLOUDWATCH ALARMS
@@ -158,7 +196,48 @@ resource "aws_cloudtrail" "main" {
   include_global_service_events = true
   is_multi_region_trail         = true
   enable_log_file_validation    = true
-  sns_topic_name = aws_sns_topic.alertas.name
+  sns_topic_name                = aws_sns_topic.alertas.name
+
+  kms_key_id = aws_kms_key.cloudtrail.arn
+
+  cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
+  cloud_watch_logs_role_arn  = aws_iam_role.cloudtrail_cw.arn
+
   tags       = { Name = "${var.project_name}-cloudtrail" }
   depends_on = [aws_s3_bucket_policy.cloudtrail_logs]
+}
+
+# CloudWatch Log Group para CloudTrail
+resource "aws_cloudwatch_log_group" "cloudtrail" {
+  name              = "/cloudtrail/${var.project_name}"
+  retention_in_days = 365
+  kms_key_id        = aws_kms_key.cloudtrail.arn
+  tags              = { Name = "${var.project_name}-cloudtrail-logs" }
+}
+
+# Rol IAM para que CloudTrail pueda escribir en CloudWatch Logs
+resource "aws_iam_role" "cloudtrail_cw" {
+  name        = "${var.project_name}-cloudtrail-cw-role"
+  description = "Permite a CloudTrail enviar eventos a CloudWatch Logs"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "cloudtrail.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "cloudtrail_cw" {
+  name = "${var.project_name}-cloudtrail-cw-policy"
+  role = aws_iam_role.cloudtrail_cw.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+      Resource = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
+    }]
+  })
 }
