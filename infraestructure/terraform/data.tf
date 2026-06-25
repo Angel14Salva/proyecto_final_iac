@@ -14,6 +14,11 @@ resource "aws_db_parameter_group" "postgresql" {
     name  = "log_min_duration_statement"
     value = "1000"
   }
+  parameter {
+    name         = "rds.force_ssl"
+    value        = "1"
+    apply_method = "pending-reboot"
+  }
   tags = { Name = "${var.project_name}-pg-params" }
 }
 
