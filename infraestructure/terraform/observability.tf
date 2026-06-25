@@ -6,7 +6,7 @@
 resource "aws_secretsmanager_secret" "db_credentials" {
   name        = "${var.project_name}/rds/credentials"
   description = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
-  kms_key_id  = "alias/aws/secretsmanager"
+  kms_key_id  = aws_kms_key.secrets.arn
   recovery_window_in_days = 7
   tags = { Name = "${var.project_name}-secret-rds" }
 }
@@ -120,6 +120,7 @@ resource "aws_cloudtrail" "main" {
 resource "aws_cloudwatch_log_group" "cloudtrail" {
   name              = "/aws/cloudtrail/${var.project_name}"
   retention_in_days = 365
+  kms_key_id        = aws_kms_key.secrets.arn
   tags              = { Name = "${var.project_name}-cloudtrail-logs" }
 }
 
@@ -182,6 +183,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail_logs" {
     status = "Enabled"
     expiration { days = 365 }
     noncurrent_version_expiration { noncurrent_days = 90 }
+    abort_incomplete_multipart_upload { days_after_initiation = 7 }
   }
 }
 
@@ -204,4 +206,30 @@ resource "aws_s3_bucket_replication_configuration" "cloudtrail_logs" {
       storage_class = "STANDARD_IA"
     }
   }
+}
+
+resource "aws_kms_key" "secrets" {
+  description             = "KMS CMK para Secrets Manager y CloudTrail del proyecto SEGAT"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "Enable IAM User Permissions"
+        Effect    = "Allow"
+        Principal = { AWS = "arn:aws:iam::*:root" }
+        Action    = "kms:*"
+        Resource  = "*"
+      },
+      {
+        Sid       = "Allow Secrets Manager"
+        Effect    = "Allow"
+        Principal = { Service = "secretsmanager.amazonaws.com" }
+        Action    = ["kms:GenerateDataKey", "kms:Decrypt"]
+        Resource  = "*"
+      }
+    ]
+  })
+  tags = { Name = "${var.project_name}-kms-secrets" }
 }
