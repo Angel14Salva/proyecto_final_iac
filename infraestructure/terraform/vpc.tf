@@ -14,9 +14,11 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# =============================================================================
-# CKV2_AWS_11 — VPC Flow Logs hacia CloudWatch Logs
-# =============================================================================
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
+  tags = { Name = "${var.project_name}-sg-default-blocked" }
+}
+
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/vpc/${var.project_name}/flow-logs"
   retention_in_days = 90
