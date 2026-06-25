@@ -31,6 +31,18 @@ resource "aws_kms_alias" "redis" {
   target_key_id = aws_kms_key.redis.key_id
 }
 
+resource "aws_kms_key" "dynamodb" {
+  description             = "CMK para DynamoDB de ${var.project_name}"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  tags                    = { Name = "${var.project_name}-kms-dynamodb" }
+}
+
+resource "aws_kms_alias" "dynamodb" {
+  name          = "alias/${var.project_name}/dynamodb"
+  target_key_id = aws_kms_key.dynamodb.key_id
+}
+
 
 # =============================================================================
 # RDS POSTGRESQL
@@ -152,6 +164,8 @@ resource "aws_elasticache_replication_group" "redis" {
 }
 
 # =============================================================================
+# DYNAMODB
+# =============================================================================
 
 resource "aws_dynamodb_table" "gps_locations" {
   name         = "${var.project_name}-gps-locations"
@@ -174,11 +188,16 @@ resource "aws_dynamodb_table" "gps_locations" {
     enabled        = true
   }
 
-  tags = { Name = "${var.project_name}-dynamodb-gps" }
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.dynamodb.arn
+  }
 
   point_in_time_recovery {
-  enabled = true
-}
+    enabled = true
+  }
+
+  tags = { Name = "${var.project_name}-dynamodb-gps" }
 }
 
 resource "aws_dynamodb_table" "notifications" {
@@ -197,25 +216,19 @@ resource "aws_dynamodb_table" "notifications" {
     type = "S"
   }
 
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.dynamodb.arn
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = { Name = "${var.project_name}-dynamodb-notifications" }
 }
 
-resource "aws_vpc_endpoint" "s3" {
-  vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.${var.aws_region}.s3"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.private.id]
-  tags = { Name = "${var.project_name}-vpc-endpoint-s3" }
-}
-
-# VPC Endpoint para DynamoDB — el trafico no sale por internet
-resource "aws_vpc_endpoint" "dynamodb" {
-  vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.private.id]
   tags = { Name = "${var.project_name}-vpc-endpoint-dynamodb" }
-}
 
 resource "aws_s3_bucket" "reportes" {
   bucket = "${var.project_name}-reportes-fotos-${var.environment}"
