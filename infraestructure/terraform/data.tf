@@ -128,7 +128,7 @@ resource "aws_dynamodb_table" "notifications" {
 
   server_side_encryption {
     enabled     = true
-
+    kms_key_arn = aws_kms_key.dynamodb.arn
   }
 
   point_in_time_recovery {
