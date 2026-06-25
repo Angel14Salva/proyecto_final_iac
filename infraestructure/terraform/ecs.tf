@@ -173,6 +173,7 @@ resource "aws_lb_listener" "http_redirect" {
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}/backend"
   retention_in_days = 365
+  kms_key_id        = aws_kms_key.secrets.arn
   tags              = { Name = "${var.project_name}-ecs-logs" }
 }
 
