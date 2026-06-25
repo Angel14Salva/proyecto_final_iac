@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
-<testsuites disabled="0" errors="0" failures="16" tests="253" time="0.0">
-	<testsuite disabled="0" errors="0" failures="16" name="terraform scan" skipped="0" tests="253" time="0">
+<testsuites disabled="0" errors="0" failures="15" tests="257" time="0.0">
+	<testsuite disabled="0" errors="0" failures="15" name="terraform scan" skipped="0" tests="257" time="0">
 		<properties>
 			<property name="directory" value="['/tf']"/>
 			<property name="add_check" value="False"/>
@@ -54,7 +54,9 @@
 		<testcase name="[NONE][CKV_AWS_322] Ensure ElastiCache for Redis cache clusters have auto minor version upgrades enabled" classname="/data.tf.aws_elasticache_cluster.redis" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_323] Ensure ElastiCache clusters do not use the default subnet group" classname="/data.tf.aws_elasticache_cluster.redis" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_134] Ensure that Amazon ElastiCache Redis clusters have automatic backup turned on" classname="/data.tf.aws_elasticache_cluster.redis" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_119] Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_28] Ensure DynamoDB point in time recovery (backup) is enabled" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_119] Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_28] Ensure DynamoDB point in time recovery (backup) is enabled" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_93] Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_56] Ensure S3 bucket has 'restrict_public_buckets' enabled" classname="/data.tf.aws_s3_bucket_public_access_block.reportes" file="/data.tf"/>
@@ -62,6 +64,9 @@
 		<testcase name="[NONE][CKV_AWS_53] Ensure S3 bucket has block public ACLS enabled" classname="/data.tf.aws_s3_bucket_public_access_block.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_54] Ensure S3 bucket has block public policy enabled" classname="/data.tf.aws_s3_bucket_public_access_block.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_300] Ensure S3 lifecycle configuration sets period for aborting failed uploads" classname="/data.tf.aws_s3_bucket_lifecycle_configuration.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_227] Ensure KMS key is enabled" classname="/data.tf.aws_kms_key.dynamodb" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_7] Ensure rotation for customer created CMKs is enabled" classname="/data.tf.aws_kms_key.dynamodb" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_33] Ensure KMS key policy does not contain wildcard (*) principal" classname="/data.tf.aws_kms_key.dynamodb" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_51] Ensure ECR Image Tags are immutable" classname="/ecs.tf.aws_ecr_repository.segat_backend" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_163] Ensure ECR image scanning on push is enabled" classname="/ecs.tf.aws_ecr_repository.segat_backend" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_136] Ensure that ECR repositories are encrypted using KMS" classname="/ecs.tf.aws_ecr_repository.segat_backend" file="/ecs.tf"/>
@@ -221,134 +226,59 @@
 		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/iam.tf.aws_iam_role.rds_monitoring" file="/iam.tf"/>
 		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/iam.tf.aws_iam_role_policy_attachment.rds_monitoring" file="/iam.tf"/>
 		<testcase name="[NONE][CKV2_AWS_56] Ensure AWS Managed IAMFullAccess IAM policy is not used." classname="/observability.tf.aws_iam_role.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_57] Ensure Secrets Manager secrets should have automatic rotation enabled" classname="/observability.tf.aws_secretsmanager_secret.db_credentials" file="/observability.tf"/>
 		<testcase name="[NONE][CKV_AWS_18] Ensure the S3 bucket has access logging enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_18] Ensure the S3 bucket has access logging enabled" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_18] Ensure the S3 bucket has access logging enabled" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
-		<testcase name="[NONE][CKV2_AWS_57] Ensure Secrets Manager secrets should have automatic rotation enabled" classname="/observability.tf.aws_secretsmanager_secret.db_credentials" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_19] Ensure that all EIP addresses allocated to a VPC are attached to EC2 instances" classname="/vpc.tf.aws_eip.nat" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV_AWS_378] Ensure AWS Load Balancer doesn't use HTTP protocol" classname="/ecs.tf.aws_lb_target_group.ecs" file="/ecs.tf"/>
-		<testcase name="[NONE][CKV2_AWS_30] Ensure Postgres RDS as aws_db_instance has Query Logging enabled" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_20] S3 Bucket has an ACL defined which allows public READ access." classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_20] S3 Bucket has an ACL defined which allows public READ access." classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_20] S3 Bucket has an ACL defined which allows public READ access." classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_69] Ensure AWS RDS database instance configured with encryption in transit" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_103] Ensure that load balancer is using at least TLS 1.2" classname="/ecs.tf.aws_lb_listener.http_redirect" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV2_AWS_30] Ensure Postgres RDS as aws_db_instance has Query Logging enabled" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
 		<testcase name="[NONE][CKV2_AWS_20] Ensure that ALB redirects HTTP requests into HTTPS ones" classname="/ecs.tf.aws_lb.external" file="/ecs.tf"/>
-		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
-		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
-		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
-		<testcase name="[NONE][CKV2_AWS_64] Ensure KMS key Policy is defined" classname="/messaging.tf.aws_kms_key.sqs" file="/messaging.tf"/>
-		<testcase name="[NONE][CKV2_AWS_64] Ensure KMS key Policy is defined" classname="/observability.tf.aws_kms_key.secrets" file="/observability.tf"/>
-		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
-		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
-		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
-		<testcase name="[NONE][CKV2_AWS_74] Ensure AWS Load Balancers use strong ciphers" classname="/ecs.tf.aws_lb_listener.http_redirect" file="/ecs.tf"/>
-		<testcase name="[NONE][CKV2_AWS_31] Ensure WAF2 has a Logging Configuration" classname="/waf.tf.aws_wafv2_web_acl.main" file="/waf.tf"/>
-		<testcase name="[NONE][CKV2_AWS_40] Ensure AWS IAM policy does not allow full IAM privileges" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
-		<testcase name="[NONE][CKV2_AWS_40] Ensure AWS IAM policy does not allow full IAM privileges" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
-		<testcase name="[NONE][CKV2_AWS_40] Ensure AWS IAM policy does not allow full IAM privileges" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_16] Ensure that Auto Scaling is enabled on your DynamoDB tables" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf"/>
+		<testcase name="[NONE][CKV2_AWS_16] Ensure that Auto Scaling is enabled on your DynamoDB tables" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_145] Ensure that S3 buckets are encrypted with KMS by default" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV_AWS_145] Ensure that S3 buckets are encrypted with KMS by default" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV_AWS_145] Ensure that S3 buckets are encrypted with KMS by default" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_64] Ensure KMS key Policy is defined" classname="/messaging.tf.aws_kms_key.sqs" file="/messaging.tf"/>
+		<testcase name="[NONE][CKV2_AWS_64] Ensure KMS key Policy is defined" classname="/observability.tf.aws_kms_key.secrets" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_74] Ensure AWS Load Balancers use strong ciphers" classname="/ecs.tf.aws_lb_listener.http_redirect" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV2_AWS_40] Ensure AWS IAM policy does not allow full IAM privileges" classname="/iam.tf.aws_iam_role_policy.ecs_execution_secrets" file="/iam.tf"/>
+		<testcase name="[NONE][CKV2_AWS_40] Ensure AWS IAM policy does not allow full IAM privileges" classname="/iam.tf.aws_iam_role_policy.ecs_task_permissions" file="/iam.tf"/>
+		<testcase name="[NONE][CKV2_AWS_40] Ensure AWS IAM policy does not allow full IAM privileges" classname="/observability.tf.aws_iam_role_policy.cloudtrail_cloudwatch" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_31] Ensure WAF2 has a Logging Configuration" classname="/waf.tf.aws_wafv2_web_acl.main" file="/waf.tf"/>
+		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_57] S3 Bucket has an ACL defined which allows public WRITE access." classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_21] Ensure all data stored in the S3 bucket have versioning enabled" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_44] Ensure AWS route table with VPC peering does not contain routes overly permissive to all traffic" classname="/vpc.tf.aws_route_table.public" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_44] Ensure AWS route table with VPC peering does not contain routes overly permissive to all traffic" classname="/vpc.tf.aws_route_table.private" file="/vpc.tf"/>
-		<testcase name="[NONE][CKV2_AWS_16] Ensure that Auto Scaling is enabled on your DynamoDB tables" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf"/>
-		<testcase name="[NONE][CKV2_AWS_16] Ensure that Auto Scaling is enabled on your DynamoDB tables" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf"/>
-		<testcase name="[NONE][CKV2_AWS_60] Ensure RDS instance with copy tags to snapshots is enabled" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
-		<testcase name="[NONE][CKV2_AWS_11] Ensure VPC flow logging is enabled in all VPCs" classname="/vpc.tf.aws_vpc.main" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_61] Ensure that an S3 bucket has a lifecycle configuration" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV2_AWS_61] Ensure that an S3 bucket has a lifecycle configuration" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV2_AWS_61] Ensure that an S3 bucket has a lifecycle configuration" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_60] Ensure RDS instance with copy tags to snapshots is enabled" classname="/data.tf.aws_db_instance.postgresql" file="/data.tf"/>
+		<testcase name="[NONE][CKV2_AWS_11] Ensure VPC flow logging is enabled in all VPCs" classname="/vpc.tf.aws_vpc.main" file="/vpc.tf"/>
+		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
+		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
+		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_5] Ensure that Security Groups are attached to another resource" classname="/vpc.tf.aws_security_group.rds" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_5] Ensure that Security Groups are attached to another resource" classname="/vpc.tf.aws_security_group.redis" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_5] Ensure that Security Groups are attached to another resource" classname="/vpc.tf.aws_security_group.alb" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_5] Ensure that Security Groups are attached to another resource" classname="/vpc.tf.aws_security_group.ecs_tasks" file="/vpc.tf"/>
-		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
-		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
-		<testcase name="[NONE][CKV_AWS_19] Ensure all data stored in the S3 bucket is securely encrypted at rest" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_35] AWS NAT Gateways should be utilized for the default route" classname="/vpc.tf.aws_route_table.public" file="/vpc.tf"/>
 		<testcase name="[NONE][CKV2_AWS_35] AWS NAT Gateways should be utilized for the default route" classname="/vpc.tf.aws_route_table.private" file="/vpc.tf"/>
-		<testcase name="[NONE][CKV2_AWS_10] Ensure CloudTrail trails are integrated with CloudWatch Logs" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_6] Ensure that S3 bucket has a Public Access block" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf"/>
 		<testcase name="[NONE][CKV2_AWS_6] Ensure that S3 bucket has a Public Access block" classname="/ecs.tf.aws_s3_bucket.alb_logs" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV2_AWS_6] Ensure that S3 bucket has a Public Access block" classname="/observability.tf.aws_s3_bucket.cloudtrail_logs" file="/observability.tf"/>
+		<testcase name="[NONE][CKV2_AWS_10] Ensure CloudTrail trails are integrated with CloudWatch Logs" classname="/observability.tf.aws_cloudtrail.main" file="/observability.tf"/>
 		<testcase name="[NONE][CKV2_AWS_28] Ensure public facing ALB are protected by WAF" classname="/ecs.tf.aws_lb.external" file="/ecs.tf"/>
 		<testcase name="[NONE][CKV2_AWS_12] Ensure the default security group of every VPC restricts all traffic" classname="/vpc.tf.aws_vpc.main" file="/vpc.tf"/>
-		<testcase name="[NONE][CKV_AWS_119] Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK" classname="/data.tf.aws_dynamodb_table.gps_locations" file="/data.tf">
-			<failure type="failure" message="Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK">
-Resource: aws_dynamodb_table.gps_locations
-File: /data.tf: 80-111
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-52
-
-		80  | resource &quot;aws_dynamodb_table&quot; &quot;gps_locations&quot; {
-		81  |   name         = &quot;${var.project_name}-gps-locations&quot;
-		82  |   billing_mode = &quot;PAY_PER_REQUEST&quot;
-		83  |   hash_key     = &quot;reporte_id&quot;
-		84  |   range_key    = &quot;timestamp&quot;
-		85  | 
-		86  |   attribute {
-		87  |     name = &quot;reporte_id&quot;
-		88  |     type = &quot;S&quot;
-		89  |   }
-		90  | 
-		91  |   attribute {
-		92  |     name = &quot;timestamp&quot;
-		93  |     type = &quot;S&quot;
-		94  |   }
-		95  | 
-		96  |   ttl {
-		97  |     attribute_name = &quot;expiration_time&quot;
-		98  |     enabled        = true
-		99  |   }
-		100 | 
-		101 |   server_side_encryption {
-		102 |     enabled     = true
-		103 | 
-		104 |   }
-		105 | 
-		106 |   point_in_time_recovery {
-		107 |     enabled = true
-		108 |   }
-		109 | 
-		110 |   tags = { Name = &quot;${var.project_name}-dynamodb-gps&quot; }
-		111 | }
-</failure>
-		</testcase>
-		<testcase name="[NONE][CKV_AWS_119] Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK" classname="/data.tf.aws_dynamodb_table.notifications" file="/data.tf">
-			<failure type="failure" message="Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK">
-Resource: aws_dynamodb_table.notifications
-File: /data.tf: 113-139
-Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-52
-
-		113 | resource &quot;aws_dynamodb_table&quot; &quot;notifications&quot; {
-		114 |   name         = &quot;${var.project_name}-notifications&quot;
-		115 |   billing_mode = &quot;PAY_PER_REQUEST&quot;
-		116 |   hash_key     = &quot;notification_id&quot;
-		117 |   range_key    = &quot;user_id&quot;
-		118 | 
-		119 |   attribute {
-		120 |     name = &quot;notification_id&quot;
-		121 |     type = &quot;S&quot;
-		122 |   }
-		123 | 
-		124 |   attribute {
-		125 |     name = &quot;user_id&quot;
-		126 |     type = &quot;S&quot;
-		127 |   }
-		128 | 
-		129 |   server_side_encryption {
-		130 |     enabled     = true
-		131 | 
-		132 |   }
-		133 | 
-		134 |   point_in_time_recovery {
-		135 |     enabled = true
-		136 |   }
-		137 | 
-		138 |   tags = { Name = &quot;${var.project_name}-dynamodb-notifications&quot; }
-		139 | }
-</failure>
-		</testcase>
 		<testcase name="[NONE][CKV_AWS_158] Ensure that CloudWatch Log Group is encrypted by KMS" classname="/ecs.tf.aws_cloudwatch_log_group.ecs" file="/ecs.tf">
 			<failure type="failure" message="Ensure that CloudWatch Log Group is encrypted by KMS">
 Resource: aws_cloudwatch_log_group.ecs
@@ -481,6 +411,20 @@ Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aw
 		237 |   kms_key_id  = aws_kms_key.secrets.arn
 		238 |   tags        = { Name = &quot;${var.project_name}-secret-n8n&quot; }
 		239 | }
+</failure>
+		</testcase>
+		<testcase name="[NONE][CKV2_AWS_64] Ensure KMS key Policy is defined" classname="/data.tf.aws_kms_key.dynamodb" file="/data.tf">
+			<failure type="failure" message="Ensure KMS key Policy is defined">
+Resource: aws_kms_key.dynamodb
+File: /data.tf: 204-209
+Guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-2-64
+
+		204 | resource &quot;aws_kms_key&quot; &quot;dynamodb&quot; {
+		205 |   description             = &quot;KMS CMK para cifrado de tablas DynamoDB del proyecto SEGAT&quot;
+		206 |   deletion_window_in_days = 7
+		207 |   enable_key_rotation     = true
+		208 |   tags = { Name = &quot;${var.project_name}-kms-dynamodb&quot; }
+		209 | }
 </failure>
 		</testcase>
 		<testcase name="[NONE][CKV_AWS_144] Ensure that S3 bucket has cross-region replication enabled" classname="/data.tf.aws_s3_bucket.reportes" file="/data.tf">
