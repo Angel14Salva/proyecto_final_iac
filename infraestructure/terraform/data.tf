@@ -3,41 +3,100 @@
 # RDS PostgreSQL + ElastiCache Redis + DynamoDB + S3
 # =============================================================================
 
+# =============================================================================
+# KMS CMK — Clave maestra para la capa de datos
+# Un CMK por servicio permite rotación y auditoría independiente
+# =============================================================================
+resource "aws_kms_key" "rds" {
+  description             = "CMK para RDS PostgreSQL de ${var.project_name}"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  tags                    = { Name = "${var.project_name}-kms-rds" }
+}
+
+resource "aws_kms_alias" "rds" {
+  name          = "alias/${var.project_name}/rds"
+  target_key_id = aws_kms_key.rds.key_id
+}
+
+
+# =============================================================================
+# RDS POSTGRESQL
+# =============================================================================
+
 resource "aws_db_subnet_group" "rds" {
   name       = "${var.project_name}-rds-subnet-group"
   subnet_ids = [aws_subnet.private_c.id, aws_subnet.private_c2.id]
   tags       = { Name = "${var.project_name}-rds-subnet-group" }
 }
 
+# Parameter group con query logging habilitado
+resource "aws_db_parameter_group" "postgresql" {
+  name   = "${var.project_name}-pg15-params"
+  family = "postgres15"
+
+  parameter {
+    name  = "log_min_duration_statement"
+    value = "1000" # loguear queries que tarden más de 1s
+  }
+
+  parameter {
+    name  = "log_connections"
+    value = "1"
+  }
+
+  parameter {
+    name  = "log_disconnections"
+    value = "1"
+  }
+
+  tags = { Name = "${var.project_name}-pg-params" }
+}
+
 resource "aws_db_instance" "postgresql" {
-  identifier              = "${var.project_name}-postgresql"
-  engine                  = "postgres"
-  engine_version          = "15.7"
-  instance_class          = "db.t3.micro"
-  allocated_storage       = 20
-  storage_type            = "gp2"
-  storage_encrypted       = true
-  db_name                 = var.db_name
-  username                = var.db_username
-  password                = var.db_password
-  db_subnet_group_name    = aws_db_subnet_group.rds.name
-  vpc_security_group_ids  = [aws_security_group.rds.id]
-  backup_retention_period = 7
-  skip_final_snapshot     = false
+  identifier        = "${var.project_name}-postgresql"
+  engine            = "postgres"
+  engine_version    = "15.7"
+  instance_class    = "db.t3.micro"
+  allocated_storage = 20
+  storage_type      = "gp2"
+
+  storage_encrypted = true
+  kms_key_id        = aws_kms_key.rds.arn
+
+  db_name  = var.db_name
+  username = var.db_username
+  password = var.db_password
+
+  db_subnet_group_name   = aws_db_subnet_group.rds.name
+  vpc_security_group_ids = [aws_security_group.rds.id]
+  parameter_group_name   = aws_db_parameter_group.postgresql.name
+
+  backup_retention_period   = 7
+  skip_final_snapshot       = false
   final_snapshot_identifier = "${var.project_name}-postgresql-final-snapshot"
-  deletion_protection     = true
-  multi_az                = true
-  copy_tags_to_snapshot               = true
+  deletion_protection       = true
+  multi_az                  = true
+  copy_tags_to_snapshot     = true
+
   iam_database_authentication_enabled = true
-  performance_insights_enabled              = true
-  performance_insights_kms_key_id           = "alias/aws/rds"
-  enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
-  auto_minor_version_upgrade          = true
-  # Enhanced Monitoring — requiere el rol IAM dedicado
+
+  performance_insights_enabled    = true
+  performance_insights_kms_key_id = aws_kms_key.rds.arn
+
+  enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
+
+  auto_minor_version_upgrade = true
+
+  ca_cert_identifier = "rds-ca-rsa2048-g1"
+
   monitoring_interval = 60
   monitoring_role_arn = aws_iam_role.rds_monitoring.arn
+
   tags = { Name = "${var.project_name}-postgresql" }
 }
+
+# =============================================================================
 
 resource "aws_elasticache_subnet_group" "redis" {
   name       = "${var.project_name}-redis-subnet-group"
@@ -87,6 +146,10 @@ resource "aws_dynamodb_table" "gps_locations" {
   }
 
   tags = { Name = "${var.project_name}-dynamodb-gps" }
+
+  point_in_time_recovery {
+  enabled = true
+}
 }
 
 resource "aws_dynamodb_table" "notifications" {
