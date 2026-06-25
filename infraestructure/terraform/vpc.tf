@@ -18,7 +18,7 @@ resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_public_cidr
   availability_zone       = data.aws_availability_zones.available.names[0]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags = { Name = "${var.project_name}-subnet-public-a", Tier = "Public" }
 }
 
@@ -26,7 +26,7 @@ resource "aws_subnet" "public_b" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_public_b_cidr
   availability_zone       = data.aws_availability_zones.available.names[1]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags = { Name = "${var.project_name}-subnet-public-b", Tier = "Public" }
 }
 
@@ -135,13 +135,6 @@ resource "aws_security_group" "alb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  ingress {
-    description = "HTTP desde internet"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
   egress {
     description = "Salida hacia los Fargate Tasks"
     from_port   = 443
@@ -199,4 +192,23 @@ resource "aws_security_group" "redis" {
     security_groups = [aws_security_group.ecs_tasks.id]
   }
   tags = { Name = "${var.project_name}-sg-redis" }
+}
+
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
+  tags   = { Name = "${var.project_name}-default-sg-bloqueado" }
+}
+
+resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  name              = "/aws/vpc/flowlogs/${var.project_name}"
+  retention_in_days = 365
+  tags              = { Name = "${var.project_name}-vpc-flow-logs" }
+}
+
+resource "aws_flow_log" "main" {
+  vpc_id          = aws_vpc.main.id
+  traffic_type    = "ALL"
+  iam_role_arn    = aws_iam_role.ecs_execution_role.arn
+  log_destination = aws_cloudwatch_log_group.vpc_flow_logs.arn
+  tags            = { Name = "${var.project_name}-flow-log" }
 }
