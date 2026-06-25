@@ -1,6 +1,6 @@
 # =============================================================================
 # ecs.tf — FASE 3: Computo ECS — Corazon del sistema SEGAT
-# ECS Cluster + Fargate + ALB interno + Auto Scaling
+# ECS Cluster + Fargate + ALB EXTERNO + Auto Scaling
 # =============================================================================
 
 resource "aws_ecr_repository" "segat_backend" {
@@ -22,13 +22,83 @@ resource "aws_ecs_cluster" "main" {
   tags = { Name = "${var.project_name}-ecs-cluster" }
 }
 
-resource "aws_lb" "internal" {
-  name               = "${var.project_name}-alb-internal"
-  internal           = true
+# ALB EXTERNO — accesible desde internet, en subredes PÚBLICAS
+# Corrección: era internal=true en subredes privadas, bloqueando todo el tráfico externo
+resource "aws_lb" "external" {
+  name               = "${var.project_name}-alb-external"
+  internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets            = [aws_subnet.private_a.id, aws_subnet.private_b.id]
-  tags               = { Name = "${var.project_name}-alb-internal" }
+  subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+
+  drop_invalid_header_fields = true
+
+  enable_deletion_protection = true
+
+  access_logs {
+    bucket  = aws_s3_bucket.alb_logs.id
+    prefix  = "alb"
+    enabled = true
+  }
+
+
+  tags = { Name = "${var.project_name}-alb-external" }
+}
+
+# S3 bucket para los access logs del ALB
+# Los access logs del ALB los escribe el servicio de ELB de AWS, no IAM roles
+resource "aws_s3_bucket" "alb_logs" {
+  bucket        = "${var.project_name}-alb-logs-${var.environment}"
+  force_destroy = true
+  tags          = { Name = "${var.project_name}-s3-alb-logs" }
+}
+
+resource "aws_s3_bucket_public_access_block" "alb_logs" {
+  bucket                  = aws_s3_bucket.alb_logs.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+# Politica que permite al servicio ELB de AWS escribir los access logs
+data "aws_elb_service_account" "main" {}
+
+resource "aws_s3_bucket_policy" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = { AWS = data.aws_elb_service_account.main.arn }
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb/AWSLogs/*"
+      },
+      {
+        Effect    = "Allow"
+        Principal = { Service = "delivery.logs.amazonaws.com" }
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb/AWSLogs/*"
+        Condition = { StringEquals = { "s3:x-amz-acl" = "bucket-owner-full-control" } }
+      },
+      {
+        Effect    = "Allow"
+        Principal = { Service = "delivery.logs.amazonaws.com" }
+        Action    = "s3:GetBucketAcl"
+        Resource  = aws_s3_bucket.alb_logs.arn
+      }
+    ]
+  })
 }
 
 resource "aws_lb_target_group" "ecs" {
@@ -38,7 +108,8 @@ resource "aws_lb_target_group" "ecs" {
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
   health_check {
-    path                = "/health"
+    # Corrección: /health no existe en el backend. Spring Actuator expone /actuator/health
+    path                = "/actuator/health"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
@@ -48,10 +119,29 @@ resource "aws_lb_target_group" "ecs" {
   tags = { Name = "${var.project_name}-tg-ecs" }
 }
 
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.internal.arn
+# Listener HTTP en puerto 80 — redirige a HTTPS
+resource "aws_lb_listener" "http_redirect" {
+  load_balancer_arn = aws_lb.external.arn
   port              = 80
   protocol          = "HTTP"
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+# Listener HTTPS en puerto 443
+# ELBSecurityPolicy-TLS13-1-2-2021-06 soporta TLS 1.2 y 1.3, descarta cifrados debiles
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.external.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.acm_certificate_arn
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.ecs.arn
@@ -72,16 +162,36 @@ resource "aws_ecs_task_definition" "segat_backend" {
   memory                   = var.ecs_task_memory
   execution_role_arn       = aws_iam_role.ecs_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
+
   container_definitions = jsonencode([{
     name      = "${var.project_name}-backend"
     image     = "${aws_ecr_repository.segat_backend.repository_url}:latest"
     essential = true
     portMappings = [{ containerPort = 8080, protocol = "tcp" }]
+
+    # Variables de entorno no sensibles
     environment = [
-      { name = "APP_ENV",      value = var.environment },
-      { name = "APP_PORT",     value = "8080" },
-      { name = "PROJECT_NAME", value = var.project_name }
+      { name = "APP_ENV",                value = var.environment },
+      { name = "SERVER_PORT",            value = "8080" },
+      { name = "PROJECT_NAME",           value = var.project_name },
+      { name = "SPRING_PROFILES_ACTIVE", value = "prod" },
+      # Hibernate — nunca create-drop en produccion
+      { name = "SPRING_JPA_HIBERNATE_DDL_AUTO", value = "validate" }
     ]
+
+    # Secrets inyectados desde Secrets Manager — nunca en texto plano
+    secrets = [
+      { name = "DATABASE_URL",           valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:url::" },
+      { name = "CLOUDINARY_CLOUD_NAME",  valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:cloud_name::" },
+      { name = "CLOUDINARY_API_KEY",     valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_key::" },
+      { name = "CLOUDINARY_API_SECRET",  valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_secret::" },
+      { name = "JWT_SECRET",             valueFrom = "${aws_secretsmanager_secret.jwt.arn}:secret::" },
+      { name = "JWT_EXPIRATION",         valueFrom = "${aws_secretsmanager_secret.jwt.arn}:expiration::" },
+      { name = "JWT_REFRESH_EXPIRATION", valueFrom = "${aws_secretsmanager_secret.jwt.arn}:refresh_expiration::" },
+      { name = "N8N_NEW_REPORT",         valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_report::" },
+      { name = "N8N_NEW_TASK",           valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_task::" }
+    ]
+
     logConfiguration = {
       logDriver = "awslogs"
       options = {
@@ -90,14 +200,16 @@ resource "aws_ecs_task_definition" "segat_backend" {
         "awslogs-stream-prefix" = "ecs"
       }
     }
+
     healthCheck = {
-      command     = ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      command     = ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
       interval    = 30
       timeout     = 5
       retries     = 3
       startPeriod = 60
     }
   }])
+
   tags = { Name = "${var.project_name}-task-definition" }
 }
 
@@ -107,19 +219,28 @@ resource "aws_ecs_service" "segat_backend" {
   task_definition = aws_ecs_task_definition.segat_backend.arn
   desired_count   = var.ecs_desired_count
   launch_type     = "FARGATE"
+
   network_configuration {
     subnets          = [aws_subnet.private_a.id, aws_subnet.private_b.id]
     security_groups  = [aws_security_group.ecs_tasks.id]
     assign_public_ip = false
   }
+
   load_balancer {
     target_group_arn = aws_lb_target_group.ecs.arn
     container_name   = "${var.project_name}-backend"
     container_port   = 8080
   }
+
   deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
-  depends_on = [aws_lb_listener.http, aws_iam_role_policy_attachment.ecs_execution_role_policy]
+
+  depends_on = [
+    aws_lb_listener.https,
+    aws_lb_listener.http_redirect,
+    aws_iam_role_policy_attachment.ecs_execution_role_policy
+  ]
+
   tags = { Name = "${var.project_name}-ecs-service" }
 }
 

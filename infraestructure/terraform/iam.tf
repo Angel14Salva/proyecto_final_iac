@@ -25,11 +25,24 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
   role = aws_iam_role.ecs_execution_role.id
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["secretsmanager:GetSecretValue", "ssm:GetParameters"]
-      Resource = "*"
-    }]
+    Statement = [
+      {
+        Sid    = "SecretsManagerAccess"
+        Effect = "Allow"
+        Action = ["secretsmanager:GetSecretValue"]
+        # Restringido solo a los secrets del proyecto (evita acceso a toda la cuenta)
+        Resource = [
+          "arn:aws:secretsmanager:*:*:secret:${var.project_name}/*",
+        ]
+      },
+      {
+        Sid    = "SSMParametersAccess"
+        Effect = "Allow"
+        Action = ["ssm:GetParameters", "ssm:GetParameter"]
+        # Restringido al path del proyecto en Parameter Store
+        Resource = "arn:aws:ssm:*:*:parameter/${var.project_name}/*"
+      }
+    ]
   })
 }
 
@@ -53,33 +66,40 @@ resource "aws_iam_role_policy" "ecs_task_permissions" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid      = "SQSAccess"
-        Effect   = "Allow"
-        Action   = ["sqs:SendMessage","sqs:ReceiveMessage","sqs:DeleteMessage","sqs:GetQueueAttributes"]
-        Resource = "*"
+        Sid    = "SQSAccess"
+        Effect = "Allow"
+        Action = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+        # Restringido a las colas del proyecto (antes era "*")
+        Resource = [
+          "arn:aws:sqs:*:*:${var.project_name}-*",
+        ]
       },
       {
         Sid      = "S3ReportesAccess"
         Effect   = "Allow"
-        Action   = ["s3:PutObject","s3:GetObject","s3:DeleteObject"]
+        Action   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
         Resource = "arn:aws:s3:::${var.project_name}-reportes-*/*"
       },
       {
-        Sid      = "DynamoDBAccess"
-        Effect   = "Allow"
-        Action   = ["dynamodb:PutItem","dynamodb:GetItem","dynamodb:UpdateItem","dynamodb:Query","dynamodb:Scan"]
-        Resource = "arn:aws:dynamodb:*:*:table/${var.project_name}-*"
+        Sid    = "DynamoDBAccess"
+        Effect = "Allow"
+        Action = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:Query", "dynamodb:Scan"]
+        Resource = [
+          "arn:aws:dynamodb:*:*:table/${var.project_name}-*",
+          "arn:aws:dynamodb:*:*:table/${var.project_name}-*/index/*",
+        ]
       },
       {
-        Sid      = "SNSPublish"
-        Effect   = "Allow"
-        Action   = ["sns:Publish"]
-        Resource = "*"
+        Sid    = "SNSPublish"
+        Effect = "Allow"
+        Action = ["sns:Publish"]
+        # Restringido a los topics del proyecto (antes era "*")
+        Resource = "arn:aws:sns:*:*:${var.project_name}-*"
       },
       {
-        Sid      = "SecretsAccess"
-        Effect   = "Allow"
-        Action   = ["secretsmanager:GetSecretValue"]
+        Sid    = "SecretsAccess"
+        Effect = "Allow"
+        Action = ["secretsmanager:GetSecretValue"]
         Resource = "arn:aws:secretsmanager:*:*:secret:${var.project_name}/*"
       }
     ]
@@ -102,4 +122,27 @@ resource "aws_iam_role" "autoscaling_role" {
 resource "aws_iam_role_policy_attachment" "autoscaling_role_policy" {
   role       = aws_iam_role.autoscaling_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole"
+}
+
+# =============================================================================
+# RDS Enhanced Monitoring Role
+# Requerido cuando monitoring_interval > 0 en aws_db_instance
+# =============================================================================
+
+resource "aws_iam_role" "rds_monitoring" {
+  name        = "${var.project_name}-rds-enhanced-monitoring"
+  description = "Permite a RDS enviar metricas de Enhanced Monitoring a CloudWatch"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "monitoring.rds.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "rds_monitoring" {
+  role       = aws_iam_role.rds_monitoring.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
