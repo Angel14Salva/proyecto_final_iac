@@ -45,6 +45,11 @@ resource "aws_lb" "external" {
   tags = { Name = "${var.project_name}-alb-external" }
 }
 
+resource "aws_wafv2_web_acl_association" "external" {
+  resource_arn = aws_lb.external.arn
+  web_acl_arn  = aws_wafv2_web_acl.main.arn
+}
+
 # S3 bucket para los access logs del ALB
 # Los access logs del ALB los escribe el servicio de ELB de AWS, no IAM roles
 resource "aws_s3_bucket" "alb_logs" {
