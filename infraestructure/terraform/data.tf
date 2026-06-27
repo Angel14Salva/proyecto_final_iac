@@ -202,6 +202,7 @@ data "aws_kms_key" "rds" {
 }
 
 resource "aws_kms_key" "dynamodb" {
+  # CKV2_AWS_64: policy explicita requerida por Checkov para KMS keys
   description             = "KMS CMK para cifrado de tablas DynamoDB del proyecto SEGAT"
   deletion_window_in_days = 7
   enable_key_rotation     = true
