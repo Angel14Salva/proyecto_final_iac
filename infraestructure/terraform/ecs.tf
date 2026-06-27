@@ -45,6 +45,46 @@ resource "aws_lb" "external" {
   tags = { Name = "${var.project_name}-alb-external" }
 }
 
+resource "aws_lb" "internal" {
+  name               = "${var.project_name}-alb-internal"
+  internal           = true
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.ecs_tasks.id]
+  subnets            = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+
+  drop_invalid_header_fields = true
+  enable_deletion_protection = true
+
+  tags = { Name = "${var.project_name}-alb-internal" }
+}
+
+resource "aws_lb_target_group" "internal" {
+  name        = "${var.project_name}-tg-internal"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+  health_check {
+    path                = "/actuator/health"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    matcher             = "200"
+  }
+  tags = { Name = "${var.project_name}-tg-internal" }
+}
+
+resource "aws_lb_listener" "internal_http" {
+  load_balancer_arn = aws_lb.internal.arn
+  port              = 80
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.internal.arn
+  }
+}
+
 resource "aws_wafv2_web_acl_association" "external" {
   resource_arn = aws_lb.external.arn
   web_acl_arn  = aws_wafv2_web_acl.main.arn
