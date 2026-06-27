@@ -1,4 +1,4 @@
-name: SonarQube Analysis
+name: CI - Analisis de Calidad SonarQube
 
 on:
   push:
