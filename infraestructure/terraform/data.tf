@@ -151,6 +151,20 @@ resource "aws_s3_bucket" "reportes" {
   tags   = { Name = "${var.project_name}-s3-reportes" }
 }
 
+resource "aws_s3_bucket_replication_configuration" "reportes" {
+  depends_on = [aws_s3_bucket_versioning.reportes]
+  role       = aws_iam_role.s3_replication.arn
+  bucket     = aws_s3_bucket.reportes.id
+  rule {
+    id     = "replicacion-reportes"
+    status = "Enabled"
+    destination {
+      bucket        = "arn:aws:s3:::${var.replication_bucket_reportes}"
+      storage_class = "STANDARD"
+    }
+  }
+}
+
 resource "aws_s3_bucket_notification" "reportes" {
   bucket      = aws_s3_bucket.reportes.id
   eventbridge = true

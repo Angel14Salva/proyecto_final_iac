@@ -64,6 +64,20 @@ resource "aws_s3_bucket" "cloudtrail_logs" {
   tags = { Name = "${var.project_name}-s3-cloudtrail" }
 }
 
+resource "aws_s3_bucket_replication_configuration" "cloudtrail_logs" {
+  depends_on = [aws_s3_bucket_versioning.cloudtrail_logs]
+  role       = aws_iam_role.s3_replication.arn
+  bucket     = aws_s3_bucket.cloudtrail_logs.id
+  rule {
+    id     = "replicacion-cloudtrail"
+    status = "Enabled"
+    destination {
+      bucket        = "arn:aws:s3:::${var.replication_bucket_cloudtrail}"
+      storage_class = "STANDARD"
+    }
+  }
+}
+
 resource "aws_s3_bucket_notification" "cloudtrail_logs" {
   bucket      = aws_s3_bucket.cloudtrail_logs.id
   eventbridge = true

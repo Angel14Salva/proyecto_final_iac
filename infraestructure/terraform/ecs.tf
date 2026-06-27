@@ -120,6 +120,20 @@ resource "aws_s3_bucket" "alb_logs" {
   tags          = { Name = "${var.project_name}-s3-alb-logs" }
 }
 
+resource "aws_s3_bucket_replication_configuration" "alb_logs" {
+  depends_on = [aws_s3_bucket_versioning.alb_logs]
+  role       = aws_iam_role.s3_replication.arn
+  bucket     = aws_s3_bucket.alb_logs.id
+  rule {
+    id     = "replicacion-alb-logs"
+    status = "Enabled"
+    destination {
+      bucket        = "arn:aws:s3:::${var.replication_bucket_alb}"
+      storage_class = "STANDARD"
+    }
+  }
+}
+
 resource "aws_s3_bucket_notification" "alb_logs" {
   bucket      = aws_s3_bucket.alb_logs.id
   eventbridge = true

@@ -120,3 +120,41 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring" {
   role       = aws_iam_role.rds_monitoring.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
+
+resource "aws_iam_role" "s3_replication" {
+  name = "${var.project_name}-s3-replication-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "s3.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+  tags = { Name = "${var.project_name}-s3-replication-role" }
+}
+
+resource "aws_iam_role_policy" "s3_replication" {
+  name = "${var.project_name}-s3-replication-policy"
+  role = aws_iam_role.s3_replication.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetReplicationConfiguration", "s3:ListBucket"]
+        Resource = ["arn:aws:s3:::*"]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObjectVersionForReplication", "s3:GetObjectVersionAcl", "s3:GetObjectVersionTagging"]
+        Resource = ["arn:aws:s3:::/"]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ReplicateObject", "s3:ReplicateDelete", "s3:ReplicateTags"]
+        Resource = ["arn:aws:s3:::/"]
+      }
+    ]
+  })
+}

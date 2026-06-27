@@ -122,3 +122,27 @@ variable "acm_certificate_arn" {
 }
 
 
+
+variable "replication_region" {
+  description = "Region secundaria para replicacion S3"
+  type        = string
+  default     = "us-west-2"
+}
+
+variable "replication_bucket_reportes" {
+  description = "Bucket destino para replicacion de reportes"
+  type        = string
+  default     = "segat-reportes-fotos-replica"
+}
+
+variable "replication_bucket_alb" {
+  description = "Bucket destino para replicacion de ALB logs"
+  type        = string
+  default     = "segat-alb-logs-replica"
+}
+
+variable "replication_bucket_cloudtrail" {
+  description = "Bucket destino para replicacion de CloudTrail logs"
+  type        = string
+  default     = "segat-cloudtrail-logs-replica"
+}
