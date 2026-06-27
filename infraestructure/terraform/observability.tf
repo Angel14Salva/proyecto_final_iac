@@ -222,6 +222,30 @@ resource "aws_kms_key" "secrets" {
   tags = { Name = "${var.project_name}-kms-secrets" }
 }
 
+resource "aws_secretsmanager_secret_rotation" "cloudinary" {
+  secret_id           = aws_secretsmanager_secret.cloudinary.id
+  rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
+  rotation_rules {
+    automatically_after_days = 30
+  }
+}
+
+resource "aws_secretsmanager_secret_rotation" "jwt" {
+  secret_id           = aws_secretsmanager_secret.jwt.id
+  rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
+  rotation_rules {
+    automatically_after_days = 30
+  }
+}
+
+resource "aws_secretsmanager_secret_rotation" "n8n" {
+  secret_id           = aws_secretsmanager_secret.n8n.id
+  rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
+  rotation_rules {
+    automatically_after_days = 30
+  }
+}
+
 resource "aws_secretsmanager_secret" "cloudinary" {
   name        = "${var.project_name}/cloudinary"
   description = "Credenciales de Cloudinary para el proyecto SEGAT"
