@@ -114,7 +114,8 @@ resource "aws_wafv2_web_acl_association" "alb" {
 resource "aws_cloudwatch_log_group" "waf" {
   # Los log groups del WAF DEBEN tener el prefijo "aws-waf-logs-"
   name              = "aws-waf-logs-${var.project_name}"
-  retention_in_days = 90
+  retention_in_days = 365
+  kms_key_id        = aws_kms_key.secrets.arn
   tags              = { Name = "${var.project_name}-waf-logs" }
 }
 
