@@ -64,6 +64,11 @@ resource "aws_s3_bucket" "cloudtrail_logs" {
   tags = { Name = "${var.project_name}-s3-cloudtrail" }
 }
 
+resource "aws_s3_bucket_notification" "cloudtrail_logs" {
+  bucket      = aws_s3_bucket.cloudtrail_logs.id
+  eventbridge = true
+}
+
 resource "aws_s3_bucket_public_access_block" "cloudtrail_logs" {
   bucket                  = aws_s3_bucket.cloudtrail_logs.id
   block_public_acls       = true

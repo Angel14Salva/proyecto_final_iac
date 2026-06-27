@@ -151,6 +151,11 @@ resource "aws_s3_bucket" "reportes" {
   tags   = { Name = "${var.project_name}-s3-reportes" }
 }
 
+resource "aws_s3_bucket_notification" "reportes" {
+  bucket      = aws_s3_bucket.reportes.id
+  eventbridge = true
+}
+
 resource "aws_s3_bucket_public_access_block" "reportes" {
   bucket                  = aws_s3_bucket.reportes.id
   block_public_acls       = true

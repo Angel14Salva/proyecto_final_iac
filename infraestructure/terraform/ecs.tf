@@ -58,6 +58,11 @@ resource "aws_s3_bucket" "alb_logs" {
   tags          = { Name = "${var.project_name}-s3-alb-logs" }
 }
 
+resource "aws_s3_bucket_notification" "alb_logs" {
+  bucket      = aws_s3_bucket.alb_logs.id
+  eventbridge = true
+}
+
 resource "aws_s3_bucket_versioning" "alb_logs" {
   bucket = aws_s3_bucket.alb_logs.id
   versioning_configuration { status = "Enabled" }
