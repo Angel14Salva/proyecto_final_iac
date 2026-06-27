@@ -56,3 +56,28 @@ output "dynamodb_gps_table" {
 
 
 
+
+output "cognito_user_pool_id" {
+  description = "ID del Cognito User Pool de SEGAT"
+  value       = aws_cognito_user_pool.segat.id
+}
+
+output "cognito_user_pool_client_id" {
+  description = "ID del cliente Cognito para el backend"
+  value       = aws_cognito_user_pool_client.segat_backend.id
+}
+
+output "cognito_domain" {
+  description = "Dominio de autenticacion Cognito"
+  value       = aws_cognito_user_pool_domain.segat.domain
+}
+
+output "alb_internal_dns" {
+  description = "DNS del ALB interno"
+  value       = aws_lb.internal.dns_name
+}
+
+output "vpc_endpoint_dynamodb_id" {
+  description = "ID del VPC Endpoint para DynamoDB"
+  value       = aws_vpc_endpoint.dynamodb.id
+}
