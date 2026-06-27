@@ -205,7 +205,21 @@ resource "aws_kms_key" "dynamodb" {
   description             = "KMS CMK para cifrado de tablas DynamoDB del proyecto SEGAT"
   deletion_window_in_days = 7
   enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.dynamodb_kms_policy.json
   tags = { Name = "${var.project_name}-kms-dynamodb" }
+}
+
+data "aws_iam_policy_document" "dynamodb_kms_policy" {
+  statement {
+    sid    = "Enable IAM User Permissions"
+    effect = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+    actions   = ["kms:"]
+    resources = [""]
+  }
 }
 
 resource "aws_kms_alias" "dynamodb" {
