@@ -3,6 +3,36 @@
 # Amazon CloudFront para distribucion de contenido estatico SEGAT
 # =============================================================================
 
+resource "aws_cloudfront_response_headers_policy" "segat" {
+  name    = "${var.project_name}-response-headers-policy"
+  comment = "Headers de seguridad para SEGAT"
+
+  security_headers_config {
+    content_type_options {
+      override = true
+    }
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      preload                    = true
+      override                   = true
+    }
+    xss_protection {
+      mode_block = true
+      protection = true
+      override   = true
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "main" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -61,9 +91,10 @@ resource "aws_cloudfront_distribution" "main" {
       }
     }
 
-    min_ttl     = 0
-    default_ttl = 0
-    max_ttl     = 0
+    min_ttl                    = 0
+    default_ttl                = 0
+    max_ttl                    = 0
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.segat.id
   }
 
   restrictions {
