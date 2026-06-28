@@ -146,3 +146,9 @@ variable "replication_bucket_cloudtrail" {
   type        = string
   default     = "segat-cloudtrail-logs-replica"
 }
+
+variable "domain_name" {
+  description = "Dominio principal del proyecto SEGAT"
+  type        = string
+  default     = "segat.com"
+}
