@@ -21,10 +21,35 @@ resource "aws_cloudfront_distribution" "main" {
     }
   }
 
+  origin {
+    domain_name = aws_lb.internal.dns_name
+    origin_id   = "${var.project_name}-alb-internal-origin"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  origin_group {
+    origin_id = "${var.project_name}-origin-group"
+    failover_criteria {
+      status_codes = [500, 502, 503, 504]
+    }
+    member {
+      origin_id = "${var.project_name}-alb-origin"
+    }
+    member {
+      origin_id = "${var.project_name}-alb-internal-origin"
+    }
+  }
+
   default_cache_behavior {
     allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = "${var.project_name}-alb-origin"
+    target_origin_id       = "${var.project_name}-origin-group"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
 
