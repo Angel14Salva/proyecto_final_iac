@@ -33,8 +33,8 @@ resource "aws_cloudfront_response_headers_policy" "segat" {
   }
 }
 
-# checkov:skip=CKV2_AWS_46: El origin es un ALB, no un bucket S3. Origin Access Control aplica solo para origenes S3.
 resource "aws_cloudfront_distribution" "main" {
+  # checkov:skip=CKV2_AWS_46: El origin es un ALB, no un bucket S3. Origin Access Control aplica solo para origenes S3.
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "CDN para el proyecto SEGAT"
