@@ -17,8 +17,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -26,21 +24,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Base para pruebas de integración: levanta un Postgres+PostGIS real vía
- * Testcontainers (patrón "singleton container": un solo contenedor para
- * toda la suite, compartido entre subclases) y expone helpers comunes
- * (registro de ciudadanos, ubicación válida dentro de una zona).
+ * Testcontainers y expone helpers comunes (registro de ciudadanos, ubicación
+ * válida dentro de una zona).
+ *
+ * Patrón "singleton container" a mano (sin @Testcontainers/@Container): esas
+ * anotaciones paran el contenedor al final de CADA clase de test, incluso
+ * siendo un campo static compartido -- rompe el contexto cacheado de Spring
+ * que reutilizan las demas clases (la primera clase que corre deja el pool
+ * de conexiones apuntando a un Postgres ya detenido). Arrancandolo a mano una
+ * sola vez, el reaper de Testcontainers (Ryuk) lo limpia al terminar la JVM.
  */
 @Tag("integration")
-@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest {
 
-    @Container
     @ServiceConnection
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
             DockerImageName.parse("postgis/postgis:15-3.3").asCompatibleSubstituteFor("postgres")
     );
+
+    static {
+        POSTGRES.start();
+    }
 
     @Autowired
     protected MockMvc mockMvc;
