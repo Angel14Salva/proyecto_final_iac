@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: trujillo-informado
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+application:
+  security:
+    jwt:
+      secret: test-only-secret-for-integration-tests-not-for-production-use
+      expiration: 3600000
+      refresh-token:
+        expiration: 86400000
+
+cloudinary:
+  cloud-name: test
+  api-key: test
+  api-secret: test
+
+n8n:
+  webhook:
+    new-report: http://localhost:9999/webhook/new-report
+    new-task: http://localhost:9999/webhook/new-task
