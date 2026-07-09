@@ -59,7 +59,7 @@ resource "aws_cloudwatch_metric_alarm" "reportes_dlq_depth" {
 }
 
 resource "aws_s3_bucket" "cloudtrail_logs" {
-  bucket        = "${var.project_name}-cloudtrail-logs-${var.environment}"
+  bucket        = "${var.project_name}-cloudtrail-logs-${var.environment}-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
   tags          = { Name = "${var.project_name}-s3-cloudtrail" }
 }
@@ -170,6 +170,7 @@ resource "aws_iam_role_policy" "cloudtrail_cloudwatch" {
 
 # CKV2_AWS_57: Secrets Manager con rotacion automatica
 resource "aws_secretsmanager_secret_rotation" "db_credentials" {
+  count               = var.enable_secrets_rotation ? 1 : 0
   secret_id           = aws_secretsmanager_secret.db_credentials.id
   rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
   rotation_rules {
@@ -230,6 +231,13 @@ resource "aws_kms_key" "secrets" {
         Principal = { Service = "secretsmanager.amazonaws.com" }
         Action    = ["kms:GenerateDataKey", "kms:Decrypt"]
         Resource  = "*"
+      },
+      {
+        Sid       = "Allow CloudWatch Logs"
+        Effect    = "Allow"
+        Principal = { Service = "logs.${var.aws_region}.amazonaws.com" }
+        Action    = ["kms:Encrypt*", "kms:Decrypt*", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"]
+        Resource  = "*"
       }
     ]
   })
@@ -237,6 +245,7 @@ resource "aws_kms_key" "secrets" {
 }
 
 resource "aws_secretsmanager_secret_rotation" "cloudinary" {
+  count               = var.enable_secrets_rotation ? 1 : 0
   secret_id           = aws_secretsmanager_secret.cloudinary.id
   rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
   rotation_rules {
@@ -245,6 +254,7 @@ resource "aws_secretsmanager_secret_rotation" "cloudinary" {
 }
 
 resource "aws_secretsmanager_secret_rotation" "jwt" {
+  count               = var.enable_secrets_rotation ? 1 : 0
   secret_id           = aws_secretsmanager_secret.jwt.id
   rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
   rotation_rules {
@@ -253,6 +263,7 @@ resource "aws_secretsmanager_secret_rotation" "jwt" {
 }
 
 resource "aws_secretsmanager_secret_rotation" "n8n" {
+  count               = var.enable_secrets_rotation ? 1 : 0
   secret_id           = aws_secretsmanager_secret.n8n.id
   rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
   rotation_rules {

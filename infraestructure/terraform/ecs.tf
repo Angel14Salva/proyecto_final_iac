@@ -115,7 +115,7 @@ resource "aws_wafv2_web_acl_association" "external" {
 # S3 bucket para los access logs del ALB
 # Los access logs del ALB los escribe el servicio de ELB de AWS, no IAM roles
 resource "aws_s3_bucket" "alb_logs" {
-  bucket        = "${var.project_name}-alb-logs-${var.environment}"
+  bucket        = "${var.project_name}-alb-logs-${var.environment}-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
   tags          = { Name = "${var.project_name}-s3-alb-logs" }
 }

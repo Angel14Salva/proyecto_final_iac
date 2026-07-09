@@ -147,7 +147,7 @@ resource "aws_vpc_endpoint" "s3" {
 }
 
 resource "aws_s3_bucket" "reportes" {
-  bucket = "${var.project_name}-reportes-fotos-${var.environment}"
+  bucket = "${var.project_name}-reportes-fotos-${var.environment}-${data.aws_caller_identity.current.account_id}"
   tags   = { Name = "${var.project_name}-s3-reportes" }
 }
 
