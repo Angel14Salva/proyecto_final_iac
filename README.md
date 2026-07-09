@@ -52,8 +52,10 @@ Para bajar el stack: `docker compose -f infraestructure/docker/sonarqube/docker-
 
 Dos workflows en `.github/workflows/`:
 
-- **backend-ci.yml**: en cada push/PR que toque `apps/backend/**` corre `mvn verify` (build + tests unitarios/integración + JaCoCo) en un runner Linux — ahí Testcontainers funciona nativo, sin el problema de named pipes que vimos en Windows. El análisis de Sonar y el build+push de la imagen a ECR son **pasos opcionales**: solo corren si están configuradas las variables/secrets correspondientes (ver abajo); si no existen, el job se salta en vez de romper el pipeline.
-- **terraform-ci.yml**: en cada push/PR que toque `infraestructure/terraform/**` corre `terraform fmt -check` + `terraform validate` (sin backend remoto, así que no hace `plan`/`apply` — el estado sigue siendo local/manual vía Ansible por ahora) y un scan de Checkov que sube resultados a GitHub Code Scanning.
+Ambos corren en push a `main`, `develop` y `feature` (y en PRs a `main`), filtrados por `paths:` para no dispararse de más:
+
+- **backend-ci.yml**: corre `mvn verify` (build + tests unitarios/integración + JaCoCo) en un runner Linux — ahí Testcontainers funciona nativo, sin el problema de named pipes que vimos en Windows. El análisis de Sonar y el build+push de la imagen a ECR son **pasos opcionales**: solo corren si están configuradas las variables/secrets correspondientes (ver abajo); si no existen, el job se salta en vez de romper el pipeline. El build+push a ECR además **solo corre en push a `main`** — nunca desde `develop`/`feature`, aunque el resto del job (build+test) sí valida ahí.
+- **terraform-ci.yml**: corre `terraform fmt -check` + `terraform validate` (sin backend remoto, así que no hace `plan`/`apply` — el estado sigue siendo local/manual vía Ansible por ahora) y un scan de Checkov que sube resultados a GitHub Code Scanning.
 
 Variables/secrets a configurar en GitHub (`Settings > Secrets and variables > Actions`) para activar los pasos opcionales:
 
