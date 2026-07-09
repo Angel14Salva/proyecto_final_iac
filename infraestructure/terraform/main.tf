@@ -26,3 +26,9 @@ provider "aws" {
     }
   }
 }
+
+# Provider adicional en us-east-1 requerido para recursos globales de CloudFront
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
