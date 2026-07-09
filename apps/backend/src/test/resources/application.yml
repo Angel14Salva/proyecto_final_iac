@@ -10,7 +10,9 @@ spring:
 application:
   security:
     jwt:
-      secret: test-only-secret-for-integration-tests-not-for-production-use
+      # JwtService decodifica esto como Base64 estandar (Decoders.BASE64) para
+      # construir la llave HMAC -- tiene que ser Base64 valido, no un string cualquiera
+      secret: P7Ht4204XWCcsAMJqjsJyjCO6jUJR5WQ6701ilqn1vU=
       expiration: 3600000
       refresh-token:
         expiration: 86400000

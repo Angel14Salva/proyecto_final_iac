@@ -15,7 +15,10 @@ services:
       SPRING_DATASOURCE_USERNAME: dev_user
       SPRING_DATASOURCE_PASSWORD: dev_pass
       APP_ENV: development
-      JWT_SECRET: dev-only-secret-do-not-use-in-production-please-change-me
+      # Tiene que ser Base64 valido: JwtService lo decodifica con Decoders.BASE64
+      # para construir la llave HMAC (un string con guiones como este rompia con
+      # "Illegal base64 character: '-'" en cuanto se generaba el primer token)
+      JWT_SECRET: re2vKy49qPoLKPWe9n6+ZMYgA0dyiGiw4Rdk5zAfWnw=
       JWT_EXPIRATION: 86400000
       JWT_REFRESH_EXPIRATION: 604800000
       # Valores dummy: Cloudinary/n8n no funcionan de verdad en local salvo que se sobreescriban con credenciales reales
