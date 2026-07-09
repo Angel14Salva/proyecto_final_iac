@@ -10,10 +10,20 @@ services:
     ports:
       - "8080:8080"
     environment:
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/reportes_db
       SPRING_DATASOURCE_USERNAME: dev_user
       SPRING_DATASOURCE_PASSWORD: dev_pass
       APP_ENV: development
+      JWT_SECRET: dev-only-secret-do-not-use-in-production-please-change-me
+      JWT_EXPIRATION: 86400000
+      JWT_REFRESH_EXPIRATION: 604800000
+      # Valores dummy: Cloudinary/n8n no funcionan de verdad en local salvo que se sobreescriban con credenciales reales
+      CLOUDINARY_CLOUD_NAME: dev-placeholder
+      CLOUDINARY_API_KEY: dev-placeholder
+      CLOUDINARY_API_SECRET: dev-placeholder
+      N8N_NEW_REPORT: http://localhost:5678/webhook/new-report
+      N8N_NEW_TASK: http://localhost:5678/webhook/new-task
     depends_on:
       postgres:
         condition: service_healthy
