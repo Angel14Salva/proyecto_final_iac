@@ -1,0 +1,125 @@
+{
+  "title": "TrujilloInformado Backend",
+  "uid": "segat-backend-overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Uptime",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "process_uptime_seconds{application=\"trujillo-informado\"}", "legendFormat": "uptime" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Threads vivos",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "jvm_threads_live_threads{application=\"trujillo-informado\"}", "legendFormat": "threads" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Conexiones DB activas",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "hikaricp_connections_active{application=\"trujillo-informado\"}", "legendFormat": "activas" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Tasa de errores 5xx (1m)",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{application=\"trujillo-informado\", outcome=\"SERVER_ERROR\"}[1m]))", "legendFormat": "5xx/s" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps", "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 0.1 } ] } }, "overrides": [] }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Memoria Heap (usada vs. maxima)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "targets": [
+        { "expr": "sum(jvm_memory_used_bytes{application=\"trujillo-informado\", area=\"heap\"})", "legendFormat": "usada" },
+        { "expr": "sum(jvm_memory_max_bytes{application=\"trujillo-informado\", area=\"heap\"})", "legendFormat": "maxima" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Uso de CPU",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "max": 1, "min": 0 }, "overrides": [] },
+      "targets": [
+        { "expr": "system_cpu_usage{application=\"trujillo-informado\"}", "legendFormat": "sistema" },
+        { "expr": "process_cpu_usage{application=\"trujillo-informado\"}", "legendFormat": "proceso" }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Requests HTTP por segundo (por endpoint)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{application=\"trujillo-informado\"}[1m])) by (uri)", "legendFormat": "{{uri}}" }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Latencia promedio por endpoint",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_sum{application=\"trujillo-informado\"}[1m])) by (uri) / sum(rate(http_server_requests_seconds_count{application=\"trujillo-informado\"}[1m])) by (uri)",
+          "legendFormat": "{{uri}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Pool de conexiones DB (HikariCP)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "hikaricp_connections_active{application=\"trujillo-informado\"}", "legendFormat": "activas" },
+        { "expr": "hikaricp_connections_idle{application=\"trujillo-informado\"}", "legendFormat": "libres" },
+        { "expr": "hikaricp_connections_max{application=\"trujillo-informado\"}", "legendFormat": "maximas" }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "logs",
+      "title": "Logs del backend (Loki)",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 28 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": { "showTime": true, "wrapLogMessage": true, "enableLogDetails": true },
+      "targets": [
+        { "expr": "{compose_service=\"backend\"}", "refId": "A" }
+      ]
+    }
+  ]
+}
