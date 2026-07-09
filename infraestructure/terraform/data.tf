@@ -29,32 +29,32 @@ resource "aws_db_subnet_group" "rds" {
 }
 
 resource "aws_db_instance" "postgresql" {
-  identifier              = "${var.project_name}-postgresql"
-  engine                  = "postgres"
-  engine_version          = "15.7"
-  instance_class          = "db.t3.micro"
-  allocated_storage       = 20
-  storage_type            = "gp2"
-  storage_encrypted       = true
-  db_name                 = var.db_name
-  username                = var.db_username
-  password                = var.db_password
-  db_subnet_group_name    = aws_db_subnet_group.rds.name
-  parameter_group_name    = aws_db_parameter_group.postgresql.name
-  vpc_security_group_ids  = [aws_security_group.rds.id]
-  backup_retention_period = 1
-  skip_final_snapshot     = true
-  deletion_protection     = true
-  multi_az                = true
+  identifier                          = "${var.project_name}-postgresql"
+  engine                              = "postgres"
+  engine_version                      = "15.7"
+  instance_class                      = "db.t3.micro"
+  allocated_storage                   = 20
+  storage_type                        = "gp2"
+  storage_encrypted                   = true
+  db_name                             = var.db_name
+  username                            = var.db_username
+  password                            = var.db_password
+  db_subnet_group_name                = aws_db_subnet_group.rds.name
+  parameter_group_name                = aws_db_parameter_group.postgresql.name
+  vpc_security_group_ids              = [aws_security_group.rds.id]
+  backup_retention_period             = 1
+  skip_final_snapshot                 = true
+  deletion_protection                 = true
+  multi_az                            = true
   copy_tags_to_snapshot               = true
   iam_database_authentication_enabled = true
-  performance_insights_enabled              = true
-  performance_insights_kms_key_id           = data.aws_kms_key.rds.arn
+  performance_insights_enabled        = true
+  performance_insights_kms_key_id     = data.aws_kms_key.rds.arn
   enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
   auto_minor_version_upgrade          = true
   monitoring_interval                 = 60
   monitoring_role_arn                 = aws_iam_role.rds_monitoring.arn
-  tags = { Name = "${var.project_name}-postgresql" }
+  tags                                = { Name = "${var.project_name}-postgresql" }
 }
 
 resource "aws_elasticache_subnet_group" "redis" {
@@ -64,17 +64,17 @@ resource "aws_elasticache_subnet_group" "redis" {
 }
 
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id           = "${var.project_name}-redis"
-  engine               = "redis"
-  node_type            = "cache.t3.micro"
-  num_cache_nodes      = 1
-  parameter_group_name = "default.redis7"
-  engine_version       = "7.0"
-  port                 = 6379
-  subnet_group_name    = aws_elasticache_subnet_group.redis.name
-  security_group_ids   = [aws_security_group.redis.id]
+  cluster_id               = "${var.project_name}-redis"
+  engine                   = "redis"
+  node_type                = "cache.t3.micro"
+  num_cache_nodes          = 1
+  parameter_group_name     = "default.redis7"
+  engine_version           = "7.0"
+  port                     = 6379
+  subnet_group_name        = aws_elasticache_subnet_group.redis.name
+  security_group_ids       = [aws_security_group.redis.id]
   snapshot_retention_limit = 1
-  tags = { Name = "${var.project_name}-redis-cache" }
+  tags                     = { Name = "${var.project_name}-redis-cache" }
 }
 
 resource "aws_dynamodb_table" "gps_locations" {
@@ -143,7 +143,7 @@ resource "aws_vpc_endpoint" "s3" {
   service_name      = "com.amazonaws.${var.aws_region}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.private.id]
-  tags = { Name = "${var.project_name}-vpc-endpoint-s3" }
+  tags              = { Name = "${var.project_name}-vpc-endpoint-s3" }
 }
 
 resource "aws_s3_bucket" "reportes" {
@@ -226,7 +226,7 @@ resource "aws_kms_key" "dynamodb" {
   deletion_window_in_days = 7
   enable_key_rotation     = true
   policy                  = data.aws_iam_policy_document.dynamodb_kms_policy.json
-  tags = { Name = "${var.project_name}-kms-dynamodb" }
+  tags                    = { Name = "${var.project_name}-kms-dynamodb" }
 }
 
 data "aws_iam_policy_document" "dynamodb_kms_policy" {
@@ -247,7 +247,7 @@ resource "aws_vpc_endpoint" "dynamodb" {
   service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.private.id]
-  tags = { Name = "${var.project_name}-vpc-endpoint-dynamodb" }
+  tags              = { Name = "${var.project_name}-vpc-endpoint-dynamodb" }
 }
 
 resource "aws_kms_alias" "dynamodb" {

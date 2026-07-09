@@ -55,19 +55,19 @@ resource "aws_iam_role_policy" "ecs_task_permissions" {
       {
         Sid      = "SQSAccess"
         Effect   = "Allow"
-        Action   = ["sqs:SendMessage","sqs:ReceiveMessage","sqs:DeleteMessage","sqs:GetQueueAttributes"]
+        Action   = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
         Resource = "arn:aws:sqs:*:*:segat-*"
       },
       {
         Sid      = "S3ReportesAccess"
         Effect   = "Allow"
-        Action   = ["s3:PutObject","s3:GetObject","s3:DeleteObject"]
+        Action   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
         Resource = "arn:aws:s3:::${var.project_name}-reportes-*/*"
       },
       {
         Sid      = "DynamoDBAccess"
         Effect   = "Allow"
-        Action   = ["dynamodb:PutItem","dynamodb:GetItem","dynamodb:UpdateItem","dynamodb:Query","dynamodb:Scan"]
+        Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:Query", "dynamodb:Scan"]
         Resource = "arn:aws:dynamodb:*:*:table/${var.project_name}-*"
       },
       {

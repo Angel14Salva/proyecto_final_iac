@@ -4,11 +4,11 @@
 # =============================================================================
 
 resource "aws_secretsmanager_secret" "db_credentials" {
-  name        = "${var.project_name}/rds/credentials"
-  description = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
-  kms_key_id  = aws_kms_key.secrets.arn
+  name                    = "${var.project_name}/rds/credentials"
+  description             = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
+  kms_key_id              = aws_kms_key.secrets.arn
   recovery_window_in_days = 7
-  tags = { Name = "${var.project_name}-secret-rds" }
+  tags                    = { Name = "${var.project_name}-secret-rds" }
 }
 
 resource "aws_secretsmanager_secret_version" "db_credentials" {
@@ -39,7 +39,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_cpu_high" {
   }
   alarm_actions = [aws_sns_topic.alertas.arn]
   ok_actions    = [aws_sns_topic.alertas.arn]
-  tags = { Name = "${var.project_name}-alarm-ecs-cpu" }
+  tags          = { Name = "${var.project_name}-alarm-ecs-cpu" }
 }
 
 resource "aws_cloudwatch_metric_alarm" "reportes_dlq_depth" {
@@ -55,13 +55,13 @@ resource "aws_cloudwatch_metric_alarm" "reportes_dlq_depth" {
   treat_missing_data  = "notBreaching"
   dimensions          = { QueueName = aws_sqs_queue.reportes_dlq.name }
   alarm_actions       = [aws_sns_topic.alertas.arn]
-  tags = { Name = "${var.project_name}-alarm-dlq-reportes" }
+  tags                = { Name = "${var.project_name}-alarm-dlq-reportes" }
 }
 
 resource "aws_s3_bucket" "cloudtrail_logs" {
   bucket        = "${var.project_name}-cloudtrail-logs-${var.environment}"
   force_destroy = true
-  tags = { Name = "${var.project_name}-s3-cloudtrail" }
+  tags          = { Name = "${var.project_name}-s3-cloudtrail" }
 }
 
 resource "aws_s3_bucket_replication_configuration" "cloudtrail_logs" {
@@ -132,8 +132,8 @@ resource "aws_cloudtrail" "main" {
   sns_topic_name                = aws_sns_topic.alertas.arn
   cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
   cloud_watch_logs_role_arn     = aws_iam_role.cloudtrail_cloudwatch.arn
-  tags       = { Name = "${var.project_name}-cloudtrail" }
-  depends_on = [aws_s3_bucket_policy.cloudtrail_logs]
+  tags                          = { Name = "${var.project_name}-cloudtrail" }
+  depends_on                    = [aws_s3_bucket_policy.cloudtrail_logs]
 }
 
 resource "aws_cloudwatch_log_group" "cloudtrail" {

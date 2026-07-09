@@ -268,16 +268,16 @@ resource "aws_ecs_task_definition" "segat_backend" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode([{
-    name      = "${var.project_name}-backend"
-    image     = "${aws_ecr_repository.segat_backend.repository_url}:latest"
-    essential = true
+    name         = "${var.project_name}-backend"
+    image        = "${aws_ecr_repository.segat_backend.repository_url}:latest"
+    essential    = true
     portMappings = [{ containerPort = 8080, protocol = "tcp" }]
 
     # Variables de entorno no sensibles
     environment = [
-      { name = "APP_ENV",                value = var.environment },
-      { name = "SERVER_PORT",            value = "8080" },
-      { name = "PROJECT_NAME",           value = var.project_name },
+      { name = "APP_ENV", value = var.environment },
+      { name = "SERVER_PORT", value = "8080" },
+      { name = "PROJECT_NAME", value = var.project_name },
       { name = "SPRING_PROFILES_ACTIVE", value = "prod" },
       # Hibernate — nunca create-drop en produccion
       { name = "SPRING_JPA_HIBERNATE_DDL_AUTO", value = "validate" }
@@ -285,15 +285,15 @@ resource "aws_ecs_task_definition" "segat_backend" {
 
     # Secrets inyectados desde Secrets Manager — nunca en texto plano
     secrets = [
-      { name = "DATABASE_URL",           valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:url::" },
-      { name = "CLOUDINARY_CLOUD_NAME",  valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:cloud_name::" },
-      { name = "CLOUDINARY_API_KEY",     valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_key::" },
-      { name = "CLOUDINARY_API_SECRET",  valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_secret::" },
-      { name = "JWT_SECRET",             valueFrom = "${aws_secretsmanager_secret.jwt.arn}:secret::" },
-      { name = "JWT_EXPIRATION",         valueFrom = "${aws_secretsmanager_secret.jwt.arn}:expiration::" },
+      { name = "DATABASE_URL", valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:url::" },
+      { name = "CLOUDINARY_CLOUD_NAME", valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:cloud_name::" },
+      { name = "CLOUDINARY_API_KEY", valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_key::" },
+      { name = "CLOUDINARY_API_SECRET", valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_secret::" },
+      { name = "JWT_SECRET", valueFrom = "${aws_secretsmanager_secret.jwt.arn}:secret::" },
+      { name = "JWT_EXPIRATION", valueFrom = "${aws_secretsmanager_secret.jwt.arn}:expiration::" },
       { name = "JWT_REFRESH_EXPIRATION", valueFrom = "${aws_secretsmanager_secret.jwt.arn}:refresh_expiration::" },
-      { name = "N8N_NEW_REPORT",         valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_report::" },
-      { name = "N8N_NEW_TASK",           valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_task::" }
+      { name = "N8N_NEW_REPORT", valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_report::" },
+      { name = "N8N_NEW_TASK", valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_task::" }
     ]
 
     logConfiguration = {

@@ -4,8 +4,8 @@
 # =============================================================================
 
 resource "aws_wafv2_web_acl" "main" {
-  name  = "${var.project_name}-waf"
-  scope = "REGIONAL"
+  name        = "${var.project_name}-waf"
+  scope       = "REGIONAL"
   description = "WAF para proteger el ALB externo de SEGAT"
 
   default_action {
