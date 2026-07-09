@@ -2,13 +2,13 @@
 
 ## Sistema de Gestión de Reportes Medio Ambientales para el SEGAT
 
-Docente:
+### Docente:
 - Leturia Rodriguez, Walter Ivan
 
-Curso:
+### Curso:
 - Infraestructura como Código
 
-Integrantes:
+### Integrantes:
 - Reyes Figueroa, Brandon
 - Salvador Mauricio, Ángel
 - Terrones Llamo, Jan
