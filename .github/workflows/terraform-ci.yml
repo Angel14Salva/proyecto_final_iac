@@ -1,0 +1,63 @@
+name: Terraform CI
+
+on:
+  push:
+    branches: [main, feature]
+    paths:
+      - "infraestructure/terraform/**"
+      - ".github/workflows/terraform-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "infraestructure/terraform/**"
+      - ".github/workflows/terraform-ci.yml"
+
+defaults:
+  run:
+    working-directory: infraestructure/terraform
+
+jobs:
+  validate:
+    name: fmt + validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.9.8"
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive
+
+      # Sin backend remoto configurado todavia: solo valida sintaxis/schema,
+      # no corre plan/apply (necesitaria credenciales AWS y estado real).
+      - name: terraform init (sin backend)
+        run: terraform init -backend=false
+
+      - name: terraform validate
+        run: terraform validate
+
+  checkov:
+    name: Checkov (analisis de seguridad IaC)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@v12.3113.0
+        with:
+          directory: infraestructure/terraform
+          framework: terraform
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+          # No-bloqueante por ahora: hay 4 hallazgos preexistentes en apigateway.tf
+          # con trade-offs reales (costo de caching, complejidad de mTLS) que se
+          # decidieron a proposito, no por descuido. Ver README para el detalle.
+          soft_fail: true
+
+      - name: Publicar resultados en GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: infraestructure/terraform/results.sarif
