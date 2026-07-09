@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Valida que el mensaje de commit siga Conventional Commits
+commit_msg_file="$1"
+commit_msg=$(head -n1 "$commit_msg_file")
+
+# Permitir merges y reverts automáticos de git
+if echo "$commit_msg" | grep -qE '^(Merge|Revert ")'; then
+  exit 0
+fi
+
+pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([a-zA-Z0-9_.-]+\))?!?: .{1,100}$'
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo "[commit-msg] ERROR: el mensaje de commit no sigue Conventional Commits." >&2
+  echo "  Formato esperado: tipo(scope opcional): descripción" >&2
+  echo "  Tipos válidos: feat, fix, docs, style, refactor, perf, test, build, ci, chore" >&2
+  echo "  Ejemplo: fix(CKV2_AWS_46): corregir ubicacion del checkov skip" >&2
+  echo "" >&2
+  echo "  Tu mensaje: $commit_msg" >&2
+  exit 1
+fi
+
+exit 0

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Corre los tests del backend antes de permitir el push.
+# TODO(Fase 3 - pruebas integrales): este hook es solo informativo mientras
+# el test placeholder no tenga una BD real (Testcontainers). Una vez que la
+# Fase 3 deje los tests funcionando standalone, cambiar el "exit 0" final por
+# "exit 1" para que un test roto bloquee el push de verdad.
+echo "[pre-push] Ejecutando tests del backend antes de push..."
+if ! (cd apps/backend && ./mvnw -q test); then
+  echo "[pre-push] AVISO: hay tests fallando. El push continúa (modo advertencia hasta Fase 3)." >&2
+fi
+
+exit 0
