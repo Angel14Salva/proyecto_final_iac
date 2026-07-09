@@ -4,11 +4,11 @@
 # =============================================================================
 
 resource "aws_secretsmanager_secret" "db_credentials" {
-  name        = "${var.project_name}/rds/credentials"
-  description = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
-  kms_key_id  = aws_kms_key.secrets.arn
+  name                    = "${var.project_name}/rds/credentials"
+  description             = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
+  kms_key_id              = aws_kms_key.secrets.arn
   recovery_window_in_days = 7
-  tags = { Name = "${var.project_name}-secret-rds" }
+  tags                    = { Name = "${var.project_name}-secret-rds" }
 }
 
 resource "aws_secretsmanager_secret_version" "db_credentials" {
@@ -39,7 +39,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_cpu_high" {
   }
   alarm_actions = [aws_sns_topic.alertas.arn]
   ok_actions    = [aws_sns_topic.alertas.arn]
-  tags = { Name = "${var.project_name}-alarm-ecs-cpu" }
+  tags          = { Name = "${var.project_name}-alarm-ecs-cpu" }
 }
 
 resource "aws_cloudwatch_metric_alarm" "reportes_dlq_depth" {
@@ -55,13 +55,27 @@ resource "aws_cloudwatch_metric_alarm" "reportes_dlq_depth" {
   treat_missing_data  = "notBreaching"
   dimensions          = { QueueName = aws_sqs_queue.reportes_dlq.name }
   alarm_actions       = [aws_sns_topic.alertas.arn]
-  tags = { Name = "${var.project_name}-alarm-dlq-reportes" }
+  tags                = { Name = "${var.project_name}-alarm-dlq-reportes" }
 }
 
 resource "aws_s3_bucket" "cloudtrail_logs" {
   bucket        = "${var.project_name}-cloudtrail-logs-${var.environment}"
   force_destroy = true
-  tags = { Name = "${var.project_name}-s3-cloudtrail" }
+  tags          = { Name = "${var.project_name}-s3-cloudtrail" }
+}
+
+resource "aws_s3_bucket_replication_configuration" "cloudtrail_logs" {
+  depends_on = [aws_s3_bucket_versioning.cloudtrail_logs]
+  role       = aws_iam_role.s3_replication.arn
+  bucket     = aws_s3_bucket.cloudtrail_logs.id
+  rule {
+    id     = "replicacion-cloudtrail"
+    status = "Enabled"
+    destination {
+      bucket        = "arn:aws:s3:::${var.replication_bucket_cloudtrail}"
+      storage_class = "STANDARD"
+    }
+  }
 }
 
 resource "aws_s3_bucket_notification" "cloudtrail_logs" {
@@ -118,8 +132,8 @@ resource "aws_cloudtrail" "main" {
   sns_topic_name                = aws_sns_topic.alertas.arn
   cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
   cloud_watch_logs_role_arn     = aws_iam_role.cloudtrail_cloudwatch.arn
-  tags       = { Name = "${var.project_name}-cloudtrail" }
-  depends_on = [aws_s3_bucket_policy.cloudtrail_logs]
+  tags                          = { Name = "${var.project_name}-cloudtrail" }
+  depends_on                    = [aws_s3_bucket_policy.cloudtrail_logs]
 }
 
 resource "aws_cloudwatch_log_group" "cloudtrail" {
@@ -206,7 +220,7 @@ resource "aws_kms_key" "secrets" {
       {
         Sid       = "Enable IAM User Permissions"
         Effect    = "Allow"
-        Principal = { AWS = "arn:aws:iam::662252246273:root" }
+        Principal = { AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" }
         Action    = "kms:*"
         Resource  = "*"
       },
@@ -220,6 +234,30 @@ resource "aws_kms_key" "secrets" {
     ]
   })
   tags = { Name = "${var.project_name}-kms-secrets" }
+}
+
+resource "aws_secretsmanager_secret_rotation" "cloudinary" {
+  secret_id           = aws_secretsmanager_secret.cloudinary.id
+  rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
+  rotation_rules {
+    automatically_after_days = 30
+  }
+}
+
+resource "aws_secretsmanager_secret_rotation" "jwt" {
+  secret_id           = aws_secretsmanager_secret.jwt.id
+  rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
+  rotation_rules {
+    automatically_after_days = 30
+  }
+}
+
+resource "aws_secretsmanager_secret_rotation" "n8n" {
+  secret_id           = aws_secretsmanager_secret.n8n.id
+  rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
+  rotation_rules {
+    automatically_after_days = 30
+  }
 }
 
 resource "aws_secretsmanager_secret" "cloudinary" {

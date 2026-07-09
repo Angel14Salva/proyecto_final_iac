@@ -45,6 +45,68 @@ resource "aws_lb" "external" {
   tags = { Name = "${var.project_name}-alb-external" }
 }
 
+resource "aws_lb" "internal" {
+  name               = "${var.project_name}-alb-internal"
+  internal           = true
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.ecs_tasks.id]
+  subnets            = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+
+  drop_invalid_header_fields = true
+  enable_deletion_protection = true
+
+  access_logs {
+    bucket  = aws_s3_bucket.alb_logs.id
+    prefix  = "alb-internal"
+    enabled = true
+  }
+
+  tags = { Name = "${var.project_name}-alb-internal" }
+}
+
+resource "aws_lb_target_group" "internal" {
+  name        = "${var.project_name}-tg-internal"
+  port        = 8080
+  protocol    = "HTTPS"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+  health_check {
+    path                = "/actuator/health"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    matcher             = "200"
+  }
+  tags = { Name = "${var.project_name}-tg-internal" }
+}
+
+resource "aws_lb_listener" "internal_http" {
+  load_balancer_arn = aws_lb.internal.arn
+  port              = 80
+  protocol          = "HTTP"
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "internal_https" {
+  load_balancer_arn = aws_lb.internal.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = aws_acm_certificate.main.arn
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.internal.arn
+  }
+}
+
 resource "aws_wafv2_web_acl_association" "external" {
   resource_arn = aws_lb.external.arn
   web_acl_arn  = aws_wafv2_web_acl.main.arn
@@ -56,6 +118,20 @@ resource "aws_s3_bucket" "alb_logs" {
   bucket        = "${var.project_name}-alb-logs-${var.environment}"
   force_destroy = true
   tags          = { Name = "${var.project_name}-s3-alb-logs" }
+}
+
+resource "aws_s3_bucket_replication_configuration" "alb_logs" {
+  depends_on = [aws_s3_bucket_versioning.alb_logs]
+  role       = aws_iam_role.s3_replication.arn
+  bucket     = aws_s3_bucket.alb_logs.id
+  rule {
+    id     = "replicacion-alb-logs"
+    status = "Enabled"
+    destination {
+      bucket        = "arn:aws:s3:::${var.replication_bucket_alb}"
+      storage_class = "STANDARD"
+    }
+  }
 }
 
 resource "aws_s3_bucket_notification" "alb_logs" {
@@ -173,7 +249,17 @@ resource "aws_lb_listener" "http_redirect" {
 
 # Listener HTTPS en puerto 443
 # ELBSecurityPolicy-TLS13-1-2-2021-06 soporta TLS 1.2 y 1.3, descarta cifrados debiles
-
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.external.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = aws_acm_certificate_validation.main.certificate_arn
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ecs.arn
+  }
+}
 
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}/backend"
@@ -192,16 +278,16 @@ resource "aws_ecs_task_definition" "segat_backend" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode([{
-    name      = "${var.project_name}-backend"
-    image     = "${aws_ecr_repository.segat_backend.repository_url}:latest"
-    essential = true
+    name         = "${var.project_name}-backend"
+    image        = "${aws_ecr_repository.segat_backend.repository_url}:latest"
+    essential    = true
     portMappings = [{ containerPort = 8080, protocol = "tcp" }]
 
     # Variables de entorno no sensibles
     environment = [
-      { name = "APP_ENV",                value = var.environment },
-      { name = "SERVER_PORT",            value = "8080" },
-      { name = "PROJECT_NAME",           value = var.project_name },
+      { name = "APP_ENV", value = var.environment },
+      { name = "SERVER_PORT", value = "8080" },
+      { name = "PROJECT_NAME", value = var.project_name },
       { name = "SPRING_PROFILES_ACTIVE", value = "prod" },
       # Hibernate — nunca create-drop en produccion
       { name = "SPRING_JPA_HIBERNATE_DDL_AUTO", value = "validate" }
@@ -209,15 +295,15 @@ resource "aws_ecs_task_definition" "segat_backend" {
 
     # Secrets inyectados desde Secrets Manager — nunca en texto plano
     secrets = [
-      { name = "DATABASE_URL",           valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:url::" },
-      { name = "CLOUDINARY_CLOUD_NAME",  valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:cloud_name::" },
-      { name = "CLOUDINARY_API_KEY",     valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_key::" },
-      { name = "CLOUDINARY_API_SECRET",  valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_secret::" },
-      { name = "JWT_SECRET",             valueFrom = "${aws_secretsmanager_secret.jwt.arn}:secret::" },
-      { name = "JWT_EXPIRATION",         valueFrom = "${aws_secretsmanager_secret.jwt.arn}:expiration::" },
+      { name = "DATABASE_URL", valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:url::" },
+      { name = "CLOUDINARY_CLOUD_NAME", valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:cloud_name::" },
+      { name = "CLOUDINARY_API_KEY", valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_key::" },
+      { name = "CLOUDINARY_API_SECRET", valueFrom = "${aws_secretsmanager_secret.cloudinary.arn}:api_secret::" },
+      { name = "JWT_SECRET", valueFrom = "${aws_secretsmanager_secret.jwt.arn}:secret::" },
+      { name = "JWT_EXPIRATION", valueFrom = "${aws_secretsmanager_secret.jwt.arn}:expiration::" },
       { name = "JWT_REFRESH_EXPIRATION", valueFrom = "${aws_secretsmanager_secret.jwt.arn}:refresh_expiration::" },
-      { name = "N8N_NEW_REPORT",         valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_report::" },
-      { name = "N8N_NEW_TASK",           valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_task::" }
+      { name = "N8N_NEW_REPORT", valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_report::" },
+      { name = "N8N_NEW_TASK", valueFrom = "${aws_secretsmanager_secret.n8n.arn}:new_task::" }
     ]
 
     logConfiguration = {
@@ -264,8 +350,8 @@ resource "aws_ecs_service" "segat_backend" {
   deployment_maximum_percent         = 200
 
   depends_on = [
-
     aws_lb_listener.http_redirect,
+    aws_lb_listener.https,
     aws_iam_role_policy_attachment.ecs_execution_role_policy
   ]
 

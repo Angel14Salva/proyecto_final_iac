@@ -55,19 +55,19 @@ resource "aws_iam_role_policy" "ecs_task_permissions" {
       {
         Sid      = "SQSAccess"
         Effect   = "Allow"
-        Action   = ["sqs:SendMessage","sqs:ReceiveMessage","sqs:DeleteMessage","sqs:GetQueueAttributes"]
+        Action   = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
         Resource = "arn:aws:sqs:*:*:segat-*"
       },
       {
         Sid      = "S3ReportesAccess"
         Effect   = "Allow"
-        Action   = ["s3:PutObject","s3:GetObject","s3:DeleteObject"]
+        Action   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
         Resource = "arn:aws:s3:::${var.project_name}-reportes-*/*"
       },
       {
         Sid      = "DynamoDBAccess"
         Effect   = "Allow"
-        Action   = ["dynamodb:PutItem","dynamodb:GetItem","dynamodb:UpdateItem","dynamodb:Query","dynamodb:Scan"]
+        Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:Query", "dynamodb:Scan"]
         Resource = "arn:aws:dynamodb:*:*:table/${var.project_name}-*"
       },
       {
@@ -119,4 +119,42 @@ resource "aws_iam_role" "rds_monitoring" {
 resource "aws_iam_role_policy_attachment" "rds_monitoring" {
   role       = aws_iam_role.rds_monitoring.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
+resource "aws_iam_role" "s3_replication" {
+  name = "${var.project_name}-s3-replication-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "s3.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+  tags = { Name = "${var.project_name}-s3-replication-role" }
+}
+
+resource "aws_iam_role_policy" "s3_replication" {
+  name = "${var.project_name}-s3-replication-policy"
+  role = aws_iam_role.s3_replication.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetReplicationConfiguration", "s3:ListBucket"]
+        Resource = ["arn:aws:s3:::*"]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObjectVersionForReplication", "s3:GetObjectVersionAcl", "s3:GetObjectVersionTagging"]
+        Resource = ["arn:aws:s3:::*/*"]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ReplicateObject", "s3:ReplicateDelete", "s3:ReplicateTags"]
+        Resource = ["arn:aws:s3:::*/*"]
+      }
+    ]
+  })
 }

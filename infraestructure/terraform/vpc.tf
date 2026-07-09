@@ -7,7 +7,7 @@ resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
-  tags = { Name = "${var.project_name}-vpc" }
+  tags                 = { Name = "${var.project_name}-vpc" }
 }
 
 data "aws_availability_zones" "available" {
@@ -19,7 +19,7 @@ resource "aws_subnet" "public_a" {
   cidr_block              = var.subnet_public_cidr
   availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = false
-  tags = { Name = "${var.project_name}-subnet-public-a", Tier = "Public" }
+  tags                    = { Name = "${var.project_name}-subnet-public-a", Tier = "Public" }
 }
 
 resource "aws_subnet" "public_b" {
@@ -27,35 +27,35 @@ resource "aws_subnet" "public_b" {
   cidr_block              = var.subnet_public_b_cidr
   availability_zone       = data.aws_availability_zones.available.names[1]
   map_public_ip_on_launch = false
-  tags = { Name = "${var.project_name}-subnet-public-b", Tier = "Public" }
+  tags                    = { Name = "${var.project_name}-subnet-public-b", Tier = "Public" }
 }
 
 resource "aws_subnet" "private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.subnet_private_a_cidr
   availability_zone = data.aws_availability_zones.available.names[0]
-  tags = { Name = "${var.project_name}-subnet-private-a", Tier = "Private-Compute", AZ = "AZ-A" }
+  tags              = { Name = "${var.project_name}-subnet-private-a", Tier = "Private-Compute", AZ = "AZ-A" }
 }
 
 resource "aws_subnet" "private_b" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.subnet_private_b_cidr
   availability_zone = data.aws_availability_zones.available.names[1]
-  tags = { Name = "${var.project_name}-subnet-private-b", Tier = "Private-Compute", AZ = "AZ-B" }
+  tags              = { Name = "${var.project_name}-subnet-private-b", Tier = "Private-Compute", AZ = "AZ-B" }
 }
 
 resource "aws_subnet" "private_c" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.subnet_private_c_cidr
   availability_zone = data.aws_availability_zones.available.names[0]
-  tags = { Name = "${var.project_name}-subnet-private-c", Tier = "Private-Data", AZ = "AZ-A" }
+  tags              = { Name = "${var.project_name}-subnet-private-c", Tier = "Private-Data", AZ = "AZ-A" }
 }
 
 resource "aws_subnet" "private_c2" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.subnet_private_c2_cidr
   availability_zone = data.aws_availability_zones.available.names[1]
-  tags = { Name = "${var.project_name}-subnet-private-c2", Tier = "Private-Data", AZ = "AZ-B" }
+  tags              = { Name = "${var.project_name}-subnet-private-c2", Tier = "Private-Data", AZ = "AZ-B" }
 }
 
 resource "aws_internet_gateway" "main" {
