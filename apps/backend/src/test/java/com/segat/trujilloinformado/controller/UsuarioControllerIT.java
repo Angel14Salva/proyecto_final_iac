@@ -71,17 +71,13 @@ class UsuarioControllerIT extends AbstractIntegrationTest {
                 .phone("912345678")
                 .build();
 
-        // UsuarioController.updateProfile() devuelve la entidad Usuario completa
-        // (con Zona -> Polygon de JTS incluido vía lazy-loading), lo que produce un
-        // JSON roto/con profundidad patológica que el parser de MockMvc rechaza
-        // ("Malicious payload"). No parseamos el body -- verificamos el resultado
-        // real directo en BD. El bug de fondo (no exponer la entidad JPA cruda)
-        // quedo como tarea aparte.
         mockMvc.perform(patch("/api/v1/perfil")
                         .header("Authorization", "Bearer " + workerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value("912345678"))
+                .andExpect(jsonPath("$.email").value("colaboradorzona1-2@gmail.com"));
 
         assertThat(usuarioDao.findByEmail("colaboradorzona1-2@gmail.com").orElseThrow().getPhone())
                 .isEqualTo("912345678");
