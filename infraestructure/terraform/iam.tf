@@ -148,12 +148,12 @@ resource "aws_iam_role_policy" "s3_replication" {
       {
         Effect   = "Allow"
         Action   = ["s3:GetObjectVersionForReplication", "s3:GetObjectVersionAcl", "s3:GetObjectVersionTagging"]
-        Resource = ["arn:aws:s3:::/"]
+        Resource = ["arn:aws:s3:::*/*"]
       },
       {
         Effect   = "Allow"
         Action   = ["s3:ReplicateObject", "s3:ReplicateDelete", "s3:ReplicateTags"]
-        Resource = ["arn:aws:s3:::/"]
+        Resource = ["arn:aws:s3:::*/*"]
       }
     ]
   })
