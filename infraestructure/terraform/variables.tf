@@ -152,3 +152,9 @@ variable "domain_name" {
   type        = string
   default     = "segat.com"
 }
+
+variable "enable_secrets_rotation" {
+  description = "Habilita la rotacion automatica de Secrets Manager. Requiere una Lambda de rotacion real desplegada previamente."
+  type        = bool
+  default     = false
+}
