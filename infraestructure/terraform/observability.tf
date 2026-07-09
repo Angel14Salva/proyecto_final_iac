@@ -220,7 +220,7 @@ resource "aws_kms_key" "secrets" {
       {
         Sid       = "Enable IAM User Permissions"
         Effect    = "Allow"
-        Principal = { AWS = "arn:aws:iam::662252246273:root" }
+        Principal = { AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" }
         Action    = "kms:*"
         Resource  = "*"
       },
