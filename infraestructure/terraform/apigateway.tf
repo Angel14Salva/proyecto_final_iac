@@ -1,5 +1,5 @@
 # =============================================================================
-# apigateway.tf — API Gateway
+# apigateway.tf ï¿½ API Gateway
 # Amazon API Gateway como punto de entrada para el backend SEGAT
 # =============================================================================
 
@@ -9,6 +9,10 @@ resource "aws_api_gateway_rest_api" "segat" {
 
   endpoint_configuration {
     types = ["REGIONAL"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   tags = { Name = "${var.project_name}-api-gateway" }
@@ -61,9 +65,39 @@ resource "aws_api_gateway_stage" "prod" {
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.ecs.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      caller         = "$context.identity.caller"
+      user           = "$context.identity.user"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      resourcePath   = "$context.resourcePath"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+    })
   }
 
   xray_tracing_enabled = true
 
   tags = { Name = "${var.project_name}-api-stage" }
+}
+
+resource "aws_api_gateway_method_settings" "proxy" {
+  rest_api_id = aws_api_gateway_rest_api.segat.id
+  stage_name  = aws_api_gateway_stage.prod.stage_name
+  method_path = "*/*"
+
+  settings {
+    logging_level      = "INFO"
+    metrics_enabled    = true
+    data_trace_enabled = false
+  }
+}
+
+# Reutiliza el mismo WAF que protege el ALB externo (waf.tf)
+resource "aws_wafv2_web_acl_association" "api_gateway" {
+  resource_arn = aws_api_gateway_stage.prod.arn
+  web_acl_arn  = aws_wafv2_web_acl.main.arn
 }

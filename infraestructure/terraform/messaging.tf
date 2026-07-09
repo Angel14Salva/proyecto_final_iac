@@ -7,7 +7,7 @@ resource "aws_sqs_queue" "reportes_dlq" {
   name                      = "${var.project_name}-reportes-dlq"
   message_retention_seconds = 1209600
   kms_master_key_id         = aws_kms_key.sqs.arn
-  tags = { Name = "${var.project_name}-sqs-reportes-dlq" }
+  tags                      = { Name = "${var.project_name}-sqs-reportes-dlq" }
 }
 
 resource "aws_sqs_queue" "reportes" {
@@ -27,7 +27,7 @@ resource "aws_sqs_queue" "notificaciones_dlq" {
   name                      = "${var.project_name}-notificaciones-dlq"
   message_retention_seconds = 1209600
   kms_master_key_id         = aws_kms_key.sqs.arn
-  tags = { Name = "${var.project_name}-sqs-notificaciones-dlq" }
+  tags                      = { Name = "${var.project_name}-sqs-notificaciones-dlq" }
 }
 
 resource "aws_sqs_queue" "notificaciones" {
@@ -46,7 +46,7 @@ resource "aws_sqs_queue" "notificaciones" {
 resource "aws_sns_topic" "negocio" {
   name              = "${var.project_name}-sns-negocio"
   kms_master_key_id = "alias/aws/sns"
-  tags = { Name = "${var.project_name}-sns-negocio" }
+  tags              = { Name = "${var.project_name}-sns-negocio" }
 }
 
 resource "aws_sns_topic_subscription" "negocio_to_notificaciones" {
@@ -72,7 +72,7 @@ resource "aws_sqs_queue_policy" "notificaciones_policy" {
 resource "aws_sns_topic" "alertas" {
   name              = "${var.project_name}-sns-alertas"
   kms_master_key_id = "alias/aws/sns"
-  tags = { Name = "${var.project_name}-sns-alertas" }
+  tags              = { Name = "${var.project_name}-sns-alertas" }
 }
 
 resource "aws_sns_topic_subscription" "alertas_email" {

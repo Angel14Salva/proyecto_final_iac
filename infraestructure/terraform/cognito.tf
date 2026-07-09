@@ -39,10 +39,10 @@ resource "aws_cognito_user_pool" "segat" {
   }
 
   schema {
-    name                     = "email"
-    attribute_data_type      = "String"
-    required                 = true
-    mutable                  = true
+    name                = "email"
+    attribute_data_type = "String"
+    required            = true
+    mutable             = true
     string_attribute_constraints {
       min_length = 5
       max_length = 100
@@ -50,10 +50,10 @@ resource "aws_cognito_user_pool" "segat" {
   }
 
   schema {
-    name                     = "role"
-    attribute_data_type      = "String"
-    required                 = false
-    mutable                  = true
+    name                = "role"
+    attribute_data_type = "String"
+    required            = false
+    mutable             = true
     string_attribute_constraints {
       min_length = 1
       max_length = 50
