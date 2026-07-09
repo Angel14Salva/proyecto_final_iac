@@ -88,9 +88,9 @@ variable "db_username" {
 }
 
 variable "db_password" {
-  type      = string
-  default   = "ChangeMe_Pr0duction!"
-  sensitive = true
+  description = "Password de RDS - pasar via TF_VAR_db_password"
+  type        = string
+  sensitive   = true
 }
 
 variable "sqs_visibility_timeout" {
