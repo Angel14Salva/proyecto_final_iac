@@ -3,12 +3,9 @@ package com.segat.trujilloinformado.controller;
 import com.segat.trujilloinformado.integration.AbstractIntegrationTest;
 import com.segat.trujilloinformado.model.dto.authentication.AuthenticationRequest;
 import com.segat.trujilloinformado.model.dto.authentication.RegisterRequest;
-import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,15 +49,12 @@ class AuthenticationControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
 
         // mismo email, segundo intento: AuthenticationServiceImpl.register() lanza
-        // IllegalArgumentException; sin @ControllerAdvice que la traduzca, MockMvc
-        // no la convierte en una respuesta 500 -- la re-lanza desde perform()
-        ServletException ex = assertThrows(ServletException.class, () ->
-                mockMvc.perform(post("/api/v1/auth/registro")
+        // IllegalArgumentException, que GlobalExceptionHandler traduce a 400
+        mockMvc.perform(post("/api/v1/auth/registro")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))));
-        assertThat(ex.getCause())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Email already in use");
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("Email already in use"));
     }
 
     @Test
@@ -96,14 +90,11 @@ class AuthenticationControllerIT extends AbstractIntegrationTest {
                 .password("password-incorrecto")
                 .build();
 
-        // AuthenticationManager.authenticate() lanza BadCredentialsException.
-        // A diferencia de una IllegalArgumentException comun, esta SI es traducida
-        // a una respuesta HTTP real: ExceptionTranslationFilter de Spring Security
-        // intercepta cualquier AuthenticationException downstream y, al no haber
-        // un AuthenticationEntryPoint configurado, cae al 403 por defecto
+        // AuthenticationManager.authenticate() lanza BadCredentialsException,
+        // que GlobalExceptionHandler traduce a 401
         mockMvc.perform(post("/api/v1/auth/autenticar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(wrongPassword)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

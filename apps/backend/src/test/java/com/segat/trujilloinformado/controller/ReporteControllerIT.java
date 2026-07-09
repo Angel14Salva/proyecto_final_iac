@@ -6,13 +6,11 @@ import com.segat.trujilloinformado.model.dto.ReporteDto;
 import com.segat.trujilloinformado.model.entity.enums.Priority;
 import com.segat.trujilloinformado.model.entity.enums.Type;
 import com.segat.trujilloinformado.model.entity.interno.Location;
-import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -74,17 +72,16 @@ class ReporteControllerIT extends AbstractIntegrationTest {
                 .build();
 
         // ReporteServiceImpl.save() lanza IllegalArgumentException si la ubicacion
-        // no cae en ninguna zona; el controller solo atrapa DataAccessException, y
-        // sin @ControllerAdvice que traduzca esto a una respuesta, MockMvc la
-        // re-lanza desde perform() en vez de devolver un status 500
-        ServletException ex = assertThrows(ServletException.class, () ->
-                mockMvc.perform(post("/api/v1/reporte")
+        // no cae en ninguna zona; el controller solo atrapa DataAccessException,
+        // pero GlobalExceptionHandler atrapa la IllegalArgumentException y la
+        // traduce a 400
+        mockMvc.perform(post("/api/v1/reporte")
                         .header("Authorization", "Bearer " + citizen.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto))));
-        assertThat(ex.getCause())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("no pertenece a ninguna zona");
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value(
+                        org.hamcrest.Matchers.containsString("no pertenece a ninguna zona")));
     }
 
     @Test
