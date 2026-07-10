@@ -155,8 +155,12 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
   bucket = aws_s3_bucket.alb_logs.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "aws:kms"
-      kms_master_key_id = "alias/aws/s3"
+      sse_algorithm = "aws:kms"
+      # "alias/aws/s3" es la key administrada por AWS: su policy no se puede
+      # editar, asi que el servicio de entrega de logs del ELB nunca podria
+      # obtener permiso para escribir en un bucket cifrado con ella (mismo
+      # problema que tuvimos con el SNS topic y el bucket de CloudTrail).
+      kms_master_key_id = aws_kms_key.secrets.arn
     }
   }
 }

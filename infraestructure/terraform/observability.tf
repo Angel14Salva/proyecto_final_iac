@@ -253,6 +253,23 @@ resource "aws_kms_key" "secrets" {
         Principal = { Service = "cloudtrail.amazonaws.com" }
         Action    = ["kms:Encrypt*", "kms:Decrypt*", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"]
         Resource  = "*"
+      },
+      # El bucket alb_logs (ecs.tf) tambien usa esta key. El servicio de
+      # entrega de logs del ELB necesita ambos principals: la cuenta AWS
+      # regional (mecanismo viejo) y el service principal (regiones nuevas).
+      {
+        Sid       = "Allow ELB Log Delivery"
+        Effect    = "Allow"
+        Principal = { AWS = data.aws_elb_service_account.main.arn }
+        Action    = ["kms:Encrypt*", "kms:Decrypt*", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"]
+        Resource  = "*"
+      },
+      {
+        Sid       = "Allow ELB Log Delivery Service"
+        Effect    = "Allow"
+        Principal = { Service = "delivery.logs.amazonaws.com" }
+        Action    = ["kms:Encrypt*", "kms:Decrypt*", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"]
+        Resource  = "*"
       }
     ]
   })
