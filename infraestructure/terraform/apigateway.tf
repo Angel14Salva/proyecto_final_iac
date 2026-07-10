@@ -84,6 +84,31 @@ resource "aws_api_gateway_stage" "prod" {
   tags = { Name = "${var.project_name}-api-stage" }
 }
 
+# Habilitar logging_level en un stage exige que la cuenta AWS (a nivel de
+# region, no por API) tenga configurado un rol de CloudWatch Logs -- sin esto
+# UpdateStage falla con "CloudWatch Logs role ARN must be set in account
+# settings to enable logging", aunque el stage/metodo este bien configurado.
+resource "aws_iam_role" "api_gateway_cloudwatch" {
+  name = "${var.project_name}-apigw-cloudwatch-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "apigateway.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "api_gateway_cloudwatch" {
+  role       = aws_iam_role.api_gateway_cloudwatch.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
+resource "aws_api_gateway_account" "main" {
+  cloudwatch_role_arn = aws_iam_role.api_gateway_cloudwatch.arn
+}
+
 resource "aws_api_gateway_method_settings" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.segat.id
   stage_name  = aws_api_gateway_stage.prod.stage_name
@@ -94,6 +119,8 @@ resource "aws_api_gateway_method_settings" "proxy" {
     metrics_enabled    = true
     data_trace_enabled = false
   }
+
+  depends_on = [aws_api_gateway_account.main]
 }
 
 # Reutiliza el mismo WAF que protege el ALB externo (waf.tf)

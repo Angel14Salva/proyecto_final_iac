@@ -78,7 +78,12 @@ resource "aws_cloudfront_distribution" "main" {
   }
 
   default_cache_behavior {
-    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    # CloudFront no permite metodos de escritura (POST/PUT/PATCH/DELETE) en un
+    # cache behavior que apunta a un origin_group (failover) -- "InvalidArgument:
+    # AllowedMethods cannot include POST, PUT, PATCH, or DELETE for a cached
+    # behavior associated with an origin group". Se mantiene el failover; las
+    # escrituras deben ir directo al ALB o via API Gateway, no por esta URL.
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "${var.project_name}-origin-group"
     viewer_protocol_policy = "redirect-to-https"
