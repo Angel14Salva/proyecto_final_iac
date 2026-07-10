@@ -84,6 +84,17 @@ resource "aws_s3_bucket_notification" "cloudtrail_logs" {
   eventbridge = true
 }
 
+# Mismo problema que con alb_logs (ecs.tf): la policy de este bucket exige el
+# ACL "bucket-owner-full-control", pero los buckets S3 nuevos nacen con ACLs
+# deshabilitadas ("Bucket owner enforced") desde abril 2023. Sin esto,
+# CloudTrail no podria escribir el primer log aunque la policy sea correcta.
+resource "aws_s3_bucket_ownership_controls" "cloudtrail_logs" {
+  bucket = aws_s3_bucket.cloudtrail_logs.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "cloudtrail_logs" {
   bucket                  = aws_s3_bucket.cloudtrail_logs.id
   block_public_acls       = true
@@ -134,7 +145,11 @@ resource "aws_cloudtrail" "main" {
   cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
   cloud_watch_logs_role_arn     = aws_iam_role.cloudtrail_cloudwatch.arn
   tags                          = { Name = "${var.project_name}-cloudtrail" }
-  depends_on                    = [aws_s3_bucket_policy.cloudtrail_logs, aws_sns_topic_policy.alertas]
+  depends_on = [
+    aws_s3_bucket_policy.cloudtrail_logs,
+    aws_sns_topic_policy.alertas,
+    aws_s3_bucket_ownership_controls.cloudtrail_logs,
+  ]
 }
 
 resource "aws_cloudwatch_log_group" "cloudtrail" {

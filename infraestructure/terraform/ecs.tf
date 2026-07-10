@@ -42,9 +42,9 @@ resource "aws_lb" "external" {
   }
 
   # Sin esto, Terraform solo espera a que exista el bucket (referenciado arriba),
-  # no a que su policy este aplicada -- AWS rechaza habilitar access_logs si la
-  # policy que permite escribir todavia no esta lista ("Access Denied for bucket")
-  depends_on = [aws_s3_bucket_policy.alb_logs]
+  # no a que su policy/ownership controls esten aplicadas -- AWS rechaza
+  # habilitar access_logs si eso todavia no esta listo ("Access Denied for bucket")
+  depends_on = [aws_s3_bucket_policy.alb_logs, aws_s3_bucket_ownership_controls.alb_logs]
 
   tags = { Name = "${var.project_name}-alb-external" }
 }
@@ -65,7 +65,7 @@ resource "aws_lb" "internal" {
     enabled = true
   }
 
-  depends_on = [aws_s3_bucket_policy.alb_logs]
+  depends_on = [aws_s3_bucket_policy.alb_logs, aws_s3_bucket_ownership_controls.alb_logs]
 
   tags = { Name = "${var.project_name}-alb-internal" }
 }
@@ -144,6 +144,18 @@ resource "aws_s3_bucket_replication_configuration" "alb_logs" {
 resource "aws_s3_bucket_notification" "alb_logs" {
   bucket      = aws_s3_bucket.alb_logs.id
   eventbridge = true
+}
+
+# Desde abril 2023, los buckets S3 nuevos se crean con "Bucket owner enforced"
+# (ACLs deshabilitadas) por defecto. La bucket policy de alb_logs exige que el
+# ELB escriba con el ACL "bucket-owner-full-control" -- con las ACLs
+# deshabilitadas esa condicion nunca se cumple y AWS rechaza el acceso, sin
+# importar que la policy y el cifrado esten bien. Esto reactiva las ACLs.
+resource "aws_s3_bucket_ownership_controls" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
 }
 
 resource "aws_s3_bucket_versioning" "alb_logs" {
