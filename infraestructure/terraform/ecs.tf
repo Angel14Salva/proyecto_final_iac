@@ -155,12 +155,12 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
   bucket = aws_s3_bucket.alb_logs.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "aws:kms"
-      # "alias/aws/s3" es la key administrada por AWS: su policy no se puede
-      # editar, asi que el servicio de entrega de logs del ELB nunca podria
-      # obtener permiso para escribir en un bucket cifrado con ella (mismo
-      # problema que tuvimos con el SNS topic y el bucket de CloudTrail).
-      kms_master_key_id = aws_kms_key.secrets.arn
+      # A diferencia de CloudTrail/SNS, los access logs de ELB NO soportan
+      # SSE-KMS (ni con la key administrada por AWS ni con una propia) --
+      # es una restriccion documentada de AWS, no un tema de permisos. Por
+      # eso el intento anterior (darle permisos KMS al servicio) no funciono:
+      # ModifyLoadBalancerAttributes rechaza cualquier bucket cifrado con KMS.
+      sse_algorithm = "AES256"
     }
   }
 }
