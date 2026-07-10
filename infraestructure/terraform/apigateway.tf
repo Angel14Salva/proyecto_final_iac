@@ -63,6 +63,10 @@ resource "aws_api_gateway_stage" "prod" {
   rest_api_id   = aws_api_gateway_rest_api.segat.id
   stage_name    = var.environment
 
+  # access_log_settings tambien exige el rol de CloudWatch a nivel de cuenta
+  # (aws_api_gateway_account.main mas abajo), igual que method_settings.proxy.
+  depends_on = [aws_api_gateway_account.main]
+
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.ecs.arn
     format = jsonencode({
