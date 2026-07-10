@@ -127,6 +127,7 @@ resource "aws_s3_bucket" "alb_logs" {
 }
 
 resource "aws_s3_bucket_replication_configuration" "alb_logs" {
+  count      = var.enable_s3_replication ? 1 : 0
   depends_on = [aws_s3_bucket_versioning.alb_logs]
   role       = aws_iam_role.s3_replication.arn
   bucket     = aws_s3_bucket.alb_logs.id

@@ -158,3 +158,9 @@ variable "enable_secrets_rotation" {
   type        = bool
   default     = false
 }
+
+variable "enable_s3_replication" {
+  description = "Habilita la replicacion cross-region de los buckets S3 (reportes, alb_logs, cloudtrail_logs). Requiere que los buckets destino (replication_bucket_*) existan previamente."
+  type        = bool
+  default     = false
+}
