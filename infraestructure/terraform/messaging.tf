@@ -81,6 +81,23 @@ resource "aws_sns_topic_subscription" "alertas_email" {
   endpoint  = var.alert_email
 }
 
+# Sin esto, aws_cloudtrail.main (observability.tf) falla con
+# InsufficientSnsTopicPolicyException: CloudTrail necesita permiso explicito
+# para publicar en el topico antes de poder usarlo como sns_topic_name
+resource "aws_sns_topic_policy" "alertas" {
+  arn = aws_sns_topic.alertas.arn
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "AWSCloudTrailSNSPolicy"
+      Effect    = "Allow"
+      Principal = { Service = "cloudtrail.amazonaws.com" }
+      Action    = "SNS:Publish"
+      Resource  = aws_sns_topic.alertas.arn
+    }]
+  })
+}
+
 resource "aws_kms_key" "sqs" {
   description             = "KMS CMK para cifrado de colas SQS del proyecto SEGAT"
   deletion_window_in_days = 7

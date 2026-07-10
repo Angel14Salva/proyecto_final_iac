@@ -41,6 +41,10 @@ resource "aws_lb" "external" {
     enabled = true
   }
 
+  # Sin esto, Terraform solo espera a que exista el bucket (referenciado arriba),
+  # no a que su policy este aplicada -- AWS rechaza habilitar access_logs si la
+  # policy que permite escribir todavia no esta lista ("Access Denied for bucket")
+  depends_on = [aws_s3_bucket_policy.alb_logs]
 
   tags = { Name = "${var.project_name}-alb-external" }
 }
@@ -60,6 +64,8 @@ resource "aws_lb" "internal" {
     prefix  = "alb-internal"
     enabled = true
   }
+
+  depends_on = [aws_s3_bucket_policy.alb_logs]
 
   tags = { Name = "${var.project_name}-alb-internal" }
 }

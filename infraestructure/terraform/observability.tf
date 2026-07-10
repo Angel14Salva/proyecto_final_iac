@@ -133,7 +133,7 @@ resource "aws_cloudtrail" "main" {
   cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
   cloud_watch_logs_role_arn     = aws_iam_role.cloudtrail_cloudwatch.arn
   tags                          = { Name = "${var.project_name}-cloudtrail" }
-  depends_on                    = [aws_s3_bucket_policy.cloudtrail_logs]
+  depends_on                    = [aws_s3_bucket_policy.cloudtrail_logs, aws_sns_topic_policy.alertas]
 }
 
 resource "aws_cloudwatch_log_group" "cloudtrail" {
