@@ -218,13 +218,19 @@ resource "aws_s3_bucket_policy" "alb_logs" {
         Effect    = "Allow"
         Principal = { AWS = data.aws_elb_service_account.main.arn }
         Action    = "s3:PutObject"
-        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb/AWSLogs/*"
+        # "alb*" cubre tanto el prefix "alb" (aws_lb.external) como
+        # "alb-internal" (aws_lb.internal) -- antes solo alcanzaba a "alb",
+        # asi que el ALB interno nunca podia escribir sus logs
+        Resource = "${aws_s3_bucket.alb_logs.arn}/alb*/AWSLogs/*"
       },
       {
         Effect    = "Allow"
         Principal = { Service = "delivery.logs.amazonaws.com" }
         Action    = "s3:PutObject"
-        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb/AWSLogs/*"
+        # "alb*" cubre tanto el prefix "alb" (aws_lb.external) como
+        # "alb-internal" (aws_lb.internal) -- antes solo alcanzaba a "alb",
+        # asi que el ALB interno nunca podia escribir sus logs
+        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb*/AWSLogs/*"
         Condition = { StringEquals = { "s3:x-amz-acl" = "bucket-owner-full-control" } }
       },
       {
