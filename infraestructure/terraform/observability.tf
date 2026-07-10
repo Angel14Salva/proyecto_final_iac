@@ -185,8 +185,12 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "cloudtrail_logs" 
   bucket = aws_s3_bucket.cloudtrail_logs.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "aws:kms"
-      kms_master_key_id = "alias/aws/s3"
+      sse_algorithm = "aws:kms"
+      # "alias/aws/s3" es la key administrada por AWS: su policy no se puede
+      # editar, asi que CloudTrail nunca podria obtener permiso para escribir
+      # en un bucket cifrado con ella. Usamos nuestra propia CMK (mas abajo en
+      # este archivo), que si le otorga acceso explicito a CloudTrail.
+      kms_master_key_id = aws_kms_key.secrets.arn
     }
   }
 }
@@ -237,6 +241,16 @@ resource "aws_kms_key" "secrets" {
         Sid       = "Allow CloudWatch Logs"
         Effect    = "Allow"
         Principal = { Service = "logs.${var.aws_region}.amazonaws.com" }
+        Action    = ["kms:Encrypt*", "kms:Decrypt*", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"]
+        Resource  = "*"
+      },
+      # CloudTrail necesita esto tanto para cifrar el trail (kms_key_id en
+      # aws_cloudtrail.main) como para poder escribir los logs en el bucket S3
+      # (que tambien usa esta key para su cifrado por defecto, ver mas abajo)
+      {
+        Sid       = "Allow CloudTrail"
+        Effect    = "Allow"
+        Principal = { Service = "cloudtrail.amazonaws.com" }
         Action    = ["kms:Encrypt*", "kms:Decrypt*", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"]
         Resource  = "*"
       }
