@@ -1,3 +1,4 @@
+
 # =============================================================================
 # github_oidc.tf — Federacion OIDC para que GitHub Actions pueda autenticarse
 # contra AWS sin credenciales de larga duracion (Fase 5: pipeline CI/CD)
@@ -79,3 +80,68 @@ output "github_actions_role_arn" {
   description = "ARN del rol que GitHub Actions asume via OIDC — copiar al secret AWS_GHA_ROLE_ARN del repo"
   value       = aws_iam_role.github_actions_ecr_push.arn
 }
+
+# ---------------------------------------------------------------------------
+# Rol separado para el deploy del frontend (sync a S3 + invalidacion de
+# CloudFront). Se mantiene aparte del rol de ECR para no darle al pipeline
+# del frontend permisos sobre el registro de imagenes del backend.
+# ---------------------------------------------------------------------------
+resource "aws_iam_role" "github_actions_frontend_deploy" {
+  name = "${var.project_name}-gha-frontend-deploy"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github_actions.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = "repo:Angel14Salva/proyecto_final_iac:ref:refs/heads/main"
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${var.project_name}-role-gha-frontend-deploy" }
+}
+
+resource "aws_iam_role_policy" "github_actions_frontend_deploy" {
+  name = "${var.project_name}-gha-frontend-deploy-policy"
+  role = aws_iam_role.github_actions_frontend_deploy.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "S3SyncFrontend"
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:ListBucket",
+          "s3:DeleteObject"
+        ]
+        Resource = [
+          aws_s3_bucket.frontend.arn,
+          "${aws_s3_bucket.frontend.arn}/*"
+        ]
+      },
+      {
+        Sid      = "CloudFrontInvalidation"
+        Effect   = "Allow"
+        Action   = ["cloudfront:CreateInvalidation"]
+        Resource = aws_cloudfront_distribution.main.arn
+      }
+    ]
+  })
+}
+
+output "github_actions_frontend_role_arn" {
+  description = "ARN del rol que GitHub Actions asume via OIDC para desplegar el frontend — copiar al secret/var AWS_GHA_FRONTEND_ROLE_ARN del repo"
+  value       = aws_iam_role.github_actions_frontend_deploy.arn
+}
+

@@ -1,3 +1,4 @@
+
 # =============================================================================
 # observability.tf — FASE 6: Observabilidad y Seguridad
 # CloudWatch + Secrets Manager + CloudTrail
@@ -65,6 +66,7 @@ resource "aws_s3_bucket" "cloudtrail_logs" {
 }
 
 resource "aws_s3_bucket_replication_configuration" "cloudtrail_logs" {
+  count      = var.enable_s3_replication ? 1 : 0
   depends_on = [aws_s3_bucket_versioning.cloudtrail_logs]
   role       = aws_iam_role.s3_replication.arn
   bucket     = aws_s3_bucket.cloudtrail_logs.id
@@ -81,6 +83,20 @@ resource "aws_s3_bucket_replication_configuration" "cloudtrail_logs" {
 resource "aws_s3_bucket_notification" "cloudtrail_logs" {
   bucket      = aws_s3_bucket.cloudtrail_logs.id
   eventbridge = true
+}
+
+# Mismo problema que con alb_logs (ecs.tf): la policy de este bucket exige el
+# ACL "bucket-owner-full-control", pero los buckets S3 nuevos nacen con ACLs
+# deshabilitadas ("Bucket owner enforced") desde abril 2023. Sin esto,
+# CloudTrail no podria escribir el primer log aunque la policy sea correcta.
+resource "aws_s3_bucket_ownership_controls" "cloudtrail_logs" {
+  # checkov:skip=CKV2_AWS_65: Igual que alb_logs (ecs.tf) -- CloudTrail exige
+  # el ACL "bucket-owner-full-control" para escribir. Deshabilitar ACLs
+  # rompe la entrega de logs.
+  bucket = aws_s3_bucket.cloudtrail_logs.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "cloudtrail_logs" {
@@ -117,6 +133,21 @@ resource "aws_s3_bucket_policy" "cloudtrail_logs" {
         Action    = "s3:PutObject"
         Resource  = "${aws_s3_bucket.cloudtrail_logs.arn}/AWSLogs/*"
         Condition = { StringEquals = { "s3:x-amz-acl" = "bucket-owner-full-control" } }
+      },
+      {
+        Sid       = "AWSConfigAclCheck"
+        Effect    = "Allow"
+        Principal = { Service = "config.amazonaws.com" }
+        Action    = "s3:GetBucketAcl"
+        Resource  = aws_s3_bucket.cloudtrail_logs.arn
+      },
+      {
+        Sid       = "AWSConfigWrite"
+        Effect    = "Allow"
+        Principal = { Service = "config.amazonaws.com" }
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.cloudtrail_logs.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/Config/*"
+        Condition = { StringEquals = { "s3:x-amz-acl" = "bucket-owner-full-control" } }
       }
     ]
   })
@@ -133,7 +164,11 @@ resource "aws_cloudtrail" "main" {
   cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
   cloud_watch_logs_role_arn     = aws_iam_role.cloudtrail_cloudwatch.arn
   tags                          = { Name = "${var.project_name}-cloudtrail" }
-  depends_on                    = [aws_s3_bucket_policy.cloudtrail_logs]
+  depends_on = [
+    aws_s3_bucket_policy.cloudtrail_logs,
+    aws_sns_topic_policy.alertas,
+    aws_s3_bucket_ownership_controls.cloudtrail_logs,
+  ]
 }
 
 resource "aws_cloudwatch_log_group" "cloudtrail" {
@@ -184,8 +219,12 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "cloudtrail_logs" 
   bucket = aws_s3_bucket.cloudtrail_logs.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "aws:kms"
-      kms_master_key_id = "alias/aws/s3"
+      sse_algorithm = "aws:kms"
+      # "alias/aws/s3" es la key administrada por AWS: su policy no se puede
+      # editar, asi que CloudTrail nunca podria obtener permiso para escribir
+      # en un bucket cifrado con ella. Usamos nuestra propia CMK (mas abajo en
+      # este archivo), que si le otorga acceso explicito a CloudTrail.
+      kms_master_key_id = aws_kms_key.secrets.arn
     }
   }
 }
@@ -236,6 +275,16 @@ resource "aws_kms_key" "secrets" {
         Sid       = "Allow CloudWatch Logs"
         Effect    = "Allow"
         Principal = { Service = "logs.${var.aws_region}.amazonaws.com" }
+        Action    = ["kms:Encrypt*", "kms:Decrypt*", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"]
+        Resource  = "*"
+      },
+      # CloudTrail necesita esto tanto para cifrar el trail (kms_key_id en
+      # aws_cloudtrail.main) como para poder escribir los logs en el bucket S3
+      # (que tambien usa esta key para su cifrado por defecto, ver mas abajo)
+      {
+        Sid       = "Allow CloudTrail"
+        Effect    = "Allow"
+        Principal = { Service = "cloudtrail.amazonaws.com" }
         Action    = ["kms:Encrypt*", "kms:Decrypt*", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"]
         Resource  = "*"
       }
@@ -291,3 +340,4 @@ resource "aws_secretsmanager_secret" "n8n" {
   kms_key_id  = aws_kms_key.secrets.arn
   tags        = { Name = "${var.project_name}-secret-n8n" }
 }
+

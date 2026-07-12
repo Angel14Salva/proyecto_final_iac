@@ -1,3 +1,4 @@
+
 # =============================================================================
 # outputs.tf — Valores exportados despues del despliegue
 # =============================================================================
@@ -81,3 +82,34 @@ output "vpc_endpoint_dynamodb_id" {
   description = "ID del VPC Endpoint para DynamoDB"
   value       = aws_vpc_endpoint.dynamodb.id
 }
+
+output "cloudfront_domain_name" {
+  description = "Dominio de CloudFront — sirve el frontend (/) y proxea el backend (/api/*)"
+  value       = aws_cloudfront_distribution.main.domain_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "ID de la distribucion CloudFront — usado por el pipeline de deploy del frontend para invalidar cache"
+  value       = aws_cloudfront_distribution.main.id
+}
+
+output "s3_frontend_bucket" {
+  description = "Nombre del bucket S3 donde se publican los assets estaticos del frontend"
+  value       = aws_s3_bucket.frontend.bucket
+}
+
+output "api_gateway_invoke_url" {
+  description = "URL de invocacion del API Gateway (stage prod)"
+  value       = aws_api_gateway_stage.prod.invoke_url
+}
+
+output "internal_nlb_dns_name" {
+  description = "DNS del NLB del VPC Link — puente entre API Gateway y el ALB interno"
+  value       = aws_lb.internal_nlb.dns_name
+}
+
+output "config_recorder_status" {
+  description = "Nombre del AWS Config Recorder (auditoria de configuracion / drift)"
+  value       = aws_config_configuration_recorder.main.name
+}
+

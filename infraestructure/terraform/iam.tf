@@ -25,11 +25,25 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
   role = aws_iam_role.ecs_execution_role.id
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["secretsmanager:GetSecretValue", "ssm:GetParameters"]
-      Resource = "arn:aws:secretsmanager:*:*:secret:segat/*"
-    }]
+    Statement = [
+      {
+        Sid      = "SecretsManagerAccess"
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue", "ssm:GetParameters"]
+        Resource = "arn:aws:secretsmanager:*:*:secret:segat/*"
+      },
+      {
+        # La key policy de aws_kms_key.secrets delega el control de acceso a
+        # IAM (statement "Enable IAM User Permissions"), asi que el rol
+        # necesita su propio permiso explicito de kms:Decrypt -- sin esto,
+        # ECS Fargate no puede resolver los "valueFrom" del task definition
+        # y las tareas mueren con ResourceInitializationError / AccessDeniedException.
+        Sid      = "KMSDecryptSecrets"
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt"]
+        Resource = aws_kms_key.secrets.arn
+      }
+    ]
   })
 }
 

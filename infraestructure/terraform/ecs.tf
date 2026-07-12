@@ -41,6 +41,10 @@ resource "aws_lb" "external" {
     enabled = true
   }
 
+  # Sin esto, Terraform solo espera a que exista el bucket (referenciado arriba),
+  # no a que su policy/ownership controls esten aplicadas -- AWS rechaza
+  # habilitar access_logs si eso todavia no esta listo ("Access Denied for bucket")
+  depends_on = [aws_s3_bucket_policy.alb_logs, aws_s3_bucket_ownership_controls.alb_logs]
 
   tags = { Name = "${var.project_name}-alb-external" }
 }
@@ -60,6 +64,8 @@ resource "aws_lb" "internal" {
     prefix  = "alb-internal"
     enabled = true
   }
+
+  depends_on = [aws_s3_bucket_policy.alb_logs, aws_s3_bucket_ownership_controls.alb_logs]
 
   tags = { Name = "${var.project_name}-alb-internal" }
 }
@@ -115,12 +121,17 @@ resource "aws_wafv2_web_acl_association" "external" {
 # S3 bucket para los access logs del ALB
 # Los access logs del ALB los escribe el servicio de ELB de AWS, no IAM roles
 resource "aws_s3_bucket" "alb_logs" {
+  # checkov:skip=CKV_AWS_145: ELB access logs NO soportan SSE-KMS (ver
+  # aws_s3_bucket_server_side_encryption_configuration.alb_logs mas abajo) --
+  # restriccion documentada de AWS, no de permisos. Checkov evalua este check
+  # sobre el bucket en si, no sobre el recurso de encriptacion separado.
   bucket        = "${var.project_name}-alb-logs-${var.environment}-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
   tags          = { Name = "${var.project_name}-s3-alb-logs" }
 }
 
 resource "aws_s3_bucket_replication_configuration" "alb_logs" {
+  count      = var.enable_s3_replication ? 1 : 0
   depends_on = [aws_s3_bucket_versioning.alb_logs]
   role       = aws_iam_role.s3_replication.arn
   bucket     = aws_s3_bucket.alb_logs.id
@@ -139,6 +150,21 @@ resource "aws_s3_bucket_notification" "alb_logs" {
   eventbridge = true
 }
 
+# Desde abril 2023, los buckets S3 nuevos se crean con "Bucket owner enforced"
+# (ACLs deshabilitadas) por defecto. La bucket policy de alb_logs exige que el
+# ELB escriba con el ACL "bucket-owner-full-control" -- con las ACLs
+# deshabilitadas esa condicion nunca se cumple y AWS rechaza el acceso, sin
+# importar que la policy y el cifrado esten bien. Esto reactiva las ACLs.
+resource "aws_s3_bucket_ownership_controls" "alb_logs" {
+  # checkov:skip=CKV2_AWS_65: Las ACLs deben quedar habilitadas a proposito
+  # -- el servicio de ELB exige escribir con "bucket-owner-full-control"
+  # (ver comentario arriba). Deshabilitarlas rompe la entrega de logs.
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
 resource "aws_s3_bucket_versioning" "alb_logs" {
   bucket = aws_s3_bucket.alb_logs.id
   versioning_configuration { status = "Enabled" }
@@ -148,8 +174,12 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
   bucket = aws_s3_bucket.alb_logs.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "aws:kms"
-      kms_master_key_id = "alias/aws/s3"
+      # A diferencia de CloudTrail/SNS, los access logs de ELB NO soportan
+      # SSE-KMS (ni con la key administrada por AWS ni con una propia) --
+      # es una restriccion documentada de AWS, no un tema de permisos. Por
+      # eso el intento anterior (darle permisos KMS al servicio) no funciono:
+      # ModifyLoadBalancerAttributes rechaza cualquier bucket cifrado con KMS.
+      sse_algorithm = "AES256"
     }
   }
 }
@@ -195,13 +225,19 @@ resource "aws_s3_bucket_policy" "alb_logs" {
         Effect    = "Allow"
         Principal = { AWS = data.aws_elb_service_account.main.arn }
         Action    = "s3:PutObject"
-        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb/AWSLogs/*"
+        # "alb*" cubre tanto el prefix "alb" (aws_lb.external) como
+        # "alb-internal" (aws_lb.internal) -- antes solo alcanzaba a "alb",
+        # asi que el ALB interno nunca podia escribir sus logs
+        Resource = "${aws_s3_bucket.alb_logs.arn}/alb*/AWSLogs/*"
       },
       {
         Effect    = "Allow"
         Principal = { Service = "delivery.logs.amazonaws.com" }
         Action    = "s3:PutObject"
-        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb/AWSLogs/*"
+        # "alb*" cubre tanto el prefix "alb" (aws_lb.external) como
+        # "alb-internal" (aws_lb.internal) -- antes solo alcanzaba a "alb",
+        # asi que el ALB interno nunca podia escribir sus logs
+        Resource  = "${aws_s3_bucket.alb_logs.arn}/alb*/AWSLogs/*"
         Condition = { StringEquals = { "s3:x-amz-acl" = "bucket-owner-full-control" } }
       },
       {

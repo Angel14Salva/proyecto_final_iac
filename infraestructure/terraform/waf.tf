@@ -4,6 +4,11 @@
 # =============================================================================
 
 resource "aws_wafv2_web_acl" "main" {
+  # checkov:skip=CKV2_AWS_76: AWSManagedRulesKnownBadInputsRuleSet SI esta
+  # presente (regla "AWSManagedRulesKnownBadInputsRuleSet" mas abajo, activa
+  # y asociada al ALB externo via aws_wafv2_web_acl_association.alb). Falso
+  # positivo conocido de Checkov cuando coexisten varios managed rule groups
+  # en el mismo ACL.
   name        = "${var.project_name}-waf"
   scope       = "REGIONAL"
   description = "WAF para proteger el ALB externo de SEGAT"
@@ -173,6 +178,26 @@ resource "aws_wafv2_web_acl" "cloudfront" {
     }
   }
 
+  # CKV_AWS_192 / CKV2_AWS_47: proteccion contra CVE-2021-44228 (Log4Shell)
+  rule {
+    name     = "AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 2
+    override_action {
+      none {}
+    }
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${var.project_name}CloudFrontKnownBadInputsMetric"
+      sampled_requests_enabled   = true
+    }
+  }
+
   visibility_config {
     cloudwatch_metrics_enabled = true
     metric_name                = "${var.project_name}CloudFrontWAFMetric"
@@ -180,4 +205,21 @@ resource "aws_wafv2_web_acl" "cloudfront" {
   }
 
   tags = { Name = "${var.project_name}-waf-cloudfront" }
+}
+
+# CKV2_AWS_31: logging del WAF de CloudFront. El log group debe existir en
+# us-east-1 (misma region que el WAF con scope CLOUDFRONT).
+resource "aws_cloudwatch_log_group" "waf_cloudfront" {
+  provider = aws.us_east_1
+  # Los log groups del WAF DEBEN tener el prefijo "aws-waf-logs-"
+  name              = "aws-waf-logs-${var.project_name}-cloudfront"
+  retention_in_days = 365
+  kms_key_id        = aws_kms_key.secrets.arn
+  tags              = { Name = "${var.project_name}-waf-cloudfront-logs" }
+}
+
+resource "aws_wafv2_web_acl_logging_configuration" "cloudfront" {
+  provider                 = aws.us_east_1
+  log_destination_configs = [aws_cloudwatch_log_group.waf_cloudfront.arn]
+  resource_arn             = aws_wafv2_web_acl.cloudfront.arn
 }

@@ -4,6 +4,9 @@
 # =============================================================================
 
 resource "aws_vpc" "main" {
+  # checkov:skip=CKV2_AWS_12: El security group por defecto SI esta bloqueado
+  # -- ver aws_default_security_group.default (sin ingress/egress) mas abajo
+  # en este archivo. Checkov no siempre traza esta asociacion en el grafo.
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true

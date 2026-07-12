@@ -69,9 +69,46 @@ resource "aws_sqs_queue_policy" "notificaciones_policy" {
   })
 }
 
+# CloudTrail necesita un CMK (key administrada por nosotros) para publicar en
+# un topico SNS cifrado -- la policy del alias administrado por AWS
+# ("alias/aws/sns") no se puede editar, asi que CloudTrail nunca podria
+# obtener el permiso que pide ("Edit the key policy to allow access to CloudTrail")
+resource "aws_kms_key" "sns_alertas" {
+  description             = "KMS CMK para el SNS topic de alertas (CloudTrail, CloudWatch Alarms)"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "Enable IAM User Permissions"
+        Effect    = "Allow"
+        Principal = { AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" }
+        Action    = "kms:*"
+        Resource  = "*"
+      },
+      {
+        Sid       = "AllowCloudTrail"
+        Effect    = "Allow"
+        Principal = { Service = "cloudtrail.amazonaws.com" }
+        Action    = ["kms:GenerateDataKey*", "kms:Decrypt"]
+        Resource  = "*"
+      },
+      {
+        Sid       = "AllowCloudWatchAlarms"
+        Effect    = "Allow"
+        Principal = { Service = "cloudwatch.amazonaws.com" }
+        Action    = ["kms:GenerateDataKey*", "kms:Decrypt"]
+        Resource  = "*"
+      }
+    ]
+  })
+  tags = { Name = "${var.project_name}-kms-sns-alertas" }
+}
+
 resource "aws_sns_topic" "alertas" {
   name              = "${var.project_name}-sns-alertas"
-  kms_master_key_id = "alias/aws/sns"
+  kms_master_key_id = aws_kms_key.sns_alertas.arn
   tags              = { Name = "${var.project_name}-sns-alertas" }
 }
 
@@ -79,6 +116,23 @@ resource "aws_sns_topic_subscription" "alertas_email" {
   topic_arn = aws_sns_topic.alertas.arn
   protocol  = "email"
   endpoint  = var.alert_email
+}
+
+# Sin esto, aws_cloudtrail.main (observability.tf) falla con
+# InsufficientSnsTopicPolicyException: CloudTrail necesita permiso explicito
+# para publicar en el topico antes de poder usarlo como sns_topic_name
+resource "aws_sns_topic_policy" "alertas" {
+  arn = aws_sns_topic.alertas.arn
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "AWSCloudTrailSNSPolicy"
+      Effect    = "Allow"
+      Principal = { Service = "cloudtrail.amazonaws.com" }
+      Action    = "SNS:Publish"
+      Resource  = aws_sns_topic.alertas.arn
+    }]
+  })
 }
 
 resource "aws_kms_key" "sqs" {

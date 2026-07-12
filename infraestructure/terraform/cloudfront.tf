@@ -1,3 +1,4 @@
+
 # =============================================================================
 # cloudfront.tf — CDN
 # Amazon CloudFront para distribucion de contenido estatico SEGAT
@@ -34,11 +35,24 @@ resource "aws_cloudfront_response_headers_policy" "segat" {
 }
 
 resource "aws_cloudfront_distribution" "main" {
-  # checkov:skip=CKV2_AWS_46: El origin es un ALB, no un bucket S3. Origin Access Control aplica solo para origenes S3.
+  # checkov:skip=CKV2_AWS_46: Los origenes ALB son custom origins, no S3; el
+  # unico origen S3 (frontend) SI usa Origin Access Control (ver origin de abajo).
+  # checkov:skip=CKV2_AWS_47: AWSManagedRulesKnownBadInputsRuleSet SI esta
+  # presente en el WAF asociado (aws_wafv2_web_acl.cloudfront, waf.tf), activa
+  # y con web_acl_id apuntando a ese ACL mas abajo. Mismo falso positivo que
+  # CKV2_AWS_76 (ver waf.tf).
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "CDN para el proyecto SEGAT"
   default_root_object = "index.html"
+
+  # Origen S3 — assets estaticos del frontend (apps/frontend), privado,
+  # accesible solo por esta distribucion via Origin Access Control.
+  origin {
+    domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
+    origin_id                = "${var.project_name}-frontend-origin"
+    origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
+  }
 
   origin {
     domain_name = aws_lb.external.dns_name
@@ -77,8 +91,36 @@ resource "aws_cloudfront_distribution" "main" {
     }
   }
 
+  # Comportamiento por defecto: sirve el frontend estatico (SPA) desde S3.
   default_cache_behavior {
-    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "${var.project_name}-frontend-origin"
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+
+    min_ttl                    = 0
+    default_ttl                = 3600
+    max_ttl                    = 86400
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.segat.id
+  }
+
+  # /api/* — proxy hacia el backend (ALB con failover), igual que antes.
+  ordered_cache_behavior {
+    path_pattern = "/api/*"
+    # CloudFront no permite metodos de escritura (POST/PUT/PATCH/DELETE) en un
+    # cache behavior que apunta a un origin_group (failover) -- "InvalidArgument:
+    # AllowedMethods cannot include POST, PUT, PATCH, or DELETE for a cached
+    # behavior associated with an origin group". Se mantiene el failover; las
+    # escrituras deben ir directo al ALB o via API Gateway, no por esta URL.
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "${var.project_name}-origin-group"
     viewer_protocol_policy = "redirect-to-https"
@@ -96,6 +138,20 @@ resource "aws_cloudfront_distribution" "main" {
     default_ttl                = 0
     max_ttl                    = 0
     response_headers_policy_id = aws_cloudfront_response_headers_policy.segat.id
+  }
+
+  # SPA: rutas del frontend manejadas por JS del lado cliente (sin servidor
+  # de rutas). Si S3 devuelve 403/404 para una ruta como /reportes, se
+  # reenvia a index.html para que el router del frontend la resuelva.
+  custom_error_response {
+    error_code         = 403
+    response_code      = 200
+    response_page_path = "/index.html"
+  }
+  custom_error_response {
+    error_code         = 404
+    response_code      = 200
+    response_page_path = "/index.html"
   }
 
   restrictions {
@@ -121,3 +177,4 @@ resource "aws_cloudfront_distribution" "main" {
 
   tags = { Name = "${var.project_name}-cloudfront" }
 }
+

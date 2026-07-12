@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Tareas Asignadas</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <h1>Tareas Asignadas</h1>
+            <button id="refresh-btn" class="button-primary">Actualizar Vista</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo de Tarea</th>
+                        <th>Ubicación</th>
+                        <th>Foto Referencia</th>
+                        <th>Fecha Asignación</th>
+                    </tr>
+                </thead>
+                <tbody id="tasks-table-body">
+                </tbody>
+            </table>
+        </div>
+        <div id="pagination-wrapper" class="pagination">
+        </div>
+    </div>
+    <script type="module" src="../js/pages/listarTareas.js"></script>
+</body>
+</html>

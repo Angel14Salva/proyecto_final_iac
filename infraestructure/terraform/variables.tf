@@ -147,6 +147,12 @@ variable "replication_bucket_cloudtrail" {
   default     = "segat-cloudtrail-logs-replica"
 }
 
+variable "replication_bucket_frontend" {
+  description = "Bucket destino para replicacion de assets del frontend"
+  type        = string
+  default     = "segat-frontend-replica"
+}
+
 variable "domain_name" {
   description = "Dominio principal del proyecto SEGAT"
   type        = string
@@ -155,6 +161,12 @@ variable "domain_name" {
 
 variable "enable_secrets_rotation" {
   description = "Habilita la rotacion automatica de Secrets Manager. Requiere una Lambda de rotacion real desplegada previamente."
+  type        = bool
+  default     = false
+}
+
+variable "enable_s3_replication" {
+  description = "Habilita la replicacion cross-region de los buckets S3 (reportes, alb_logs, cloudtrail_logs). Requiere que los buckets destino (replication_bucket_*) existan previamente."
   type        = bool
   default     = false
 }
