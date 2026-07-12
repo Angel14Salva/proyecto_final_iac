@@ -1,3 +1,4 @@
+
 name: Frontend CI/CD
 
 on:
@@ -45,29 +46,55 @@ jobs:
             echo "No hay archivos .scss que compilar, se usan los .css directamente."
           fi
 
-  deploy-pages:
-    name: Deploy a GitHub Pages
+  deploy-s3-cloudfront:
+    name: Deploy a S3 + invalidar CloudFront
     needs: build-validate
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Igual que el pipeline del backend: solo corre en push a main y solo si
+    # el rol OIDC ya fue creado (terraform apply de github_oidc.tf) y cargado
+    # como variable del repo.
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AWS_GHA_FRONTEND_ROLE_ARN != '' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pages: write
       id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configurar GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Subir artefacto (carpeta src)
-        uses: actions/upload-pages-artifact@v3
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
-          path: apps/frontend/src
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
 
-      - name: Deploy a GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar Sass (si existen archivos .scss)
+        run: |
+          if find src -name "*.scss" | grep -q .; then
+            npx --yes sass src:src
+          else
+            echo "No hay archivos .scss que compilar."
+          fi
+
+      - name: Apuntar el frontend a la API de produccion (CloudFront /api)
+        run: |
+          cat > src/js/config.js << EOL
+          export const API_BASE_URL = 'https://${{ vars.CLOUDFRONT_DOMAIN_NAME }}/api';
+          EOL
+
+      - name: Configurar credenciales AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_GHA_FRONTEND_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Sincronizar con S3 (bucket = output s3_frontend_bucket de Terraform)
+        run: aws s3 sync src/ "s3://${{ vars.S3_FRONTEND_BUCKET }}" --delete
+
+      - name: Invalidar cache de CloudFront (distribution = output cloudfront_distribution_id)
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*"

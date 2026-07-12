@@ -1,3 +1,4 @@
+
 # =============================================================================
 # observability.tf — FASE 6: Observabilidad y Seguridad
 # CloudWatch + Secrets Manager + CloudTrail
@@ -128,6 +129,21 @@ resource "aws_s3_bucket_policy" "cloudtrail_logs" {
         Principal = { Service = "cloudtrail.amazonaws.com" }
         Action    = "s3:PutObject"
         Resource  = "${aws_s3_bucket.cloudtrail_logs.arn}/AWSLogs/*"
+        Condition = { StringEquals = { "s3:x-amz-acl" = "bucket-owner-full-control" } }
+      },
+      {
+        Sid       = "AWSConfigAclCheck"
+        Effect    = "Allow"
+        Principal = { Service = "config.amazonaws.com" }
+        Action    = "s3:GetBucketAcl"
+        Resource  = aws_s3_bucket.cloudtrail_logs.arn
+      },
+      {
+        Sid       = "AWSConfigWrite"
+        Effect    = "Allow"
+        Principal = { Service = "config.amazonaws.com" }
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.cloudtrail_logs.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/Config/*"
         Condition = { StringEquals = { "s3:x-amz-acl" = "bucket-owner-full-control" } }
       }
     ]
@@ -321,3 +337,4 @@ resource "aws_secretsmanager_secret" "n8n" {
   kms_key_id  = aws_kms_key.secrets.arn
   tags        = { Name = "${var.project_name}-secret-n8n" }
 }
+

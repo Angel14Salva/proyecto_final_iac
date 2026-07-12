@@ -1,5 +1,6 @@
+
 # =============================================================================
-# apigateway.tf � API Gateway
+# apigateway.tf — API Gateway
 # Amazon API Gateway como punto de entrada para el backend SEGAT
 # =============================================================================
 
@@ -46,7 +47,13 @@ resource "aws_api_gateway_integration" "proxy" {
   http_method             = aws_api_gateway_method.proxy.http_method
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${aws_lb.internal.dns_name}/{proxy}"
+  # El ALB interno es privado (subredes privadas, internal=true) y no es
+  # alcanzable directamente desde API Gateway. Se llega a el via VPC Link
+  # (vpc-link.tf) -> NLB -> ALB interno. El uri debe apuntar al DNS del NLB,
+  # no al del ALB.
+  uri             = "https://${aws_lb.internal_nlb.dns_name}/{proxy}"
+  connection_type = "VPC_LINK"
+  connection_id   = aws_api_gateway_vpc_link.internal.id
 }
 
 resource "aws_api_gateway_deployment" "segat" {
@@ -132,3 +139,4 @@ resource "aws_wafv2_web_acl_association" "api_gateway" {
   resource_arn = aws_api_gateway_stage.prod.arn
   web_acl_arn  = aws_wafv2_web_acl.main.arn
 }
+
