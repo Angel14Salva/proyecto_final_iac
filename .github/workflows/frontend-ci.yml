@@ -1,0 +1,73 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+
+defaults:
+  run:
+    working-directory: apps/frontend
+
+jobs:
+  build-validate:
+    name: Instalar dependencias y validar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Validar HTML (HTMLHint)
+        run: npx --yes htmlhint "src/**/*.html"
+        continue-on-error: true # no hay reglas propias configuradas todavía; no bloquea el pipeline
+
+      - name: Compilar Sass (si existen archivos .scss)
+        run: |
+          if find src -name "*.scss" | grep -q .; then
+            npx --yes sass src:src
+          else
+            echo "No hay archivos .scss que compilar, se usan los .css directamente."
+          fi
+
+  deploy-pages:
+    name: Deploy a GitHub Pages
+    needs: build-validate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir artefacto (carpeta src)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/frontend/src
+
+      - name: Deploy a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
