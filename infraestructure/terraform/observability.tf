@@ -90,6 +90,9 @@ resource "aws_s3_bucket_notification" "cloudtrail_logs" {
 # deshabilitadas ("Bucket owner enforced") desde abril 2023. Sin esto,
 # CloudTrail no podria escribir el primer log aunque la policy sea correcta.
 resource "aws_s3_bucket_ownership_controls" "cloudtrail_logs" {
+  # checkov:skip=CKV2_AWS_65: Igual que alb_logs (ecs.tf) -- CloudTrail exige
+  # el ACL "bucket-owner-full-control" para escribir. Deshabilitar ACLs
+  # rompe la entrega de logs.
   bucket = aws_s3_bucket.cloudtrail_logs.id
   rule {
     object_ownership = "BucketOwnerPreferred"

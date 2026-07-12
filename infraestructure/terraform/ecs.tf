@@ -152,6 +152,9 @@ resource "aws_s3_bucket_notification" "alb_logs" {
 # deshabilitadas esa condicion nunca se cumple y AWS rechaza el acceso, sin
 # importar que la policy y el cifrado esten bien. Esto reactiva las ACLs.
 resource "aws_s3_bucket_ownership_controls" "alb_logs" {
+  # checkov:skip=CKV2_AWS_65: Las ACLs deben quedar habilitadas a proposito
+  # -- el servicio de ELB exige escribir con "bucket-owner-full-control"
+  # (ver comentario arriba). Deshabilitarlas rompe la entrega de logs.
   bucket = aws_s3_bucket.alb_logs.id
   rule {
     object_ownership = "BucketOwnerPreferred"
@@ -164,6 +167,9 @@ resource "aws_s3_bucket_versioning" "alb_logs" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
+  # checkov:skip=CKV_AWS_145: ELB access logs NO soportan SSE-KMS (ver
+  # comentario abajo) -- es una restriccion documentada de AWS, no de
+  # permisos. AES256 es la unica opcion valida para este bucket.
   bucket = aws_s3_bucket.alb_logs.id
   rule {
     apply_server_side_encryption_by_default {

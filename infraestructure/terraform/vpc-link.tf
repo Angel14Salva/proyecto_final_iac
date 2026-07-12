@@ -48,7 +48,7 @@ resource "aws_security_group_rule" "internal_alb_from_nlb" {
   protocol                 = "tcp"
   security_group_id        = aws_security_group.ecs_tasks.id
   source_security_group_id = aws_security_group.internal_nlb.id
-  description               = "HTTPS desde el NLB del VPC Link (API Gateway)"
+  description              = "HTTPS desde el NLB del VPC Link (API Gateway)"
 }
 
 resource "aws_lb" "internal_nlb" {
@@ -58,7 +58,18 @@ resource "aws_lb" "internal_nlb" {
   security_groups    = [aws_security_group.internal_nlb.id]
   subnets            = [aws_subnet.private_a.id, aws_subnet.private_b.id]
 
-  enable_deletion_protection = true
+  enable_deletion_protection      = true
+  enable_cross_zone_load_balancing = true
+
+  # Prefijo "alb-internal-nlb" para reutilizar la bucket policy de alb_logs
+  # (ecs.tf) que ya autoriza el prefijo "alb*" -- sin tocar esa policy.
+  access_logs {
+    bucket  = aws_s3_bucket.alb_logs.id
+    prefix  = "alb-internal-nlb"
+    enabled = true
+  }
+
+  depends_on = [aws_s3_bucket_policy.alb_logs, aws_s3_bucket_ownership_controls.alb_logs]
 
   tags = { Name = "${var.project_name}-nlb-internal" }
 }

@@ -147,6 +147,12 @@ variable "replication_bucket_cloudtrail" {
   default     = "segat-cloudtrail-logs-replica"
 }
 
+variable "replication_bucket_frontend" {
+  description = "Bucket destino para replicacion de assets del frontend"
+  type        = string
+  default     = "segat-frontend-replica"
+}
+
 variable "domain_name" {
   description = "Dominio principal del proyecto SEGAT"
   type        = string

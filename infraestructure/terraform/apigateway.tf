@@ -26,6 +26,9 @@ resource "aws_api_gateway_resource" "proxy" {
 }
 
 resource "aws_api_gateway_method" "proxy" {
+  # checkov:skip=CKV2_AWS_53: Es un proxy {proxy+} pass-through hacia el
+  # backend -- no hay un JSON schema fijo que validar aqui, el backend hace
+  # su propia validacion de payload.
   rest_api_id   = aws_api_gateway_rest_api.segat.id
   resource_id   = aws_api_gateway_resource.proxy.id
   http_method   = "ANY"
@@ -66,6 +69,12 @@ resource "aws_api_gateway_deployment" "segat" {
 }
 
 resource "aws_api_gateway_stage" "prod" {
+  # checkov:skip=CKV_AWS_120: El cache cluster de API Gateway cobra 24/7
+  # independiente del trafico; no se justifica el costo fijo para este
+  # proyecto academico. Se puede activar mas adelante si el trafico lo pide.
+  # checkov:skip=CKV2_AWS_51: La autenticacion ya la resuelve Cognito
+  # (COGNITO_USER_POOLS en el authorizer); exigir ademas certificado de
+  # cliente (mTLS) es redundante para este caso de uso.
   deployment_id = aws_api_gateway_deployment.segat.id
   rest_api_id   = aws_api_gateway_rest_api.segat.id
   stage_name    = var.environment
@@ -121,6 +130,8 @@ resource "aws_api_gateway_account" "main" {
 }
 
 resource "aws_api_gateway_method_settings" "proxy" {
+  # checkov:skip=CKV_AWS_225: Ver skip de CKV_AWS_120 en aws_api_gateway_stage.prod
+  # -- misma decision de no pagar cache cluster 24/7.
   rest_api_id = aws_api_gateway_rest_api.segat.id
   stage_name  = aws_api_gateway_stage.prod.stage_name
   method_path = "*/*"

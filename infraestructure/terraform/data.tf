@@ -231,6 +231,14 @@ resource "aws_kms_key" "dynamodb" {
 }
 
 data "aws_iam_policy_document" "dynamodb_kms_policy" {
+  # checkov:skip=CKV_AWS_109: Statement estandar "Enable IAM User Permissions"
+  # que AWS recomienda para toda key KMS (le da control administrativo a la
+  # cuenta root, sin lo cual la key queda inadministrable). Se usa el mismo
+  # patron en las otras 4 KMS keys del proyecto (sqs, secrets, sns_alertas).
+  # checkov:skip=CKV_AWS_111: Idem -- es el statement de administracion, no
+  # de uso operativo de la key.
+  # checkov:skip=CKV_AWS_356: Idem -- el "*" aqui es el recurso propio de la
+  # key (no hay ARN aun en el momento de crear su propia policy).
   statement {
     sid    = "Enable IAM User Permissions"
     effect = "Allow"

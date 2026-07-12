@@ -52,6 +52,29 @@ resource "aws_s3_bucket_lifecycle_configuration" "frontend" {
   }
 }
 
+resource "aws_s3_bucket_notification" "frontend" {
+  bucket      = aws_s3_bucket.frontend.id
+  eventbridge = true
+}
+
+# Mismo patron condicional que reportes/alb_logs/cloudtrail_logs (data.tf,
+# ecs.tf, observability.tf): la replicacion solo se activa si el bucket
+# destino (replication_bucket_frontend) ya existe.
+resource "aws_s3_bucket_replication_configuration" "frontend" {
+  count      = var.enable_s3_replication ? 1 : 0
+  depends_on = [aws_s3_bucket_versioning.frontend]
+  role       = aws_iam_role.s3_replication.arn
+  bucket     = aws_s3_bucket.frontend.id
+  rule {
+    id     = "replicacion-frontend"
+    status = "Enabled"
+    destination {
+      bucket        = "arn:aws:s3:::${var.replication_bucket_frontend}"
+      storage_class = "STANDARD"
+    }
+  }
+}
+
 # ---------------------------------------------------------------------------
 # Origin Access Control — permite que SOLO la distribucion CloudFront
 # principal pueda leer objetos de este bucket (reemplazo moderno de OAI)
