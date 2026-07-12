@@ -121,6 +121,10 @@ resource "aws_wafv2_web_acl_association" "external" {
 # S3 bucket para los access logs del ALB
 # Los access logs del ALB los escribe el servicio de ELB de AWS, no IAM roles
 resource "aws_s3_bucket" "alb_logs" {
+  # checkov:skip=CKV_AWS_145: ELB access logs NO soportan SSE-KMS (ver
+  # aws_s3_bucket_server_side_encryption_configuration.alb_logs mas abajo) --
+  # restriccion documentada de AWS, no de permisos. Checkov evalua este check
+  # sobre el bucket en si, no sobre el recurso de encriptacion separado.
   bucket        = "${var.project_name}-alb-logs-${var.environment}-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
   tags          = { Name = "${var.project_name}-s3-alb-logs" }
@@ -167,9 +171,6 @@ resource "aws_s3_bucket_versioning" "alb_logs" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
-  # checkov:skip=CKV_AWS_145: ELB access logs NO soportan SSE-KMS (ver
-  # comentario abajo) -- es una restriccion documentada de AWS, no de
-  # permisos. AES256 es la unica opcion valida para este bucket.
   bucket = aws_s3_bucket.alb_logs.id
   rule {
     apply_server_side_encryption_by_default {

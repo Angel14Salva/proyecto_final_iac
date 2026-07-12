@@ -37,6 +37,10 @@ resource "aws_cloudfront_response_headers_policy" "segat" {
 resource "aws_cloudfront_distribution" "main" {
   # checkov:skip=CKV2_AWS_46: Los origenes ALB son custom origins, no S3; el
   # unico origen S3 (frontend) SI usa Origin Access Control (ver origin de abajo).
+  # checkov:skip=CKV2_AWS_47: AWSManagedRulesKnownBadInputsRuleSet SI esta
+  # presente en el WAF asociado (aws_wafv2_web_acl.cloudfront, waf.tf), activa
+  # y con web_acl_id apuntando a ese ACL mas abajo. Mismo falso positivo que
+  # CKV2_AWS_76 (ver waf.tf).
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "CDN para el proyecto SEGAT"

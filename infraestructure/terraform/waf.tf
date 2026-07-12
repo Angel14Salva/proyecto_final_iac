@@ -4,6 +4,11 @@
 # =============================================================================
 
 resource "aws_wafv2_web_acl" "main" {
+  # checkov:skip=CKV2_AWS_76: AWSManagedRulesKnownBadInputsRuleSet SI esta
+  # presente (regla "AWSManagedRulesKnownBadInputsRuleSet" mas abajo, activa
+  # y asociada al ALB externo via aws_wafv2_web_acl_association.alb). Falso
+  # positivo conocido de Checkov cuando coexisten varios managed rule groups
+  # en el mismo ACL.
   name        = "${var.project_name}-waf"
   scope       = "REGIONAL"
   description = "WAF para proteger el ALB externo de SEGAT"
