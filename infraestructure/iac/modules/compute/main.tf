@@ -79,9 +79,11 @@ resource "aws_lb" "internal" {
 }
 
 resource "aws_lb_target_group" "internal" {
+  # Mismo motivo que aws_lb_target_group.ecs: el backend sirve HTTP plano,
+  # no HTTPS, en el puerto 8080.
   name        = "${var.project_name}-tg-internal"
   port        = 8080
-  protocol    = "HTTPS"
+  protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
   health_check {
@@ -247,9 +249,15 @@ resource "aws_s3_bucket_policy" "alb_logs" {
 }
 
 resource "aws_lb_target_group" "ecs" {
+  # El backend Spring Boot sirve HTTP plano en 8080 (no tiene server.ssl
+  # configurado) -- el cifrado termina en el ALB, y ALB->target dentro de
+  # la VPC privada viaja como HTTP. Un target group HTTPS aqui hace que el
+  # ALB intente un handshake TLS contra un puerto sin TLS, y el health
+  # check nunca deja de dar timeout (Target.Timeout), aunque el contenedor
+  # este corriendo perfectamente.
   name        = "${var.project_name}-tg-ecs"
   port        = 8080
-  protocol    = "HTTPS"
+  protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
   health_check {
