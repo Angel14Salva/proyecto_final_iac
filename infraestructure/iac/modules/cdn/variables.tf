@@ -1,4 +1,5 @@
 
+
 variable "project_name" {
   type = string
 }
@@ -44,3 +45,4 @@ variable "replication_bucket_frontend" {
   type    = string
   default = "segat-frontend-replica"
 }
+

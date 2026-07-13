@@ -1,5 +1,6 @@
 
 
+
 variable "project_name" {
   type = string
 }
@@ -74,6 +75,7 @@ variable "replication_bucket_cloudtrail" {
   type    = string
   default = "segat-cloudtrail-logs-replica"
 }
+
 
 variable "manage_config_recorder" {
   description = "aws_config_configuration_recorder es un recurso a nivel de cuenta/region (AWS solo permite UNO por cuenta/region) -- si hay varios entornos (dev/qa/prod) en la misma cuenta/region, solo UNO debe crearlo (los demas en false) para no chocar entre si."
