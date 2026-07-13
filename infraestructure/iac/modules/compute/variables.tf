@@ -1,4 +1,5 @@
 
+
 variable "project_name" {
   type = string
 }
@@ -129,3 +130,4 @@ variable "replication_bucket_alb" {
   type    = string
   default = "segat-alb-logs-replica"
 }
+
