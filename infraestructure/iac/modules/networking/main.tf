@@ -149,17 +149,16 @@ resource "aws_security_group" "alb" {
   tags = { Name = "${var.project_name}-sg-alb" }
 }
 
+# Sin reglas inline a proposito: modules.vpc_link agrega una regla de
+# ingress a este mismo SG como recurso separado (aws_security_group_rule,
+# para el NLB). Mezclar bloques inline con aws_security_group_rule externos
+# sobre el mismo SG hace que Terraform intente borrar la regla externa en
+# cada plan (no la reconoce como propia). Por eso TODAS las reglas de este
+# SG viven como aws_security_group_rule separados, incluida esta.
 resource "aws_security_group" "ecs_tasks" {
   name        = "${var.project_name}-sg-ecs-tasks"
   description = "Trafico hacia Fargate solo desde el ALB"
   vpc_id      = aws_vpc.main.id
-  ingress {
-    description     = "Puerto 8080 solo desde el ALB"
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
-  }
   egress {
     description = "Salida a internet via NAT Gateway"
     from_port   = 443
@@ -168,6 +167,16 @@ resource "aws_security_group" "ecs_tasks" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = { Name = "${var.project_name}-sg-ecs-tasks" }
+}
+
+resource "aws_security_group_rule" "ecs_tasks_from_alb" {
+  type                      = "ingress"
+  from_port                 = 8080
+  to_port                   = 8080
+  protocol                  = "tcp"
+  security_group_id         = aws_security_group.ecs_tasks.id
+  source_security_group_id  = aws_security_group.alb.id
+  description                = "Puerto 8080 solo desde el ALB"
 }
 
 resource "aws_security_group" "rds" {
