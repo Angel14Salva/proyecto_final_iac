@@ -79,7 +79,7 @@ variable "secret_smtp_arn" {
 variable "smtp_host" {
   description = "Servidor SMTP para el envio de notificaciones por email"
   type        = string
-  default     = "email-smtp.us-east-1.amazonaws.com"
+  default     = "smtp.gmail.com"
 }
 
 variable "smtp_port" {
