@@ -1,4 +1,5 @@
 
+
 variable "project_name" {
   type = string
 }
@@ -46,6 +47,11 @@ variable "sns_alertas_arn" {
   type = string
 }
 
+variable "sns_alertas_name" {
+  description = "Nombre corto (no ARN) del topico SNS de alertas -- CloudTrail lo normaliza a nombre corto al leerlo, pasar el ARN causa un diff perpetuo."
+  type        = string
+}
+
 variable "sns_alertas_policy_id" {
   description = "ID de la policy del topico SNS de alertas (modules.messaging) -- fuerza el orden de creacion para que CloudTrail no falle con InsufficientSnsTopicPolicyException"
   type        = string
@@ -68,3 +74,4 @@ variable "replication_bucket_cloudtrail" {
   type    = string
   default = "segat-cloudtrail-logs-replica"
 }
+

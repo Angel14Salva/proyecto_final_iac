@@ -1,4 +1,5 @@
 
+
 # =============================================================================
 # modules/observability/main.tf
 # CloudWatch Alarms + CloudTrail + AWS Config
@@ -161,7 +162,7 @@ resource "aws_cloudtrail" "main" {
   include_global_service_events = true
   is_multi_region_trail         = true
   enable_log_file_validation    = true
-  sns_topic_name                = var.sns_alertas_arn
+  sns_topic_name                = var.sns_alertas_name
   cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
   cloud_watch_logs_role_arn     = aws_iam_role.cloudtrail_cloudwatch.arn
   tags                          = { Name = "${var.project_name}-cloudtrail" }
@@ -312,3 +313,4 @@ resource "aws_config_configuration_recorder_status" "main" {
   is_enabled = true
   depends_on = [aws_config_delivery_channel.main]
 }
+

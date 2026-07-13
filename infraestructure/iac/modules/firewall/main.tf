@@ -1,4 +1,5 @@
 
+
 # =============================================================================
 # modules/firewall/main.tf
 # AWS WAF v2 — proteccion del ALB externo (REGIONAL) y de CloudFront (CLOUDFRONT)
@@ -65,6 +66,11 @@ resource "aws_wafv2_web_acl" "main" {
         managed_rule_group_configs {
           aws_managed_rules_bot_control_rule_set {
             inspection_level = "COMMON"
+            # Explicito para que no quede en "computed": sin esto, AWS
+            # devuelve el valor real (true) en cada refresh pero nuestro HCL
+            # no lo declaraba, generando un diff perpetuo "0 to add, 1 to
+            # change" que nunca converge por mas veces que se aplique.
+            enable_machine_learning = true
           }
         }
       }
@@ -96,13 +102,11 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  visibility_config {
-    cloudwatch_metrics_enabled = true
-    metric_name                = "${var.project_name}WAFMetric"
-    sampled_requests_enabled   = true
-  }
-
-  tags = { Name = "${var.project_name}-waf" }
+  # Regla 4: Bloquea IPs de servicios de anonimizacion conocidos
+  # (antes vivia despues de "tags", separada de las demas reglas -- el
+  # provider de AWS devuelve las reglas ordenadas por prioridad, y tenerlas
+  # repartidas en el archivo generaba un diff de "reemplazar" perpetuo en
+  # cada plan aunque el contenido fuera identico)
   rule {
     name     = "AWSManagedRulesAnonymousIpList"
     priority = 4
@@ -122,6 +126,7 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
+  # Regla 5: proteccion contra CVE-2021-44228 (Log4Shell) y otros known bad inputs
   rule {
     name     = "AWSManagedRulesKnownBadInputsRuleSet"
     priority = 5
@@ -140,6 +145,14 @@ resource "aws_wafv2_web_acl" "main" {
       sampled_requests_enabled   = true
     }
   }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${var.project_name}WAFMetric"
+    sampled_requests_enabled   = true
+  }
+
+  tags = { Name = "${var.project_name}-waf" }
 }
 
 # Asociar el WAF al ALB externo
@@ -237,3 +250,4 @@ resource "aws_wafv2_web_acl_logging_configuration" "cloudfront" {
   log_destination_configs = [aws_cloudwatch_log_group.waf_cloudfront.arn]
   resource_arn             = aws_wafv2_web_acl.cloudfront.arn
 }
+

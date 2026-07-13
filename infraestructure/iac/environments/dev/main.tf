@@ -1,4 +1,5 @@
 
+
 # =============================================================================
 # environments/dev/main.tf
 # Conecta los 14 modulos de infraestructure/iac/modules/ en orden de
@@ -218,6 +219,7 @@ module "observability" {
   ecs_service_name = module.compute.ecs_service_name
 
   sns_alertas_arn        = module.messaging.sns_alertas_arn
+  sns_alertas_name       = module.messaging.sns_alertas_name
   sns_alertas_policy_id  = module.messaging.sns_alertas_policy_id
   sqs_reportes_dlq_name  = module.messaging.sqs_reportes_dlq_name
 
@@ -239,4 +241,5 @@ module "oidc" {
   s3_frontend_bucket_arn      = module.cdn.s3_frontend_bucket_arn
   cloudfront_distribution_arn = module.cdn.cloudfront_distribution_arn
 }
+
 
