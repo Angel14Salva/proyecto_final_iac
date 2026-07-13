@@ -3,7 +3,8 @@
 
 Este directorio contenía el Terraform original del repo `Fronted-Segat`
 (S3 + CloudFront + WAF propios). Se reemplazó por una integración real
-dentro de `infraestructure/terraform/`:
+dentro de `infraestructure/iac/` (los archivos listados abajo, de la version
+inicial monolitica, hoy viven repartidos en `modules/cdn` y `modules/oidc`):
 
 - `s3-frontend.tf` — bucket S3 privado para los assets del frontend
 - `cloudfront.tf` — se agregó el bucket como origen (via OAC) y el comportamiento
