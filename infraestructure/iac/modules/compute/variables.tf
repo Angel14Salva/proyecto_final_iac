@@ -76,6 +76,12 @@ variable "secret_smtp_arn" {
   type = string
 }
 
+variable "hibernate_ddl_auto" {
+  description = "Modo de validacion de esquema de Hibernate. 'validate' en uso normal (nunca modifica el esquema). Cambiar a 'update' solo para la creacion inicial de tablas en una base nueva, y devolver a 'validate' de inmediato despues."
+  type        = string
+  default     = "validate"
+}
+
 variable "smtp_host" {
   description = "Servidor SMTP para el envio de notificaciones por email"
   type        = string

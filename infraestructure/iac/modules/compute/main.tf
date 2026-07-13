@@ -322,7 +322,7 @@ resource "aws_ecs_task_definition" "segat_backend" {
       { name = "PROJECT_NAME", value = var.project_name },
       { name = "SPRING_PROFILES_ACTIVE", value = "prod" },
       # Hibernate — nunca create-drop en produccion
-      { name = "SPRING_JPA_HIBERNATE_DDL_AUTO", value = "validate" },
+      { name = "SPRING_JPA_HIBERNATE_DDL_AUTO", value = var.hibernate_ddl_auto },
       # Mensajeria AWS (SQS/SNS/DynamoDB) — no son secretos, son
       # identificadores de recursos, igual que el resto de esta lista
       { name = "AWS_REGION", value = var.aws_region },
