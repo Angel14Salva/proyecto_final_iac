@@ -8,7 +8,7 @@ variable "aws_region" {
 variable "environment" {
   description = "Entorno de despliegue"
   type        = string
-  default     = "dev"
+  default     = "qa"
 }
 
 variable "project_name" {
@@ -19,37 +19,37 @@ variable "project_name" {
 
 variable "vpc_cidr" {
   type    = string
-  default = "10.0.0.0/16"
+  default = "10.1.0.0/16"
 }
 
 variable "subnet_private_a_cidr" {
   type    = string
-  default = "10.0.1.0/24"
+  default = "10.1.1.0/24"
 }
 
 variable "subnet_private_b_cidr" {
   type    = string
-  default = "10.0.2.0/24"
+  default = "10.1.2.0/24"
 }
 
 variable "subnet_private_c_cidr" {
   type    = string
-  default = "10.0.3.0/24"
+  default = "10.1.3.0/24"
 }
 
 variable "subnet_private_c2_cidr" {
   type    = string
-  default = "10.0.4.0/24"
+  default = "10.1.4.0/24"
 }
 
 variable "subnet_public_cidr" {
   type    = string
-  default = "10.0.10.0/24"
+  default = "10.1.10.0/24"
 }
 
 variable "subnet_public_b_cidr" {
   type    = string
-  default = "10.0.11.0/24"
+  default = "10.1.11.0/24"
 }
 
 variable "ecs_task_cpu" {
@@ -141,7 +141,7 @@ variable "replication_bucket_frontend" {
 variable "domain_name" {
   description = "Dominio principal del proyecto SEGAT"
   type        = string
-  default     = "dev.segat.com"
+  default     = "qa.segat.com"
 }
 
 variable "github_repo" {
@@ -163,19 +163,19 @@ variable "enable_s3_replication" {
 }
 
 variable "manage_apigw_account_settings" {
-  description = "aws_api_gateway_account es un recurso a nivel de cuenta/region -- solo UN entorno de los desplegados en la misma cuenta/region debe tenerlo en true. dev es ese entorno por defecto."
+  description = "aws_api_gateway_account es un recurso a nivel de cuenta/region -- solo UN entorno de los desplegados en la misma cuenta/region debe tenerlo en true (hoy: dev). qa lo deja en false para no chocar."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "manage_config_recorder" {
-  description = "aws_config_configuration_recorder es un recurso a nivel de cuenta/region (AWS solo permite UNO por cuenta/region) -- solo UN entorno debe tenerlo en true. dev es ese entorno por defecto."
+  description = "aws_config_configuration_recorder es un recurso a nivel de cuenta/region (AWS solo permite UNO por cuenta/region) -- solo UN entorno debe tenerlo en true (hoy: dev). qa lo deja en false para no chocar."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "manage_oidc_provider" {
-  description = "aws_iam_openid_connect_provider es unico por URL dentro de una cuenta AWS -- solo UN entorno debe tenerlo en true. dev es ese entorno por defecto."
+  description = "aws_iam_openid_connect_provider es unico por URL dentro de una cuenta AWS -- solo UN entorno debe tenerlo en true (hoy: dev). qa lo deja en false para no chocar."
   type        = bool
-  default     = true
+  default     = false
 }

@@ -4,7 +4,7 @@
 # Infraestructura como Código — Terraform (modular)
 # Universidad Privada Antenor Orrego
 # Curso: Infraestructura como Código (ISIA-107)
-# Entorno: dev
+# Entorno: prod
 # =============================================================================
 
 terraform {

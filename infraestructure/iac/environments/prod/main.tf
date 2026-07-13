@@ -1,6 +1,6 @@
 
 # =============================================================================
-# environments/dev/main.tf
+# environments/prod/main.tf
 # Llama una sola vez al wiring compartido de los 14 modulos
 # (infraestructure/iac/modules/stack). No agregar aqui logica de modulos --
 # eso vive en modules/stack para que dev/qa/prod nunca diverjan.
