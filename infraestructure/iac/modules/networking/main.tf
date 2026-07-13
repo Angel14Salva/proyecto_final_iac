@@ -141,9 +141,21 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
-    description = "Salida hacia los Fargate Tasks"
+    description = "Salida hacia los Fargate Tasks (HTTPS via NLB/VPC Link)"
     from_port   = 443
     to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # El backend Spring Boot sirve HTTP plano en 8080 (sin server.ssl), y los
+  # target groups del ALB apuntan a ese puerto en HTTP -- sin esta regla,
+  # el ALB nunca alcanza las tareas Fargate (ni para trafico real ni para
+  # el health check), y da "Target.Timeout" aunque el contenedor este
+  # sano y el target group ya sea HTTP.
+  egress {
+    description = "Salida hacia Fargate Tasks en 8080 (HTTP interno)"
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
