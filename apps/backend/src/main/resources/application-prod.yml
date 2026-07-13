@@ -49,6 +49,17 @@ cloudinary:
 mail:
     from: ${MAIL_FROM}
 
+# El actuator viene con un chequeo automatico que intenta conectarse de
+# verdad al servidor SMTP en cada /actuator/health -- si Gmail no responde
+# rapido (o el egress no lo permite), el health check completo se cuelga
+# ~130s y el ALB/Docker lo marcan como caido, aunque la app este sana.
+# El envio de correos es una funcionalidad secundaria (notificaciones),
+# no debe poder tumbar el health check del servicio entero.
+management:
+  health:
+    mail:
+      enabled: false
+
 aws:
   region: ${AWS_REGION:us-east-1}
   sqs:
