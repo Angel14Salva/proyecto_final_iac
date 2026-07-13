@@ -161,11 +161,30 @@ resource "aws_security_group" "ecs_tasks" {
   description = "Trafico hacia Fargate solo desde el ALB"
   vpc_id      = aws_vpc.main.id
   egress {
-    description = "Salida a internet via NAT Gateway"
+    description = "Salida a internet via NAT Gateway (ECR, Secrets Manager, APIs externas)"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+  # Sin estas dos reglas, las tareas Fargate no pueden alcanzar RDS ni Redis
+  # aunque el security group de destino (rds/redis) SI acepte el trafico --
+  # los security groups filtran salida y entrada por separado, y esa falta
+  # de egress produce un SocketTimeoutException silencioso (no un
+  # "connection refused"), dificil de distinguir de un problema de rutas.
+  egress {
+    description = "Salida hacia RDS PostgreSQL"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+  egress {
+    description = "Salida hacia ElastiCache Redis"
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
   }
   tags = { Name = "${var.project_name}-sg-ecs-tasks" }
 }
