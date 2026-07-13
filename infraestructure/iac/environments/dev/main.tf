@@ -31,6 +31,8 @@ module "segat" {
   ecs_min_count     = var.ecs_min_count
   ecs_max_count     = var.ecs_max_count
 
+  hibernate_ddl_auto = var.hibernate_ddl_auto
+
   db_name     = var.db_name
   db_username = var.db_username
   db_password = var.db_password

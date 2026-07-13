@@ -142,6 +142,8 @@ module "compute" {
   ecs_min_count     = var.ecs_min_count
   ecs_max_count     = var.ecs_max_count
 
+  hibernate_ddl_auto = var.hibernate_ddl_auto
+
   enable_s3_replication  = var.enable_s3_replication
   replication_bucket_alb = var.replication_bucket_alb
 }

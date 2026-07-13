@@ -52,6 +52,12 @@ variable "subnet_public_b_cidr" {
   default = "10.0.11.0/24"
 }
 
+variable "hibernate_ddl_auto" {
+  description = "Modo de validacion de esquema de Hibernate. 'validate' en uso normal. Cambiar a 'update' temporalmente solo para crear el esquema inicial en una base nueva."
+  type        = string
+  default     = "validate"
+}
+
 variable "ecs_task_cpu" {
   type    = number
   default = 512
