@@ -22,6 +22,12 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
     host     = var.db_instance_address
     port     = 5432
     dbname   = var.db_name
+    # spring.datasource.url en application-prod.yml no tiene un
+    # spring.datasource.username/password aparte -- Spring espera las
+    # credenciales embebidas directamente en la URL JDBC. Sin esta clave,
+    # ECS falla con "did not contain json key url" y las tareas nunca
+    # llegan a correr (ResourceInitializationError).
+    url = "jdbc:postgresql://${var.db_instance_address}:5432/${var.db_name}?user=${var.db_username}&password=${var.db_password}"
   })
 }
 
