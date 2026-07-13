@@ -8,11 +8,15 @@
 
 data "aws_caller_identity" "current" {}
 
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+}
+
 # ---------------------------------------------------------------------------
 # IAM Roles
 # ---------------------------------------------------------------------------
 resource "aws_iam_role" "ecs_execution_role" {
-  name        = "${var.project_name}-ecs-execution-role"
+  name        = "${local.name_prefix}-ecs-execution-role"
   description = "Permite a ECS Fargate descargar imagenes de ECR y enviar logs"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -30,7 +34,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_role_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_execution_secrets" {
-  name = "${var.project_name}-ecs-execution-secrets"
+  name = "${local.name_prefix}-ecs-execution-secrets"
   role = aws_iam_role.ecs_execution_role.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -39,7 +43,7 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
         Sid      = "SecretsManagerAccess"
         Effect   = "Allow"
         Action   = ["secretsmanager:GetSecretValue", "ssm:GetParameters"]
-        Resource = "arn:aws:secretsmanager:*:*:secret:${var.project_name}/*"
+        Resource = "arn:aws:secretsmanager:*:*:secret:${local.name_prefix}/*"
       },
       {
         # La key policy de aws_kms_key.secrets delega el control de acceso a
@@ -57,7 +61,7 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
 }
 
 resource "aws_iam_role" "ecs_task_role" {
-  name        = "${var.project_name}-ecs-task-role"
+  name        = "${local.name_prefix}-ecs-task-role"
   description = "Permisos del monolito SEGAT: SQS, S3, DynamoDB, Secrets"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -70,7 +74,7 @@ resource "aws_iam_role" "ecs_task_role" {
 }
 
 resource "aws_iam_role_policy" "ecs_task_permissions" {
-  name = "${var.project_name}-ecs-task-permissions"
+  name = "${local.name_prefix}-ecs-task-permissions"
   role = aws_iam_role.ecs_task_role.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -79,38 +83,38 @@ resource "aws_iam_role_policy" "ecs_task_permissions" {
         Sid      = "SQSAccess"
         Effect   = "Allow"
         Action   = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
-        Resource = "arn:aws:sqs:*:*:${var.project_name}-*"
+        Resource = "arn:aws:sqs:*:*:${local.name_prefix}-*"
       },
       {
         Sid      = "S3ReportesAccess"
         Effect   = "Allow"
         Action   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
-        Resource = "arn:aws:s3:::${var.project_name}-reportes-*/*"
+        Resource = "arn:aws:s3:::${local.name_prefix}-reportes-*/*"
       },
       {
         Sid      = "DynamoDBAccess"
         Effect   = "Allow"
         Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:Query", "dynamodb:Scan"]
-        Resource = "arn:aws:dynamodb:*:*:table/${var.project_name}-*"
+        Resource = "arn:aws:dynamodb:*:*:table/${local.name_prefix}-*"
       },
       {
         Sid      = "SNSPublish"
         Effect   = "Allow"
         Action   = ["sns:Publish"]
-        Resource = "arn:aws:sns:*:*:${var.project_name}-*"
+        Resource = "arn:aws:sns:*:*:${local.name_prefix}-*"
       },
       {
         Sid      = "SecretsAccess"
         Effect   = "Allow"
         Action   = ["secretsmanager:GetSecretValue"]
-        Resource = "arn:aws:secretsmanager:*:*:secret:${var.project_name}/*"
+        Resource = "arn:aws:secretsmanager:*:*:secret:${local.name_prefix}/*"
       }
     ]
   })
 }
 
 resource "aws_iam_role" "autoscaling_role" {
-  name        = "${var.project_name}-autoscaling-role"
+  name        = "${local.name_prefix}-autoscaling-role"
   description = "Permite a Auto Scaling ajustar las tareas ECS Fargate"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -128,7 +132,7 @@ resource "aws_iam_role_policy_attachment" "autoscaling_role_policy" {
 }
 
 resource "aws_iam_role" "rds_monitoring" {
-  name = "${var.project_name}-rds-monitoring-role"
+  name = "${local.name_prefix}-rds-monitoring-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -145,7 +149,7 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring" {
 }
 
 resource "aws_iam_role" "s3_replication" {
-  name = "${var.project_name}-s3-replication-role"
+  name = "${local.name_prefix}-s3-replication-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -154,11 +158,11 @@ resource "aws_iam_role" "s3_replication" {
       Action    = "sts:AssumeRole"
     }]
   })
-  tags = { Name = "${var.project_name}-s3-replication-role" }
+  tags = { Name = "${local.name_prefix}-s3-replication-role" }
 }
 
 resource "aws_iam_role_policy" "s3_replication" {
-  name = "${var.project_name}-s3-replication-policy"
+  name = "${local.name_prefix}-s3-replication-policy"
   role = aws_iam_role.s3_replication.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -222,7 +226,7 @@ resource "aws_kms_key" "secrets" {
       }
     ]
   })
-  tags = { Name = "${var.project_name}-kms-secrets" }
+  tags = { Name = "${local.name_prefix}-kms-secrets" }
 }
 
 # ---------------------------------------------------------------------------
@@ -230,11 +234,11 @@ resource "aws_kms_key" "secrets" {
 # se cargan desde modules/observability, que si tiene el endpoint de RDS)
 # ---------------------------------------------------------------------------
 resource "aws_secretsmanager_secret" "db_credentials" {
-  name                    = "${var.project_name}/rds/credentials"
+  name                    = "${local.name_prefix}/rds/credentials"
   description             = "Credenciales de RDS PostgreSQL para el monolito SEGAT"
   kms_key_id              = aws_kms_key.secrets.arn
   recovery_window_in_days = 7
-  tags                    = { Name = "${var.project_name}-secret-rds" }
+  tags                    = { Name = "${local.name_prefix}-secret-rds" }
 }
 
 resource "aws_secretsmanager_secret_rotation" "db_credentials" {
@@ -247,10 +251,10 @@ resource "aws_secretsmanager_secret_rotation" "db_credentials" {
 }
 
 resource "aws_secretsmanager_secret" "cloudinary" {
-  name        = "${var.project_name}/cloudinary"
+  name        = "${local.name_prefix}/cloudinary"
   description = "Credenciales de Cloudinary para el proyecto SEGAT"
   kms_key_id  = aws_kms_key.secrets.arn
-  tags        = { Name = "${var.project_name}-secret-cloudinary" }
+  tags        = { Name = "${local.name_prefix}-secret-cloudinary" }
 }
 
 resource "aws_secretsmanager_secret_rotation" "cloudinary" {
@@ -263,10 +267,10 @@ resource "aws_secretsmanager_secret_rotation" "cloudinary" {
 }
 
 resource "aws_secretsmanager_secret" "jwt" {
-  name        = "${var.project_name}/jwt"
+  name        = "${local.name_prefix}/jwt"
   description = "Secretos JWT para autenticacion del proyecto SEGAT"
   kms_key_id  = aws_kms_key.secrets.arn
-  tags        = { Name = "${var.project_name}-secret-jwt" }
+  tags        = { Name = "${local.name_prefix}-secret-jwt" }
 }
 
 resource "aws_secretsmanager_secret_rotation" "jwt" {
@@ -279,10 +283,10 @@ resource "aws_secretsmanager_secret_rotation" "jwt" {
 }
 
 resource "aws_secretsmanager_secret" "n8n" {
-  name        = "${var.project_name}/n8n"
+  name        = "${local.name_prefix}/n8n"
   description = "Webhooks de n8n para el proyecto SEGAT"
   kms_key_id  = aws_kms_key.secrets.arn
-  tags        = { Name = "${var.project_name}-secret-n8n" }
+  tags        = { Name = "${local.name_prefix}-secret-n8n" }
 }
 
 resource "aws_secretsmanager_secret_rotation" "n8n" {

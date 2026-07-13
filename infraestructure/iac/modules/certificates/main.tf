@@ -5,6 +5,10 @@
 # Cuando se tenga un dominio real, reemplazar por validacion DNS con Route53.
 # =============================================================================
 
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+}
+
 resource "tls_private_key" "main" {
   algorithm = "RSA"
   rsa_bits  = 2048
@@ -35,5 +39,5 @@ resource "aws_acm_certificate" "main" {
     create_before_destroy = true
   }
 
-  tags = { Name = "${var.project_name}-acm-certificate-self-signed" }
+  tags = { Name = "${local.name_prefix}-acm-certificate-self-signed" }
 }

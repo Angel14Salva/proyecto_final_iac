@@ -75,3 +75,9 @@ variable "replication_bucket_cloudtrail" {
   default = "segat-cloudtrail-logs-replica"
 }
 
+variable "manage_config_recorder" {
+  description = "aws_config_configuration_recorder es un recurso a nivel de cuenta/region (AWS solo permite UNO por cuenta/region) -- si hay varios entornos (dev/qa/prod) en la misma cuenta/region, solo UNO debe crearlo (los demas en false) para no chocar entre si."
+  type        = bool
+  default     = true
+}
+

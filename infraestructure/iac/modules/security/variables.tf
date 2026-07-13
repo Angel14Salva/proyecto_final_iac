@@ -4,6 +4,11 @@ variable "project_name" {
   type        = string
 }
 
+variable "environment" {
+  description = "Entorno de despliegue (dev, qa, prod) -- se usa para aislar nombres de recursos entre entornos"
+  type        = string
+}
+
 variable "aws_region" {
   description = "Region AWS (para construir ARNs de Lambda de rotacion y el principal de CloudWatch Logs)"
   type        = string
