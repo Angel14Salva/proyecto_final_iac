@@ -75,6 +75,26 @@ variable "secret_n8n_arn" {
   type = string
 }
 
+variable "sqs_reportes_queue_url" {
+  type = string
+}
+
+variable "sqs_notificaciones_queue_url" {
+  type = string
+}
+
+variable "sns_negocio_topic_arn" {
+  type = string
+}
+
+variable "dynamodb_gps_table_name" {
+  type = string
+}
+
+variable "dynamodb_notifications_table_name" {
+  type = string
+}
+
 variable "ecs_task_cpu" {
   type    = number
   default = 512

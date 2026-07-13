@@ -115,6 +115,12 @@ module "compute" {
   secret_jwt_arn            = module.security.secret_jwt_arn
   secret_n8n_arn            = module.security.secret_n8n_arn
 
+  sqs_reportes_queue_url            = module.messaging.sqs_reportes_url
+  sqs_notificaciones_queue_url      = module.messaging.sqs_notificaciones_url
+  sns_negocio_topic_arn             = module.messaging.sns_negocio_arn
+  dynamodb_gps_table_name           = module.database.dynamodb_gps_table_name
+  dynamodb_notifications_table_name = module.database.dynamodb_notifications_table_name
+
   ecs_task_cpu      = var.ecs_task_cpu
   ecs_task_memory   = var.ecs_task_memory
   ecs_desired_count = var.ecs_desired_count
