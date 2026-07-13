@@ -153,6 +153,16 @@ resource "aws_wafv2_web_acl" "main" {
   }
 
   tags = { Name = "${var.project_name}-waf" }
+
+  # Limitacion conocida del provider de AWS: DescribeWebACL no garantiza
+  # devolver las "rule" en el mismo orden en que se declararon, asi que
+  # Terraform ve un diff de reemplazo en cada plan aunque el contenido sea
+  # identico (confirmado: aplicamos este mismo cambio dos veces y volvio a
+  # aparecer). Se ignora "rule" a proposito -- para cambiar las reglas de
+  # verdad en el futuro, comentar esta linea, aplicar, y volver a agregarla.
+  lifecycle {
+    ignore_changes = [rule]
+  }
 }
 
 # Asociar el WAF al ALB externo
