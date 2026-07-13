@@ -86,16 +86,23 @@ public class TareaServiceImpl implements ITareaService {
             // log.error("No se pudo encolar la notificación para la tarea {}", tareaGuardada.getId(), e);
         }
 
-        // Capa de mensajeria AWS (SNS/DynamoDB) -- ninguna de estas llamadas
-        // relanza excepciones, la asignacion de la tarea ya fue exitosa.
+        // Capa de mensajeria AWS (SNS/DynamoDB) -- la asignacion de la tarea ya
+        // fue exitosa, esto no debe poder tumbarla. notificationDynamoService ya
+        // atrapa sus propias excepciones internamente, pero el Map.of() de abajo
+        // se evalua ANTES de entrar a publicarEvento() y lanza NullPointerException
+        // si algun valor es null -- por eso todo el bloque va en su propio try/catch.
         notificationDynamoService.registrarNotificacion(
                 worker.getEmail(), "TAREA_ASIGNADA", tareaGuardada.getDescription(), String.valueOf(tareaGuardada.getId())
         );
-        snsNegocioPublisher.publicarEvento("TAREA_ASIGNADA", Map.of(
-                "tareaId", tareaGuardada.getId(),
-                "reporteId", reporte.getId(),
-                "workerEmail", worker.getEmail()
-        ));
+        try {
+            snsNegocioPublisher.publicarEvento("TAREA_ASIGNADA", Map.of(
+                    "tareaId", tareaGuardada.getId(),
+                    "reporteId", reporte.getId(),
+                    "workerEmail", worker.getEmail()
+            ));
+        } catch (Exception e) {
+            // log.warn("No se pudo armar/publicar el evento SNS para la tarea {}", tareaGuardada.getId(), e);
+        }
 
         return tareaGuardada;
     }

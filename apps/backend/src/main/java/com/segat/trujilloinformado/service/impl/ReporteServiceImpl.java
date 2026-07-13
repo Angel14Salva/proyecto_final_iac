@@ -108,15 +108,22 @@ public class ReporteServiceImpl implements IReporteService {
             // log.error("No se pudo encolar la notificación para el reporte {}", reporteGuardado.getId(), e);
         }
 
-        // Capa de mensajeria AWS (SQS/SNS/DynamoDB) -- ninguna de estas
-        // llamadas relanza excepciones, la creacion del reporte ya fue exitosa.
+        // Capa de mensajeria AWS (SQS/SNS/DynamoDB) -- la creacion del reporte
+        // ya fue exitosa, esto no debe poder tumbarla. gpsService/sqsReporteProducer
+        // ya atrapan sus propias excepciones internamente, pero el Map.of() de abajo
+        // se evalua ANTES de entrar a publicarEvento() y lanza NullPointerException
+        // si algun valor es null -- por eso todo el bloque va en su propio try/catch.
         gpsService.registrarUbicacion(reporteGuardado.getId(), lat, lng, usuario.getEmail());
         sqsReporteProducer.publicarNuevoReporte(reporteGuardado);
-        snsNegocioPublisher.publicarEvento("REPORTE_CREADO", Map.of(
-                "reporteId", reporteGuardado.getId(),
-                "tipo", reporteGuardado.getType().toString(),
-                "zona", zona.getNumber()
-        ));
+        try {
+            snsNegocioPublisher.publicarEvento("REPORTE_CREADO", Map.of(
+                    "reporteId", reporteGuardado.getId(),
+                    "tipo", reporteGuardado.getType().toString(),
+                    "zona", zona.getNumber()
+            ));
+        } catch (Exception e) {
+            // log.warn("No se pudo armar/publicar el evento SNS para el reporte {}", reporteGuardado.getId(), e);
+        }
 
         return reporteGuardado;
     }

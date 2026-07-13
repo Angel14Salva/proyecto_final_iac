@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
@@ -34,11 +35,13 @@ public class NotificationRecord {
     private String createdAt;
 
     @DynamoDbPartitionKey
+    @DynamoDbAttribute("notification_id")
     public String getNotificationId() {
         return notificationId;
     }
 
     @DynamoDbSortKey
+    @DynamoDbAttribute("user_id")
     public String getUserId() {
         return userId;
     }
