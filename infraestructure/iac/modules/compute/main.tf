@@ -81,11 +81,16 @@ resource "aws_lb" "internal" {
 resource "aws_lb_target_group" "internal" {
   # Mismo motivo que aws_lb_target_group.ecs: el backend sirve HTTP plano,
   # no HTTPS, en el puerto 8080.
-  name        = "${var.project_name}-tg-internal"
+  name        = "${var.project_name}-tg-internal-http"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
   health_check {
     path                = "/actuator/health"
     interval            = 30
@@ -94,7 +99,7 @@ resource "aws_lb_target_group" "internal" {
     unhealthy_threshold = 3
     matcher             = "200"
   }
-  tags = { Name = "${var.project_name}-tg-internal" }
+  tags = { Name = "${var.project_name}-tg-internal-http" }
 }
 
 resource "aws_lb_listener" "internal_http" {
@@ -255,11 +260,21 @@ resource "aws_lb_target_group" "ecs" {
   # ALB intente un handshake TLS contra un puerto sin TLS, y el health
   # check nunca deja de dar timeout (Target.Timeout), aunque el contenedor
   # este corriendo perfectamente.
-  name        = "${var.project_name}-tg-ecs"
+  # Nombre distinto al original (...-tg-ecs) a proposito: AWS no permite
+  # crear un target group con el mismo nombre mientras el viejo (protocol
+  # HTTPS) todavia existe, ni borrar el viejo mientras sigue enganchado al
+  # listener -- un nombre nuevo deja que Terraform cree este primero,
+  # reapunte el listener, y recien ahi borre el anterior, sin choque.
+  name        = "${var.project_name}-tg-ecs-http"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
   health_check {
     # Corrección: /health no existe en el backend. Spring Actuator expone /actuator/health
     path                = "/actuator/health"
@@ -269,7 +284,7 @@ resource "aws_lb_target_group" "ecs" {
     unhealthy_threshold = 3
     matcher             = "200"
   }
-  tags = { Name = "${var.project_name}-tg-ecs" }
+  tags = { Name = "${var.project_name}-tg-ecs-http" }
 }
 
 # Listener HTTP en puerto 80 — redirige a HTTPS
