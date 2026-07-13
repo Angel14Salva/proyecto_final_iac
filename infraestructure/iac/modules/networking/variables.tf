@@ -1,11 +1,7 @@
 
+
 variable "project_name" {
   type = string
-}
-
-variable "environment" {
-  description = "Entorno de despliegue (dev, qa, prod) -- se usa para aislar nombres de recursos entre entornos"
-  type        = string
 }
 
 variable "vpc_cidr" {
@@ -45,3 +41,10 @@ variable "ecs_execution_role_arn" {
   description = "ARN del rol de ejecucion ECS (modules/security), reutilizado como rol de VPC Flow Logs"
   type        = string
 }
+
+variable "environment" {
+  description = "Entorno de despliegue (no se usa en nombres de recursos en este modulo -- se mantiene el naming legado para no romper recursos ya aplicados; se declara solo para que modules/stack pueda pasarlo uniformemente a los 14 modulos)"
+  type        = string
+  default     = "production"
+}
+

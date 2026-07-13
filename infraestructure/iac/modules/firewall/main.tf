@@ -1,5 +1,6 @@
 
 
+
 # =============================================================================
 # modules/firewall/main.tf
 # AWS WAF v2 — proteccion del ALB externo (REGIONAL) y de CloudFront (CLOUDFRONT)
@@ -18,17 +19,13 @@ terraform {
   }
 }
 
-locals {
-  name_prefix = "${var.project_name}-${var.environment}"
-}
-
 resource "aws_wafv2_web_acl" "main" {
   # checkov:skip=CKV2_AWS_76: AWSManagedRulesKnownBadInputsRuleSet SI esta
   # presente (regla "AWSManagedRulesKnownBadInputsRuleSet" mas abajo, activa
   # y asociada al ALB externo via aws_wafv2_web_acl_association.alb). Falso
   # positivo conocido de Checkov cuando coexisten varios managed rule groups
   # en el mismo ACL.
-  name        = "${local.name_prefix}-waf"
+  name        = "${var.project_name}-waf"
   scope       = "REGIONAL"
   description = "WAF para proteger el ALB externo de SEGAT"
 
@@ -51,7 +48,7 @@ resource "aws_wafv2_web_acl" "main" {
     }
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "${local.name_prefix}CommonRuleSetMetric"
+      metric_name                = "${var.project_name}CommonRuleSetMetric"
       sampled_requests_enabled   = true
     }
   }
@@ -81,7 +78,7 @@ resource "aws_wafv2_web_acl" "main" {
     }
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "${local.name_prefix}BotControlMetric"
+      metric_name                = "${var.project_name}BotControlMetric"
       sampled_requests_enabled   = true
     }
   }
@@ -101,7 +98,7 @@ resource "aws_wafv2_web_acl" "main" {
     }
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "${local.name_prefix}RateLimitMetric"
+      metric_name                = "${var.project_name}RateLimitMetric"
       sampled_requests_enabled   = true
     }
   }
@@ -152,11 +149,11 @@ resource "aws_wafv2_web_acl" "main" {
 
   visibility_config {
     cloudwatch_metrics_enabled = true
-    metric_name                = "${local.name_prefix}WAFMetric"
+    metric_name                = "${var.project_name}WAFMetric"
     sampled_requests_enabled   = true
   }
 
-  tags = { Name = "${local.name_prefix}-waf" }
+  tags = { Name = "${var.project_name}-waf" }
 
   # Limitacion conocida del provider de AWS: DescribeWebACL no garantiza
   # devolver las "rule" en el mismo orden en que se declararon, asi que
@@ -178,10 +175,10 @@ resource "aws_wafv2_web_acl_association" "alb" {
 # Logs del WAF hacia CloudWatch
 resource "aws_cloudwatch_log_group" "waf" {
   # Los log groups del WAF DEBEN tener el prefijo "aws-waf-logs-"
-  name              = "aws-waf-logs-${local.name_prefix}"
+  name              = "aws-waf-logs-${var.project_name}"
   retention_in_days = 365
   kms_key_id        = var.kms_secrets_key_arn
-  tags              = { Name = "${local.name_prefix}-waf-logs" }
+  tags              = { Name = "${var.project_name}-waf-logs" }
 }
 
 resource "aws_wafv2_web_acl_logging_configuration" "main" {
@@ -192,7 +189,7 @@ resource "aws_wafv2_web_acl_logging_configuration" "main" {
 # WAF especifico para CloudFront — debe tener scope CLOUDFRONT y estar en us-east-1
 resource "aws_wafv2_web_acl" "cloudfront" {
   provider    = aws.us_east_1
-  name        = "${local.name_prefix}-waf-cloudfront"
+  name        = "${var.project_name}-waf-cloudfront"
   scope       = "CLOUDFRONT"
   description = "WAF para proteger la distribucion CloudFront de SEGAT"
 
@@ -214,7 +211,7 @@ resource "aws_wafv2_web_acl" "cloudfront" {
     }
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "${local.name_prefix}CloudFrontCommonRuleSetMetric"
+      metric_name                = "${var.project_name}CloudFrontCommonRuleSetMetric"
       sampled_requests_enabled   = true
     }
   }
@@ -234,18 +231,18 @@ resource "aws_wafv2_web_acl" "cloudfront" {
     }
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "${local.name_prefix}CloudFrontKnownBadInputsMetric"
+      metric_name                = "${var.project_name}CloudFrontKnownBadInputsMetric"
       sampled_requests_enabled   = true
     }
   }
 
   visibility_config {
     cloudwatch_metrics_enabled = true
-    metric_name                = "${local.name_prefix}CloudFrontWAFMetric"
+    metric_name                = "${var.project_name}CloudFrontWAFMetric"
     sampled_requests_enabled   = true
   }
 
-  tags = { Name = "${local.name_prefix}-waf-cloudfront" }
+  tags = { Name = "${var.project_name}-waf-cloudfront" }
 }
 
 # CKV2_AWS_31: logging del WAF de CloudFront. El log group debe existir en
@@ -253,15 +250,16 @@ resource "aws_wafv2_web_acl" "cloudfront" {
 resource "aws_cloudwatch_log_group" "waf_cloudfront" {
   provider = aws.us_east_1
   # Los log groups del WAF DEBEN tener el prefijo "aws-waf-logs-"
-  name              = "aws-waf-logs-${local.name_prefix}-cloudfront"
+  name              = "aws-waf-logs-${var.project_name}-cloudfront"
   retention_in_days = 365
   kms_key_id        = var.kms_secrets_key_arn
-  tags              = { Name = "${local.name_prefix}-waf-cloudfront-logs" }
+  tags              = { Name = "${var.project_name}-waf-cloudfront-logs" }
 }
 
 resource "aws_wafv2_web_acl_logging_configuration" "cloudfront" {
-  provider                = aws.us_east_1
+  provider                 = aws.us_east_1
   log_destination_configs = [aws_cloudwatch_log_group.waf_cloudfront.arn]
-  resource_arn            = aws_wafv2_web_acl.cloudfront.arn
+  resource_arn             = aws_wafv2_web_acl.cloudfront.arn
 }
+
 

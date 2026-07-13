@@ -1,4 +1,5 @@
 
+
 # =============================================================================
 # modules/api_gateway/main.tf
 # Amazon API Gateway como punto de entrada para el backend SEGAT
@@ -6,16 +7,10 @@
 # NOTA: aws_api_gateway_account es un recurso a nivel de CUENTA/REGION (no
 # por API) -- si en el futuro se agregan mas ambientes (qa/prod) en la misma
 # cuenta/region, este recurso debe vivir una sola vez, no una por ambiente.
-# Por eso "manage_account_settings" (ver variables.tf) solo esta en true en
-# UN entorno (dev) -- qa/prod lo dejan en false para no chocar entre si.
 # =============================================================================
 
-locals {
-  name_prefix = "${var.project_name}-${var.environment}"
-}
-
 resource "aws_api_gateway_rest_api" "segat" {
-  name        = "${local.name_prefix}-api"
+  name        = "${var.project_name}-api"
   description = "API Gateway para el proyecto SEGAT"
 
   endpoint_configuration {
@@ -26,7 +21,7 @@ resource "aws_api_gateway_rest_api" "segat" {
     create_before_destroy = true
   }
 
-  tags = { Name = "${local.name_prefix}-api-gateway" }
+  tags = { Name = "${var.project_name}-api-gateway" }
 }
 
 resource "aws_api_gateway_resource" "proxy" {
@@ -47,7 +42,7 @@ resource "aws_api_gateway_method" "proxy" {
 }
 
 resource "aws_api_gateway_authorizer" "cognito" {
-  name            = "${local.name_prefix}-cognito-authorizer"
+  name            = "${var.project_name}-cognito-authorizer"
   rest_api_id     = aws_api_gateway_rest_api.segat.id
   type            = "COGNITO_USER_POOLS"
   provider_arns   = [var.cognito_user_pool_arn]
@@ -111,7 +106,7 @@ resource "aws_api_gateway_stage" "prod" {
 
   xray_tracing_enabled = true
 
-  tags = { Name = "${local.name_prefix}-api-stage" }
+  tags = { Name = "${var.project_name}-api-stage" }
 }
 
 # Habilitar logging_level en un stage exige que la cuenta AWS (a nivel de
@@ -119,8 +114,11 @@ resource "aws_api_gateway_stage" "prod" {
 # UpdateStage falla con "CloudWatch Logs role ARN must be set in account
 # settings to enable logging", aunque el stage/metodo este bien configurado.
 resource "aws_iam_role" "api_gateway_cloudwatch" {
+  # aws_api_gateway_account es un recurso a nivel de cuenta/region (no por
+  # API) -- si hay varios entornos (dev/qa/prod) en la misma cuenta/region,
+  # solo UNO debe crearlo (los demas en false) para no pisarse entre si.
   count = var.manage_account_settings ? 1 : 0
-  name  = "${local.name_prefix}-apigw-cloudwatch-role"
+  name  = "${var.project_name}-apigw-cloudwatch-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -137,8 +135,6 @@ resource "aws_iam_role_policy_attachment" "api_gateway_cloudwatch" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
-# Recurso a nivel de cuenta/region (no por API) -- ver nota al inicio del
-# archivo. Solo se crea en el entorno con manage_account_settings = true.
 resource "aws_api_gateway_account" "main" {
   count               = var.manage_account_settings ? 1 : 0
   cloudwatch_role_arn = aws_iam_role.api_gateway_cloudwatch[0].arn
@@ -165,3 +161,4 @@ resource "aws_wafv2_web_acl_association" "api_gateway" {
   resource_arn = aws_api_gateway_stage.prod.arn
   web_acl_arn  = var.waf_main_arn
 }
+

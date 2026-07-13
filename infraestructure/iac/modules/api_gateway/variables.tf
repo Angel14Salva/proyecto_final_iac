@@ -1,4 +1,5 @@
 
+
 variable "project_name" {
   type = string
 }
@@ -32,3 +33,4 @@ variable "manage_account_settings" {
   type        = bool
   default     = true
 }
+
