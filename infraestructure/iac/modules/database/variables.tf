@@ -1,4 +1,5 @@
 
+
 variable "project_name" {
   type = string
 }
@@ -68,3 +69,4 @@ variable "replication_bucket_reportes" {
   type    = string
   default = "segat-reportes-fotos-replica"
 }
+
