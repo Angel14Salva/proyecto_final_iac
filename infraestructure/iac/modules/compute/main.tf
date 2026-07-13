@@ -13,8 +13,15 @@
 data "aws_caller_identity" "current" {}
 
 resource "aws_ecr_repository" "segat_backend" {
+  # MUTABLE: el flujo de trabajo actual reconstruye y sube ":latest" en
+  # cada cambio (sin tags versionados por commit todavia) -- con
+  # IMMUTABLE, ECR rechaza el push sin avisar en la terminal de forma
+  # obvia, y el "force-new-deployment" termina redesplegando la imagen
+  # vieja sin que nadie se de cuenta. Mejora futura: usar tags por SHA de
+  # commit (coincide con lo que ya hace el pipeline de GitHub Actions) y
+  # volver a IMMUTABLE.
   name                 = "${var.project_name}/backend"
-  image_tag_mutability = "IMMUTABLE"
+  image_tag_mutability = "MUTABLE"
   image_scanning_configuration { scan_on_push = true }
   encryption_configuration {
     encryption_type = "KMS"
