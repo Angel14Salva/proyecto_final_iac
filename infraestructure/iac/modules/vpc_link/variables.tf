@@ -1,11 +1,7 @@
 
+
 variable "project_name" {
   type = string
-}
-
-variable "environment" {
-  description = "Entorno de despliegue (dev, qa, prod) -- se usa para aislar nombres de recursos entre entornos"
-  type        = string
 }
 
 variable "vpc_id" {
@@ -40,3 +36,10 @@ variable "alb_internal_https_listener_id" {
   description = "ID del listener HTTPS del ALB interno (modules.compute) -- fuerza el orden de creacion para que la asociacion ALB-target no falle."
   type        = string
 }
+
+variable "environment" {
+  description = "Entorno de despliegue (no se usa en nombres de recursos en este modulo -- se mantiene el naming legado para no romper recursos ya aplicados; se declara solo para que modules/stack pueda pasarlo uniformemente a los 14 modulos)"
+  type        = string
+  default     = "production"
+}
+

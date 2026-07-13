@@ -1,15 +1,12 @@
 
+
 # =============================================================================
 # modules/auth/main.tf
 # Amazon Cognito User Pool con MFA para el proyecto SEGAT
 # =============================================================================
 
-locals {
-  name_prefix = "${var.project_name}-${var.environment}"
-}
-
 resource "aws_cognito_user_pool" "segat" {
-  name = "${local.name_prefix}-user-pool"
+  name = "${var.project_name}-user-pool"
 
   mfa_configuration = "OPTIONAL"
 
@@ -69,11 +66,11 @@ resource "aws_cognito_user_pool" "segat" {
     advanced_security_mode = "ENFORCED"
   }
 
-  tags = { Name = "${local.name_prefix}-cognito-user-pool" }
+  tags = { Name = "${var.project_name}-cognito-user-pool" }
 }
 
 resource "aws_cognito_user_pool_client" "segat_backend" {
-  name         = "${local.name_prefix}-backend-client"
+  name         = "${var.project_name}-backend-client"
   user_pool_id = aws_cognito_user_pool.segat.id
 
   explicit_auth_flows = [
@@ -96,6 +93,7 @@ resource "aws_cognito_user_pool_client" "segat_backend" {
 }
 
 resource "aws_cognito_user_pool_domain" "segat" {
-  domain       = "${local.name_prefix}-auth"
+  domain       = "${var.project_name}-auth"
   user_pool_id = aws_cognito_user_pool.segat.id
 }
+

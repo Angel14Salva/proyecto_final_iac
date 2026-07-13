@@ -1,13 +1,10 @@
 
+
 # =============================================================================
 # modules/certificates/main.tf
 # Certificado auto-firmado para pruebas (sin dominio real registrado).
 # Cuando se tenga un dominio real, reemplazar por validacion DNS con Route53.
 # =============================================================================
-
-locals {
-  name_prefix = "${var.project_name}-${var.environment}"
-}
 
 resource "tls_private_key" "main" {
   algorithm = "RSA"
@@ -39,5 +36,6 @@ resource "aws_acm_certificate" "main" {
     create_before_destroy = true
   }
 
-  tags = { Name = "${local.name_prefix}-acm-certificate-self-signed" }
+  tags = { Name = "${var.project_name}-acm-certificate-self-signed" }
 }
+

@@ -1,4 +1,5 @@
 
+
 # =============================================================================
 # modules/vpc_link/main.tf
 # VPC Link para API Gateway -> NLB -> ALB interno (ver comentario original
@@ -6,12 +7,8 @@
 # puede alcanzarlo directamente).
 # =============================================================================
 
-locals {
-  name_prefix = "${var.project_name}-${var.environment}"
-}
-
 resource "aws_security_group" "internal_nlb" {
-  name        = "${local.name_prefix}-sg-internal-nlb"
+  name        = "${var.project_name}-sg-internal-nlb"
   description = "Trafico hacia el NLB que conecta API Gateway (VPC Link) con el ALB interno"
   vpc_id      = var.vpc_id
 
@@ -31,7 +28,7 @@ resource "aws_security_group" "internal_nlb" {
     cidr_blocks = [var.vpc_cidr]
   }
 
-  tags = { Name = "${local.name_prefix}-sg-internal-nlb" }
+  tags = { Name = "${var.project_name}-sg-internal-nlb" }
 }
 
 # El ALB interno hoy solo acepta 443 desde su propio security group
@@ -48,7 +45,7 @@ resource "aws_security_group_rule" "internal_alb_from_nlb" {
 }
 
 resource "aws_lb" "internal_nlb" {
-  name               = "${local.name_prefix}-nlb-internal"
+  name               = "${var.project_name}-nlb-internal"
   internal           = true
   load_balancer_type = "network"
   security_groups    = [aws_security_group.internal_nlb.id]
@@ -65,13 +62,13 @@ resource "aws_lb" "internal_nlb" {
     enabled = true
   }
 
-  tags = { Name = "${local.name_prefix}-nlb-internal" }
+  tags = { Name = "${var.project_name}-nlb-internal" }
 }
 
 # target_type = "alb": el NLB reenvia las conexiones TCP directamente al
 # ALB interno existente (que sigue terminando TLS y balanceando hacia ECS).
 resource "aws_lb_target_group" "internal_nlb" {
-  name        = "${local.name_prefix}-tg-nlb-to-alb"
+  name        = "${var.project_name}-tg-nlb-to-alb"
   port        = 443
   protocol    = "TCP"
   target_type = "alb"
@@ -87,7 +84,7 @@ resource "aws_lb_target_group" "internal_nlb" {
     matcher             = "200"
   }
 
-  tags = { Name = "${local.name_prefix}-tg-nlb-to-alb" }
+  tags = { Name = "${var.project_name}-tg-nlb-to-alb" }
 }
 
 resource "aws_lb_target_group_attachment" "internal_nlb_to_alb" {
@@ -113,7 +110,8 @@ resource "aws_lb_listener" "internal_nlb" {
 }
 
 resource "aws_api_gateway_vpc_link" "internal" {
-  name        = "${local.name_prefix}-vpc-link-internal"
+  name        = "${var.project_name}-vpc-link-internal"
   description = "Conecta API Gateway con el ALB interno via el NLB de arriba"
   target_arns = [aws_lb.internal_nlb.arn]
 }
+
