@@ -40,3 +40,14 @@ n8n:
       new-report: ${N8N_NEW_REPORT}
       new-task: ${N8N_NEW_TASK}
 
+aws:
+  region: ${AWS_REGION:us-east-1}
+  sqs:
+    reportes-queue-url: ${SQS_REPORTES_URL}
+    notificaciones-queue-url: ${SQS_NOTIFICACIONES_URL}
+  sns:
+    negocio-topic-arn: ${SNS_NEGOCIO_ARN}
+  dynamodb:
+    gps-table: ${DYNAMODB_GPS_TABLE}
+    notifications-table: ${DYNAMODB_NOTIFICATIONS_TABLE}
+

@@ -11,6 +11,8 @@ import com.segat.trujilloinformado.model.entity.Tarea;
 import com.segat.trujilloinformado.model.entity.Usuario;
 import com.segat.trujilloinformado.model.entity.enums.Status;
 import com.segat.trujilloinformado.model.entity.interno.Location;
+import com.segat.trujilloinformado.messaging.SnsNegocioPublisher;
+import com.segat.trujilloinformado.service.INotificationDynamoService;
 import com.segat.trujilloinformado.service.INotificationService;
 import com.segat.trujilloinformado.service.ITareaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TareaServiceImpl implements ITareaService {
@@ -36,6 +39,12 @@ public class TareaServiceImpl implements ITareaService {
 
     @Autowired
     private INotificationService notificationService;
+
+    @Autowired
+    private INotificationDynamoService notificationDynamoService;
+
+    @Autowired
+    private SnsNegocioPublisher snsNegocioPublisher;
 
     @Transactional
     @Override
@@ -76,6 +85,17 @@ public class TareaServiceImpl implements ITareaService {
             // No bloquear la respuesta al supervisor por un error de notificación
             // log.error("No se pudo encolar la notificación para la tarea {}", tareaGuardada.getId(), e);
         }
+
+        // Capa de mensajeria AWS (SNS/DynamoDB) -- ninguna de estas llamadas
+        // relanza excepciones, la asignacion de la tarea ya fue exitosa.
+        notificationDynamoService.registrarNotificacion(
+                worker.getEmail(), "TAREA_ASIGNADA", tareaGuardada.getDescription(), String.valueOf(tareaGuardada.getId())
+        );
+        snsNegocioPublisher.publicarEvento("TAREA_ASIGNADA", Map.of(
+                "tareaId", tareaGuardada.getId(),
+                "reporteId", reporte.getId(),
+                "workerEmail", worker.getEmail()
+        ));
 
         return tareaGuardada;
     }
