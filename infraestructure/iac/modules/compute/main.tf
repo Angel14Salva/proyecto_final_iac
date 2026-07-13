@@ -197,6 +197,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
   rule {
     id     = "expire-alb-logs"
     status = "Enabled"
+    filter {}
     expiration { days = 90 }
     abort_incomplete_multipart_upload { days_after_initiation = 7 }
   }

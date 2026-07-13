@@ -1,0 +1,1988 @@
+{
+  "version": 4,
+  "terraform_version": "1.15.7",
+  "serial": 48,
+  "lineage": "8b9e9d6a-bcbc-4d72-ada1-fb294a481ceb",
+  "outputs": {},
+  "resources": [
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_kms_alias",
+      "name": "sqs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:kms:us-east-1:662252246273:alias/segat/sqs",
+            "id": "alias/segat/sqs",
+            "name": "alias/segat/sqs",
+            "name_prefix": "",
+            "target_key_arn": "arn:aws:kms:us-east-1:662252246273:key/c4628851-bfce-46eb-a525-1b5273a410b5",
+            "target_key_id": "c4628851-bfce-46eb-a525-1b5273a410b5"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_kms_key",
+      "name": "sqs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:kms:us-east-1:662252246273:key/c4628851-bfce-46eb-a525-1b5273a410b5",
+            "bypass_policy_lockout_safety_check": false,
+            "custom_key_store_id": "",
+            "customer_master_key_spec": "SYMMETRIC_DEFAULT",
+            "deletion_window_in_days": 7,
+            "description": "KMS CMK para cifrado de colas SQS del proyecto SEGAT",
+            "enable_key_rotation": true,
+            "id": "c4628851-bfce-46eb-a525-1b5273a410b5",
+            "is_enabled": true,
+            "key_id": "c4628851-bfce-46eb-a525-1b5273a410b5",
+            "key_usage": "ENCRYPT_DECRYPT",
+            "multi_region": false,
+            "policy": "{\"Statement\":[{\"Action\":\"kms:*\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::662252246273:root\"},\"Resource\":\"*\",\"Sid\":\"Enable IAM User Permissions\"},{\"Action\":[\"kms:GenerateDataKey\",\"kms:Decrypt\"],\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"sqs.amazonaws.com\"},\"Resource\":\"*\",\"Sid\":\"Allow SQS to use this key\"}],\"Version\":\"2012-10-17\"}",
+            "rotation_period_in_days": 365,
+            "tags": {
+              "Name": "segat-kms-sqs"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-kms-sqs",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "xks_key_id": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDB9fQ=="
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_sns_topic",
+      "name": "alertas",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "application_failure_feedback_role_arn": "",
+            "application_success_feedback_role_arn": "",
+            "application_success_feedback_sample_rate": 0,
+            "archive_policy": "",
+            "arn": "arn:aws:sns:us-east-1:662252246273:segat-sns-alertas",
+            "beginning_archive_time": "",
+            "content_based_deduplication": false,
+            "delivery_policy": "",
+            "display_name": "",
+            "fifo_throughput_scope": "",
+            "fifo_topic": false,
+            "firehose_failure_feedback_role_arn": "",
+            "firehose_success_feedback_role_arn": "",
+            "firehose_success_feedback_sample_rate": 0,
+            "http_failure_feedback_role_arn": "",
+            "http_success_feedback_role_arn": "",
+            "http_success_feedback_sample_rate": 0,
+            "id": "arn:aws:sns:us-east-1:662252246273:segat-sns-alertas",
+            "kms_master_key_id": "alias/aws/sns",
+            "lambda_failure_feedback_role_arn": "",
+            "lambda_success_feedback_role_arn": "",
+            "lambda_success_feedback_sample_rate": 0,
+            "name": "segat-sns-alertas",
+            "name_prefix": "",
+            "owner": "662252246273",
+            "policy": "{\"Id\":\"__default_policy_ID\",\"Statement\":[{\"Action\":[\"SNS:GetTopicAttributes\",\"SNS:SetTopicAttributes\",\"SNS:AddPermission\",\"SNS:RemovePermission\",\"SNS:DeleteTopic\",\"SNS:Subscribe\",\"SNS:ListSubscriptionsByTopic\",\"SNS:Publish\"],\"Condition\":{\"StringEquals\":{\"AWS:SourceOwner\":\"662252246273\"}},\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"*\"},\"Resource\":\"arn:aws:sns:us-east-1:662252246273:segat-sns-alertas\",\"Sid\":\"__default_statement_ID\"}],\"Version\":\"2008-10-17\"}",
+            "signature_version": 0,
+            "sqs_failure_feedback_role_arn": "",
+            "sqs_success_feedback_role_arn": "",
+            "sqs_success_feedback_sample_rate": 0,
+            "tags": {
+              "Name": "segat-sns-alertas"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sns-alertas",
+              "Project": "SEGAT"
+            },
+            "tracing_config": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_sns_topic",
+      "name": "negocio",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "application_failure_feedback_role_arn": "",
+            "application_success_feedback_role_arn": "",
+            "application_success_feedback_sample_rate": 0,
+            "archive_policy": "",
+            "arn": "arn:aws:sns:us-east-1:662252246273:segat-sns-negocio",
+            "beginning_archive_time": "",
+            "content_based_deduplication": false,
+            "delivery_policy": "",
+            "display_name": "",
+            "fifo_throughput_scope": "",
+            "fifo_topic": false,
+            "firehose_failure_feedback_role_arn": "",
+            "firehose_success_feedback_role_arn": "",
+            "firehose_success_feedback_sample_rate": 0,
+            "http_failure_feedback_role_arn": "",
+            "http_success_feedback_role_arn": "",
+            "http_success_feedback_sample_rate": 0,
+            "id": "arn:aws:sns:us-east-1:662252246273:segat-sns-negocio",
+            "kms_master_key_id": "alias/aws/sns",
+            "lambda_failure_feedback_role_arn": "",
+            "lambda_success_feedback_role_arn": "",
+            "lambda_success_feedback_sample_rate": 0,
+            "name": "segat-sns-negocio",
+            "name_prefix": "",
+            "owner": "662252246273",
+            "policy": "{\"Id\":\"__default_policy_ID\",\"Statement\":[{\"Action\":[\"SNS:GetTopicAttributes\",\"SNS:SetTopicAttributes\",\"SNS:AddPermission\",\"SNS:RemovePermission\",\"SNS:DeleteTopic\",\"SNS:Subscribe\",\"SNS:ListSubscriptionsByTopic\",\"SNS:Publish\"],\"Condition\":{\"StringEquals\":{\"AWS:SourceOwner\":\"662252246273\"}},\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"*\"},\"Resource\":\"arn:aws:sns:us-east-1:662252246273:segat-sns-negocio\",\"Sid\":\"__default_statement_ID\"}],\"Version\":\"2008-10-17\"}",
+            "signature_version": 0,
+            "sqs_failure_feedback_role_arn": "",
+            "sqs_success_feedback_role_arn": "",
+            "sqs_success_feedback_sample_rate": 0,
+            "tags": {
+              "Name": "segat-sns-negocio"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sns-negocio",
+              "Project": "SEGAT"
+            },
+            "tracing_config": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_sns_topic_subscription",
+      "name": "alertas_email",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sns:us-east-1:662252246273:segat-sns-alertas:22b22add-ebf5-4940-a7c7-01881d9de915",
+            "confirmation_timeout_in_minutes": 1,
+            "confirmation_was_authenticated": false,
+            "delivery_policy": "",
+            "endpoint": "equipo-tecnico@segat.gob.pe",
+            "endpoint_auto_confirms": false,
+            "filter_policy": "",
+            "filter_policy_scope": "",
+            "id": "arn:aws:sns:us-east-1:662252246273:segat-sns-alertas:22b22add-ebf5-4940-a7c7-01881d9de915",
+            "owner_id": "662252246273",
+            "pending_confirmation": true,
+            "protocol": "email",
+            "raw_message_delivery": false,
+            "redrive_policy": "",
+            "replay_policy": "",
+            "subscription_role_arn": "",
+            "topic_arn": "arn:aws:sns:us-east-1:662252246273:segat-sns-alertas"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_sns_topic.alertas"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_sns_topic_subscription",
+      "name": "negocio_to_notificaciones",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sns:us-east-1:662252246273:segat-sns-negocio:81b5f7ba-4c46-4269-aae6-62264279f921",
+            "confirmation_timeout_in_minutes": 1,
+            "confirmation_was_authenticated": true,
+            "delivery_policy": "",
+            "endpoint": "arn:aws:sqs:us-east-1:662252246273:segat-cola-notificaciones",
+            "endpoint_auto_confirms": false,
+            "filter_policy": "",
+            "filter_policy_scope": "",
+            "id": "arn:aws:sns:us-east-1:662252246273:segat-sns-negocio:81b5f7ba-4c46-4269-aae6-62264279f921",
+            "owner_id": "662252246273",
+            "pending_confirmation": false,
+            "protocol": "sqs",
+            "raw_message_delivery": false,
+            "redrive_policy": "",
+            "replay_policy": "",
+            "subscription_role_arn": "",
+            "topic_arn": "arn:aws:sns:us-east-1:662252246273:segat-sns-negocio"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_sqs_queue",
+      "name": "notificaciones",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sqs:us-east-1:662252246273:segat-cola-notificaciones",
+            "content_based_deduplication": false,
+            "deduplication_scope": "",
+            "delay_seconds": 0,
+            "fifo_queue": false,
+            "fifo_throughput_limit": "",
+            "id": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-cola-notificaciones",
+            "kms_data_key_reuse_period_seconds": 300,
+            "kms_master_key_id": "arn:aws:kms:us-east-1:662252246273:key/c4628851-bfce-46eb-a525-1b5273a410b5",
+            "max_message_size": 262144,
+            "message_retention_seconds": 345600,
+            "name": "segat-cola-notificaciones",
+            "name_prefix": "",
+            "policy": "",
+            "receive_wait_time_seconds": 20,
+            "redrive_allow_policy": "",
+            "redrive_policy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:us-east-1:662252246273:segat-notificaciones-dlq\",\"maxReceiveCount\":3}",
+            "sqs_managed_sse_enabled": false,
+            "tags": {
+              "Name": "segat-sqs-notificaciones"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sqs-notificaciones",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "url": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-cola-notificaciones",
+            "visibility_timeout_seconds": 30
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwLCJ1cGRhdGUiOjE4MDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_sqs_queue",
+      "name": "notificaciones_dlq",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sqs:us-east-1:662252246273:segat-notificaciones-dlq",
+            "content_based_deduplication": false,
+            "deduplication_scope": "",
+            "delay_seconds": 0,
+            "fifo_queue": false,
+            "fifo_throughput_limit": "",
+            "id": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-notificaciones-dlq",
+            "kms_data_key_reuse_period_seconds": 300,
+            "kms_master_key_id": "arn:aws:kms:us-east-1:662252246273:key/c4628851-bfce-46eb-a525-1b5273a410b5",
+            "max_message_size": 262144,
+            "message_retention_seconds": 1209600,
+            "name": "segat-notificaciones-dlq",
+            "name_prefix": "",
+            "policy": "",
+            "receive_wait_time_seconds": 0,
+            "redrive_allow_policy": "",
+            "redrive_policy": "",
+            "sqs_managed_sse_enabled": false,
+            "tags": {
+              "Name": "segat-sqs-notificaciones-dlq"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sqs-notificaciones-dlq",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "url": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-notificaciones-dlq",
+            "visibility_timeout_seconds": 30
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwLCJ1cGRhdGUiOjE4MDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_kms_key.sqs"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_sqs_queue",
+      "name": "reportes",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sqs:us-east-1:662252246273:segat-cola-reportes",
+            "content_based_deduplication": false,
+            "deduplication_scope": "",
+            "delay_seconds": 0,
+            "fifo_queue": false,
+            "fifo_throughput_limit": "",
+            "id": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-cola-reportes",
+            "kms_data_key_reuse_period_seconds": 300,
+            "kms_master_key_id": "arn:aws:kms:us-east-1:662252246273:key/c4628851-bfce-46eb-a525-1b5273a410b5",
+            "max_message_size": 262144,
+            "message_retention_seconds": 345600,
+            "name": "segat-cola-reportes",
+            "name_prefix": "",
+            "policy": "",
+            "receive_wait_time_seconds": 20,
+            "redrive_allow_policy": "",
+            "redrive_policy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:us-east-1:662252246273:segat-reportes-dlq\",\"maxReceiveCount\":3}",
+            "sqs_managed_sse_enabled": false,
+            "tags": {
+              "Name": "segat-sqs-reportes"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sqs-reportes",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "url": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-cola-reportes",
+            "visibility_timeout_seconds": 30
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwLCJ1cGRhdGUiOjE4MDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_sqs_queue",
+      "name": "reportes_dlq",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sqs:us-east-1:662252246273:segat-reportes-dlq",
+            "content_based_deduplication": false,
+            "deduplication_scope": "",
+            "delay_seconds": 0,
+            "fifo_queue": false,
+            "fifo_throughput_limit": "",
+            "id": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-reportes-dlq",
+            "kms_data_key_reuse_period_seconds": 300,
+            "kms_master_key_id": "arn:aws:kms:us-east-1:662252246273:key/c4628851-bfce-46eb-a525-1b5273a410b5",
+            "max_message_size": 262144,
+            "message_retention_seconds": 1209600,
+            "name": "segat-reportes-dlq",
+            "name_prefix": "",
+            "policy": "",
+            "receive_wait_time_seconds": 0,
+            "redrive_allow_policy": "",
+            "redrive_policy": "",
+            "sqs_managed_sse_enabled": false,
+            "tags": {
+              "Name": "segat-sqs-reportes-dlq"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sqs-reportes-dlq",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "url": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-reportes-dlq",
+            "visibility_timeout_seconds": 30
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwLCJ1cGRhdGUiOjE4MDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_kms_key.sqs"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.messaging",
+      "mode": "managed",
+      "type": "aws_sqs_queue_policy",
+      "name": "notificaciones_policy",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "id": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-cola-notificaciones",
+            "policy": "{\"Statement\":[{\"Action\":\"sqs:SendMessage\",\"Condition\":{\"ArnEquals\":{\"aws:SourceArn\":\"arn:aws:sns:us-east-1:662252246273:segat-sns-negocio\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"sns.amazonaws.com\"},\"Resource\":\"arn:aws:sqs:us-east-1:662252246273:segat-cola-notificaciones\"}],\"Version\":\"2012-10-17\"}",
+            "queue_url": "https://sqs.us-east-1.amazonaws.com/662252246273/segat-cola-notificaciones"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "aws_kms_key.sqs",
+            "aws_sns_topic.negocio",
+            "aws_sqs_queue.notificaciones",
+            "aws_sqs_queue.notificaciones_dlq"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_cloudwatch_log_group",
+      "name": "vpc_flow_logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:logs:us-east-1:662252246273:log-group:/aws/vpc/flowlogs/segat",
+            "id": "/aws/vpc/flowlogs/segat",
+            "kms_key_id": "",
+            "log_group_class": "STANDARD",
+            "name": "/aws/vpc/flowlogs/segat",
+            "name_prefix": "",
+            "retention_in_days": 365,
+            "skip_destroy": false,
+            "tags": {
+              "Name": "segat-vpc-flow-logs"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-vpc-flow-logs",
+              "Project": "SEGAT"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_default_security_group",
+      "name": "default",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:security-group/sg-0f40665499f077fcd",
+            "description": "default VPC security group",
+            "egress": [],
+            "id": "sg-0f40665499f077fcd",
+            "ingress": [],
+            "name": "default",
+            "name_prefix": "",
+            "owner_id": "662252246273",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Name": "segat-default-sg-bloqueado"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-default-sg-bloqueado",
+              "Project": "SEGAT"
+            },
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "aws_vpc.main"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_eip",
+      "name": "nat",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "address": null,
+            "allocation_id": "eipalloc-01a7ee7a24f82afc3",
+            "arn": "arn:aws:ec2:us-east-1:662252246273:elastic-ip/eipalloc-01a7ee7a24f82afc3",
+            "associate_with_private_ip": null,
+            "association_id": "",
+            "carrier_ip": "",
+            "customer_owned_ip": "",
+            "customer_owned_ipv4_pool": "",
+            "domain": "vpc",
+            "id": "eipalloc-01a7ee7a24f82afc3",
+            "instance": "",
+            "ipam_pool_id": null,
+            "network_border_group": "us-east-1",
+            "network_interface": "",
+            "private_dns": null,
+            "private_ip": "",
+            "ptr_record": "",
+            "public_dns": "ec2-34-202-209-210.compute-1.amazonaws.com",
+            "public_ip": "34.202.209.210",
+            "public_ipv4_pool": "amazon",
+            "tags": {
+              "Name": "segat-eip-nat"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-eip-nat",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "vpc": true
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiZGVsZXRlIjoxODAwMDAwMDAwMDAsInJlYWQiOjkwMDAwMDAwMDAwMCwidXBkYXRlIjozMDAwMDAwMDAwMDB9fQ=="
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_flow_log",
+      "name": "main",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:vpc-flow-log/fl-0f2b95ee60f3cfc11",
+            "deliver_cross_account_role": "",
+            "destination_options": [],
+            "eni_id": null,
+            "iam_role_arn": "arn:aws:iam::662252246273:role/segat-ecs-execution-role",
+            "id": "fl-0f2b95ee60f3cfc11",
+            "log_destination": "arn:aws:logs:us-east-1:662252246273:log-group:/aws/vpc/flowlogs/segat",
+            "log_destination_type": "cloud-watch-logs",
+            "log_format": "${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}",
+            "log_group_name": "/aws/vpc/flowlogs/segat",
+            "max_aggregation_interval": 600,
+            "subnet_id": null,
+            "tags": {
+              "Name": "segat-flow-log"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-flow-log",
+              "Project": "SEGAT"
+            },
+            "traffic_type": "ALL",
+            "transit_gateway_attachment_id": null,
+            "transit_gateway_id": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_cloudwatch_log_group.vpc_flow_logs",
+            "aws_iam_role.ecs_execution_role",
+            "aws_vpc.main"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_internet_gateway",
+      "name": "main",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:internet-gateway/igw-0fd88bf0f7db621e3",
+            "id": "igw-0fd88bf0f7db621e3",
+            "owner_id": "662252246273",
+            "tags": {
+              "Name": "segat-igw"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-igw",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_vpc.main"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_nat_gateway",
+      "name": "main",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "allocation_id": "eipalloc-01a7ee7a24f82afc3",
+            "association_id": "eipassoc-05dca762526122393",
+            "connectivity_type": "public",
+            "id": "nat-0851f7b8e4e87c862",
+            "network_interface_id": "eni-0c67713dab2803ff7",
+            "private_ip": "10.0.10.21",
+            "public_ip": "34.202.209.210",
+            "secondary_allocation_ids": null,
+            "secondary_private_ip_address_count": 0,
+            "secondary_private_ip_addresses": [],
+            "subnet_id": "subnet-0acc85e5f12937e2b",
+            "tags": {
+              "Name": "segat-nat-gw"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-nat-gw",
+              "Project": "SEGAT"
+            },
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwMCwidXBkYXRlIjo2MDAwMDAwMDAwMDB9fQ=="
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_route_table",
+      "name": "private",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:route-table/rtb-09fb2b459507d1b8f",
+            "id": "rtb-09fb2b459507d1b8f",
+            "owner_id": "662252246273",
+            "propagating_vgws": [],
+            "route": [
+              {
+                "carrier_gateway_id": "",
+                "cidr_block": "0.0.0.0/0",
+                "core_network_arn": "",
+                "destination_prefix_list_id": "",
+                "egress_only_gateway_id": "",
+                "gateway_id": "",
+                "ipv6_cidr_block": "",
+                "local_gateway_id": "",
+                "nat_gateway_id": "nat-0851f7b8e4e87c862",
+                "network_interface_id": "",
+                "transit_gateway_id": "",
+                "vpc_endpoint_id": "",
+                "vpc_peering_connection_id": ""
+              }
+            ],
+            "tags": {
+              "Name": "segat-rt-private"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-rt-private",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_route_table",
+      "name": "public",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:route-table/rtb-0ce4be2fe6d42f3da",
+            "id": "rtb-0ce4be2fe6d42f3da",
+            "owner_id": "662252246273",
+            "propagating_vgws": [],
+            "route": [
+              {
+                "carrier_gateway_id": "",
+                "cidr_block": "0.0.0.0/0",
+                "core_network_arn": "",
+                "destination_prefix_list_id": "",
+                "egress_only_gateway_id": "",
+                "gateway_id": "igw-0fd88bf0f7db621e3",
+                "ipv6_cidr_block": "",
+                "local_gateway_id": "",
+                "nat_gateway_id": "",
+                "network_interface_id": "",
+                "transit_gateway_id": "",
+                "vpc_endpoint_id": "",
+                "vpc_peering_connection_id": ""
+              }
+            ],
+            "tags": {
+              "Name": "segat-rt-public"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-rt-public",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_internet_gateway.main",
+            "aws_vpc.main"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_route_table_association",
+      "name": "private_a",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-06ae0ac0ee66b051f",
+            "route_table_id": "rtb-09fb2b459507d1b8f",
+            "subnet_id": "subnet-0fb783e59f99f9e85",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_route_table_association",
+      "name": "private_b",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-0ab396b57c0a0f1b0",
+            "route_table_id": "rtb-09fb2b459507d1b8f",
+            "subnet_id": "subnet-06d218ba91475ea48",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_route_table_association",
+      "name": "private_c",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-0d0b296b957fe36ac",
+            "route_table_id": "rtb-09fb2b459507d1b8f",
+            "subnet_id": "subnet-0c8d47fdcd0b87a71",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_route_table_association",
+      "name": "private_c2",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-0a7c006e3af5875f0",
+            "route_table_id": "rtb-09fb2b459507d1b8f",
+            "subnet_id": "subnet-039f5d253d6362abb",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_route_table_association",
+      "name": "public_a",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-05288b74e376acc69",
+            "route_table_id": "rtb-0ce4be2fe6d42f3da",
+            "subnet_id": "subnet-0acc85e5f12937e2b",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_route_table_association",
+      "name": "public_b",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-01cbfa1dee226b6ff",
+            "route_table_id": "rtb-0ce4be2fe6d42f3da",
+            "subnet_id": "subnet-008106df4f1f1af71",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "alb",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:security-group/sg-00d0a9caf64b60bf7",
+            "description": "Trafico HTTP y HTTPS hacia el ALB",
+            "egress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "Salida hacia los Fargate Tasks",
+                "from_port": 443,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 443
+              }
+            ],
+            "id": "sg-00d0a9caf64b60bf7",
+            "ingress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "HTTPS desde internet",
+                "from_port": 443,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 443
+              }
+            ],
+            "name": "segat-sg-alb",
+            "name_prefix": "",
+            "owner_id": "662252246273",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Name": "segat-sg-alb"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sg-alb",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "aws_vpc.main"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "ecs_tasks",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:security-group/sg-03cf69d006f5c552f",
+            "description": "Trafico hacia Fargate solo desde el ALB",
+            "egress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "Salida a internet via NAT Gateway",
+                "from_port": 443,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 443
+              }
+            ],
+            "id": "sg-03cf69d006f5c552f",
+            "ingress": [
+              {
+                "cidr_blocks": [],
+                "description": "Puerto 8080 solo desde el ALB",
+                "from_port": 8080,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [
+                  "sg-00d0a9caf64b60bf7"
+                ],
+                "self": false,
+                "to_port": 8080
+              }
+            ],
+            "name": "segat-sg-ecs-tasks",
+            "name_prefix": "",
+            "owner_id": "662252246273",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Name": "segat-sg-ecs-tasks"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sg-ecs-tasks",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "aws_security_group.alb",
+            "aws_vpc.main"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "rds",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:security-group/sg-0fe72520fcd48a2dc",
+            "description": "PostgreSQL accesible solo desde los contenedores Fargate",
+            "egress": [],
+            "id": "sg-0fe72520fcd48a2dc",
+            "ingress": [
+              {
+                "cidr_blocks": [],
+                "description": "PostgreSQL solo desde ECS",
+                "from_port": 5432,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [
+                  "sg-03cf69d006f5c552f"
+                ],
+                "self": false,
+                "to_port": 5432
+              }
+            ],
+            "name": "segat-sg-rds",
+            "name_prefix": "",
+            "owner_id": "662252246273",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Name": "segat-sg-rds"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sg-rds",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "aws_security_group.alb",
+            "aws_security_group.ecs_tasks",
+            "aws_vpc.main"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "redis",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:security-group/sg-0e8968573b25c4bfb",
+            "description": "Redis accesible solo desde los contenedores Fargate",
+            "egress": [],
+            "id": "sg-0e8968573b25c4bfb",
+            "ingress": [
+              {
+                "cidr_blocks": [],
+                "description": "Redis solo desde ECS",
+                "from_port": 6379,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [
+                  "sg-03cf69d006f5c552f"
+                ],
+                "self": false,
+                "to_port": 6379
+              }
+            ],
+            "name": "segat-sg-redis",
+            "name_prefix": "",
+            "owner_id": "662252246273",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Name": "segat-sg-redis"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-sg-redis",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "aws_security_group.alb",
+            "aws_security_group.ecs_tasks",
+            "aws_vpc.main"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "private_a",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:subnet/subnet-0fb783e59f99f9e85",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "us-east-1a",
+            "availability_zone_id": "use1-az1",
+            "cidr_block": "10.0.1.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-0fb783e59f99f9e85",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "662252246273",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "tags": {
+              "AZ": "AZ-A",
+              "Name": "segat-subnet-private-a",
+              "Tier": "Private-Compute"
+            },
+            "tags_all": {
+              "AZ": "AZ-A",
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-subnet-private-a",
+              "Project": "SEGAT",
+              "Tier": "Private-Compute"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "aws_vpc.main",
+            "data.aws_availability_zones.available"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "private_b",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:subnet/subnet-06d218ba91475ea48",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "us-east-1b",
+            "availability_zone_id": "use1-az2",
+            "cidr_block": "10.0.2.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-06d218ba91475ea48",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "662252246273",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "tags": {
+              "AZ": "AZ-B",
+              "Name": "segat-subnet-private-b",
+              "Tier": "Private-Compute"
+            },
+            "tags_all": {
+              "AZ": "AZ-B",
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-subnet-private-b",
+              "Project": "SEGAT",
+              "Tier": "Private-Compute"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "aws_vpc.main",
+            "data.aws_availability_zones.available"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "private_c",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:subnet/subnet-0c8d47fdcd0b87a71",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "us-east-1a",
+            "availability_zone_id": "use1-az1",
+            "cidr_block": "10.0.3.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-0c8d47fdcd0b87a71",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "662252246273",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "tags": {
+              "AZ": "AZ-A",
+              "Name": "segat-subnet-private-c",
+              "Tier": "Private-Data"
+            },
+            "tags_all": {
+              "AZ": "AZ-A",
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-subnet-private-c",
+              "Project": "SEGAT",
+              "Tier": "Private-Data"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "aws_vpc.main",
+            "data.aws_availability_zones.available"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "private_c2",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:subnet/subnet-039f5d253d6362abb",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "us-east-1b",
+            "availability_zone_id": "use1-az2",
+            "cidr_block": "10.0.4.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-039f5d253d6362abb",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "662252246273",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "tags": {
+              "AZ": "AZ-B",
+              "Name": "segat-subnet-private-c2",
+              "Tier": "Private-Data"
+            },
+            "tags_all": {
+              "AZ": "AZ-B",
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-subnet-private-c2",
+              "Project": "SEGAT",
+              "Tier": "Private-Data"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "aws_vpc.main",
+            "data.aws_availability_zones.available"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "public_a",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:subnet/subnet-0acc85e5f12937e2b",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "us-east-1a",
+            "availability_zone_id": "use1-az1",
+            "cidr_block": "10.0.10.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-0acc85e5f12937e2b",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "662252246273",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "tags": {
+              "Name": "segat-subnet-public-a",
+              "Tier": "Public"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-subnet-public-a",
+              "Project": "SEGAT",
+              "Tier": "Public"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "aws_vpc.main",
+            "data.aws_availability_zones.available"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.networking",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "public_b",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:662252246273:subnet/subnet-008106df4f1f1af71",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "us-east-1b",
+            "availability_zone_id": "use1-az2",
+            "cidr_block": "10.0.11.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-008106df4f1f1af71",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "662252246273",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "tags": {
+              "Name": "segat-subnet-public-b",
+              "Tier": "Public"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-subnet-public-b",
+              "Project": "SEGAT",
+              "Tier": "Public"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-063e4fc1b0a245bf4"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "aws_vpc.main",
+            "data.aws_availability_zones.available"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "autoscaling_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::662252246273:role/segat-autoscaling-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"application-autoscaling.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-25T12:46:34Z",
+            "description": "Permite a Auto Scaling ajustar las tareas ECS Fargate",
+            "force_detach_policies": false,
+            "id": "segat-autoscaling-role",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "segat-autoscaling-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": null,
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Project": "SEGAT"
+            },
+            "unique_id": "AROAZUMKPKUAYQH67J77H"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "ecs_execution_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::662252246273:role/segat-ecs-execution-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ecs-tasks.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-25T12:46:32Z",
+            "description": "Permite a ECS Fargate descargar imagenes de ECR y enviar logs",
+            "force_detach_policies": false,
+            "id": "segat-ecs-execution-role",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "segat-ecs-execution-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": null,
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Project": "SEGAT"
+            },
+            "unique_id": "AROAZUMKPKUAW3DKQYFV6"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "ecs_task_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::662252246273:role/segat-ecs-task-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ecs-tasks.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-25T12:46:32Z",
+            "description": "Permisos del monolito SEGAT: SQS, S3, DynamoDB, Secrets",
+            "force_detach_policies": false,
+            "id": "segat-ecs-task-role",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "segat-ecs-task-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": null,
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Project": "SEGAT"
+            },
+            "unique_id": "AROAZUMKPKUAUHBJHSHWJ"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "rds_monitoring",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::662252246273:role/segat-rds-monitoring-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"monitoring.rds.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-25T12:46:34Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "segat-rds-monitoring-role",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "segat-rds-monitoring-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": null,
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Project": "SEGAT"
+            },
+            "unique_id": "AROAZUMKPKUA7JRQ7XABR"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "ecs_execution_secrets",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "segat-ecs-execution-role:segat-ecs-execution-secrets",
+            "name": "segat-ecs-execution-secrets",
+            "name_prefix": "",
+            "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"secretsmanager:GetSecretValue\",\"ssm:GetParameters\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:secretsmanager:*:*:secret:segat/*\"}]}",
+            "role": "segat-ecs-execution-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.ecs_execution_role"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "ecs_task_permissions",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "segat-ecs-task-role:segat-ecs-task-permissions",
+            "name": "segat-ecs-task-permissions",
+            "name_prefix": "",
+            "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"sqs:SendMessage\",\"sqs:ReceiveMessage\",\"sqs:DeleteMessage\",\"sqs:GetQueueAttributes\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:sqs:*:*:segat-*\",\"Sid\":\"SQSAccess\"},{\"Action\":[\"s3:PutObject\",\"s3:GetObject\",\"s3:DeleteObject\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:s3:::segat-reportes-*/*\",\"Sid\":\"S3ReportesAccess\"},{\"Action\":[\"dynamodb:PutItem\",\"dynamodb:GetItem\",\"dynamodb:UpdateItem\",\"dynamodb:Query\",\"dynamodb:Scan\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:dynamodb:*:*:table/segat-*\",\"Sid\":\"DynamoDBAccess\"},{\"Action\":[\"sns:Publish\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:sns:*:*:segat-*\",\"Sid\":\"SNSPublish\"},{\"Action\":[\"secretsmanager:GetSecretValue\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:secretsmanager:*:*:secret:segat/*\",\"Sid\":\"SecretsAccess\"}]}",
+            "role": "segat-ecs-task-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.ecs_task_role"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "autoscaling_role_policy",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "segat-autoscaling-role-20260625124641706600000005",
+            "policy_arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole",
+            "role": "segat-autoscaling-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.autoscaling_role"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "ecs_execution_role_policy",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "segat-ecs-execution-role-20260625124635734300000002",
+            "policy_arn": "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
+            "role": "segat-ecs-execution-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.ecs_execution_role"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "rds_monitoring",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "segat-rds-monitoring-role-20260625124641845400000006",
+            "policy_arn": "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole",
+            "role": "segat-rds-monitoring-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.rds_monitoring"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_kms_key",
+      "name": "secrets",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:kms:us-east-1:662252246273:key/10d53338-5301-4618-993a-59f825cc7db1",
+            "bypass_policy_lockout_safety_check": false,
+            "custom_key_store_id": "",
+            "customer_master_key_spec": "SYMMETRIC_DEFAULT",
+            "deletion_window_in_days": 7,
+            "description": "KMS CMK para Secrets Manager y CloudTrail del proyecto SEGAT",
+            "enable_key_rotation": true,
+            "id": "10d53338-5301-4618-993a-59f825cc7db1",
+            "is_enabled": true,
+            "key_id": "10d53338-5301-4618-993a-59f825cc7db1",
+            "key_usage": "ENCRYPT_DECRYPT",
+            "multi_region": false,
+            "policy": "{\"Statement\":[{\"Action\":\"kms:*\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::662252246273:root\"},\"Resource\":\"*\",\"Sid\":\"Enable IAM User Permissions\"},{\"Action\":[\"kms:GenerateDataKey\",\"kms:Decrypt\"],\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"secretsmanager.amazonaws.com\"},\"Resource\":\"*\",\"Sid\":\"Allow Secrets Manager\"}],\"Version\":\"2012-10-17\"}",
+            "rotation_period_in_days": 365,
+            "tags": {
+              "Name": "segat-kms-secrets"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-kms-secrets",
+              "Project": "SEGAT"
+            },
+            "timeouts": null,
+            "xks_key_id": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDB9fQ=="
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_secretsmanager_secret",
+      "name": "cloudinary",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:secretsmanager:us-east-1:662252246273:secret:segat/cloudinary-udYNrl",
+            "description": "Credenciales de Cloudinary para el proyecto SEGAT",
+            "force_overwrite_replica_secret": false,
+            "id": "arn:aws:secretsmanager:us-east-1:662252246273:secret:segat/cloudinary-udYNrl",
+            "kms_key_id": "arn:aws:kms:us-east-1:662252246273:key/10d53338-5301-4618-993a-59f825cc7db1",
+            "name": "segat/cloudinary",
+            "name_prefix": "",
+            "policy": "",
+            "recovery_window_in_days": 30,
+            "replica": [],
+            "tags": {
+              "Name": "segat-secret-cloudinary"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-secret-cloudinary",
+              "Project": "SEGAT"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_kms_key.secrets"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_secretsmanager_secret",
+      "name": "jwt",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:secretsmanager:us-east-1:662252246273:secret:segat/jwt-vf3LLT",
+            "description": "Secretos JWT para autenticacion del proyecto SEGAT",
+            "force_overwrite_replica_secret": false,
+            "id": "arn:aws:secretsmanager:us-east-1:662252246273:secret:segat/jwt-vf3LLT",
+            "kms_key_id": "arn:aws:kms:us-east-1:662252246273:key/10d53338-5301-4618-993a-59f825cc7db1",
+            "name": "segat/jwt",
+            "name_prefix": "",
+            "policy": "",
+            "recovery_window_in_days": 30,
+            "replica": [],
+            "tags": {
+              "Name": "segat-secret-jwt"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-secret-jwt",
+              "Project": "SEGAT"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_kms_key.secrets"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_secretsmanager_secret",
+      "name": "n8n",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:secretsmanager:us-east-1:662252246273:secret:segat/n8n-aJD8x6",
+            "description": "Webhooks de n8n para el proyecto SEGAT",
+            "force_overwrite_replica_secret": false,
+            "id": "arn:aws:secretsmanager:us-east-1:662252246273:secret:segat/n8n-aJD8x6",
+            "kms_key_id": "arn:aws:kms:us-east-1:662252246273:key/10d53338-5301-4618-993a-59f825cc7db1",
+            "name": "segat/n8n",
+            "name_prefix": "",
+            "policy": "",
+            "recovery_window_in_days": 30,
+            "replica": [],
+            "tags": {
+              "Name": "segat-secret-n8n"
+            },
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Name": "segat-secret-n8n",
+              "Project": "SEGAT"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_kms_key.secrets"
+          ]
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}

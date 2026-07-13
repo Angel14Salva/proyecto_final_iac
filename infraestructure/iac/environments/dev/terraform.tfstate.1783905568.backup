@@ -1,0 +1,187 @@
+{
+  "version": 4,
+  "terraform_version": "1.15.7",
+  "serial": 5,
+  "lineage": "8b9e9d6a-bcbc-4d72-ada1-fb294a481ceb",
+  "outputs": {},
+  "resources": [
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "autoscaling_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::662252246273:role/segat-autoscaling-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"application-autoscaling.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-25T12:46:34Z",
+            "description": "Permite a Auto Scaling ajustar las tareas ECS Fargate",
+            "force_detach_policies": false,
+            "id": "segat-autoscaling-role",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "segat-autoscaling-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": null,
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Project": "SEGAT"
+            },
+            "unique_id": "AROAZUMKPKUAYQH67J77H"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "ecs_execution_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::662252246273:role/segat-ecs-execution-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ecs-tasks.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-25T12:46:32Z",
+            "description": "Permite a ECS Fargate descargar imagenes de ECR y enviar logs",
+            "force_detach_policies": false,
+            "id": "segat-ecs-execution-role",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "segat-ecs-execution-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": null,
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Project": "SEGAT"
+            },
+            "unique_id": "AROAZUMKPKUAW3DKQYFV6"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "ecs_task_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::662252246273:role/segat-ecs-task-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ecs-tasks.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-25T12:46:32Z",
+            "description": "Permisos del monolito SEGAT: SQS, S3, DynamoDB, Secrets",
+            "force_detach_policies": false,
+            "id": "segat-ecs-task-role",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "segat-ecs-task-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": null,
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Project": "SEGAT"
+            },
+            "unique_id": "AROAZUMKPKUAUHBJHSHWJ"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "rds_monitoring",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::662252246273:role/segat-rds-monitoring-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"monitoring.rds.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-25T12:46:34Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "segat-rds-monitoring-role",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "segat-rds-monitoring-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": null,
+            "tags_all": {
+              "Course": "Infraestructura-como-Codigo-UPAO",
+              "Environment": "production",
+              "ManagedBy": "Terraform",
+              "Project": "SEGAT"
+            },
+            "unique_id": "AROAZUMKPKUA7JRQ7XABR"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.security",
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "ecs_execution_secrets",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "segat-ecs-execution-role:segat-ecs-execution-secrets",
+            "name": "segat-ecs-execution-secrets",
+            "name_prefix": "",
+            "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"secretsmanager:GetSecretValue\",\"ssm:GetParameters\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:secretsmanager:*:*:secret:segat/*\"}]}",
+            "role": "segat-ecs-execution-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.ecs_execution_role"
+          ]
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}

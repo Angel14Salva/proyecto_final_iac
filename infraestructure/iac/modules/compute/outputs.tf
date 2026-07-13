@@ -69,3 +69,11 @@ output "cloudwatch_log_group_ecs_arn" {
 output "cloudwatch_log_group_ecs_name" {
   value = aws_cloudwatch_log_group.ecs.name
 }
+
+# Para que modules.vpc_link pueda esperar a que el listener HTTPS del ALB
+# interno exista antes de registrar el ALB como target del NLB -- sin esto,
+# la asociacion falla con "the target must have at least one listener that
+# matches the target group port" (carrera de tiempos real, ya nos paso).
+output "alb_internal_https_listener_id" {
+  value = aws_lb_listener.internal_https.id
+}

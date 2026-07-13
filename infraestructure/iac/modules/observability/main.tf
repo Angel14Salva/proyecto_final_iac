@@ -233,6 +233,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail_logs" {
   rule {
     id     = "expire-old-logs"
     status = "Enabled"
+    filter {}
     expiration { days = 365 }
     noncurrent_version_expiration { noncurrent_days = 90 }
     abort_incomplete_multipart_upload { days_after_initiation = 7 }
@@ -299,7 +300,9 @@ resource "aws_config_configuration_recorder" "main" {
 resource "aws_config_delivery_channel" "main" {
   name           = "${var.project_name}-config-delivery"
   s3_bucket_name = aws_s3_bucket.cloudtrail_logs.id
-  s3_key_prefix  = "AWSLogs/${data.aws_caller_identity.current.account_id}/Config"
+  # NO fijar s3_key_prefix con "AWSLogs/..." -- AWS Config genera esa ruta
+  # automaticamente. Si se especifica, la duplica y falla con
+  # InvalidS3KeyPrefixException: "Ensure you do not have 'AWSLogs/' in your prefix."
 
   depends_on = [aws_config_configuration_recorder.main]
 }

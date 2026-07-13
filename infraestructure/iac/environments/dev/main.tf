@@ -149,6 +149,8 @@ module "vpc_link" {
   sg_ecs_tasks_id      = module.networking.sg_ecs_tasks_id
   alb_internal_arn     = module.compute.alb_internal_arn
   alb_logs_bucket_id   = module.compute.alb_logs_bucket_id
+
+  alb_internal_https_listener_id = module.compute.alb_internal_https_listener_id
 }
 
 module "dns" {

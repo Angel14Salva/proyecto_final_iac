@@ -30,3 +30,8 @@ variable "alb_internal_arn" {
 variable "alb_logs_bucket_id" {
   type = string
 }
+
+variable "alb_internal_https_listener_id" {
+  description = "ID del listener HTTPS del ALB interno (modules.compute) -- fuerza el orden de creacion para que la asociacion ALB-target no falle."
+  type        = string
+}

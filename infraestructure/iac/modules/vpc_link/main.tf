@@ -90,6 +90,11 @@ resource "aws_lb_target_group_attachment" "internal_nlb_to_alb" {
   target_group_arn = aws_lb_target_group.internal_nlb.arn
   target_id        = var.alb_internal_arn
   port             = 443
+  # Sin esto, AWS a veces registra el target ANTES de que el listener HTTPS
+  # del ALB interno termine de crearse (son modulos distintos, sin relacion
+  # implicita) y falla con "the target must have at least one listener that
+  # matches the target group port". Ya nos paso en el primer apply real.
+  depends_on = [var.alb_internal_https_listener_id]
 }
 
 resource "aws_lb_listener" "internal_nlb" {
