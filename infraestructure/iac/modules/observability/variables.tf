@@ -1,0 +1,70 @@
+
+variable "project_name" {
+  type = string
+}
+
+variable "environment" {
+  type = string
+}
+
+variable "kms_secrets_key_arn" {
+  type = string
+}
+
+variable "secret_db_credentials_id" {
+  type = string
+}
+
+variable "db_instance_address" {
+  type      = string
+  sensitive = true
+}
+
+variable "db_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "db_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "db_name" {
+  type = string
+}
+
+variable "ecs_cluster_name" {
+  type = string
+}
+
+variable "ecs_service_name" {
+  type = string
+}
+
+variable "sns_alertas_arn" {
+  type = string
+}
+
+variable "sns_alertas_policy_id" {
+  description = "ID de la policy del topico SNS de alertas (modules.messaging) -- fuerza el orden de creacion para que CloudTrail no falle con InsufficientSnsTopicPolicyException"
+  type        = string
+}
+
+variable "sqs_reportes_dlq_name" {
+  type = string
+}
+
+variable "s3_replication_role_arn" {
+  type = string
+}
+
+variable "enable_s3_replication" {
+  type    = bool
+  default = false
+}
+
+variable "replication_bucket_cloudtrail" {
+  type    = string
+  default = "segat-cloudtrail-logs-replica"
+}
