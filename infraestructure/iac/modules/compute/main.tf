@@ -330,7 +330,11 @@ resource "aws_ecs_task_definition" "segat_backend" {
       { name = "SQS_NOTIFICACIONES_URL", value = var.sqs_notificaciones_queue_url },
       { name = "SNS_NEGOCIO_ARN", value = var.sns_negocio_topic_arn },
       { name = "DYNAMODB_GPS_TABLE", value = var.dynamodb_gps_table_name },
-      { name = "DYNAMODB_NOTIFICATIONS_TABLE", value = var.dynamodb_notifications_table_name }
+      { name = "DYNAMODB_NOTIFICATIONS_TABLE", value = var.dynamodb_notifications_table_name },
+      # SMTP -- host/puerto/from no son secretos, solo las credenciales lo son
+      { name = "SMTP_HOST", value = var.smtp_host },
+      { name = "SMTP_PORT", value = var.smtp_port },
+      { name = "MAIL_FROM", value = var.mail_from }
     ]
 
     # Secrets inyectados desde Secrets Manager — nunca en texto plano
@@ -342,8 +346,8 @@ resource "aws_ecs_task_definition" "segat_backend" {
       { name = "JWT_SECRET", valueFrom = "${var.secret_jwt_arn}:secret::" },
       { name = "JWT_EXPIRATION", valueFrom = "${var.secret_jwt_arn}:expiration::" },
       { name = "JWT_REFRESH_EXPIRATION", valueFrom = "${var.secret_jwt_arn}:refresh_expiration::" },
-      { name = "N8N_NEW_REPORT", valueFrom = "${var.secret_n8n_arn}:new_report::" },
-      { name = "N8N_NEW_TASK", valueFrom = "${var.secret_n8n_arn}:new_task::" }
+      { name = "SMTP_USERNAME", valueFrom = "${var.secret_smtp_arn}:username::" },
+      { name = "SMTP_PASSWORD", valueFrom = "${var.secret_smtp_arn}:password::" }
     ]
 
     logConfiguration = {

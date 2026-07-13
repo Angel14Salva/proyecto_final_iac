@@ -279,16 +279,18 @@ resource "aws_secretsmanager_secret_rotation" "jwt" {
   }
 }
 
-resource "aws_secretsmanager_secret" "n8n" {
-  name        = "${var.project_name}/n8n"
-  description = "Webhooks de n8n para el proyecto SEGAT"
+# Reemplaza al antiguo secreto "n8n" (webhooks) -- las notificaciones ya no
+# pasan por n8n, se mandan por SMTP directo desde el backend.
+resource "aws_secretsmanager_secret" "smtp" {
+  name        = "${var.project_name}/smtp"
+  description = "Credenciales SMTP para el envio de notificaciones por email"
   kms_key_id  = aws_kms_key.secrets.arn
-  tags        = { Name = "${var.project_name}-secret-n8n" }
+  tags        = { Name = "${var.project_name}-secret-smtp" }
 }
 
-resource "aws_secretsmanager_secret_rotation" "n8n" {
+resource "aws_secretsmanager_secret_rotation" "smtp" {
   count               = var.enable_secrets_rotation ? 1 : 0
-  secret_id           = aws_secretsmanager_secret.n8n.id
+  secret_id           = aws_secretsmanager_secret.smtp.id
   rotation_lambda_arn = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:SecretsManagerRotation"
   rotation_rules {
     automatically_after_days = 30

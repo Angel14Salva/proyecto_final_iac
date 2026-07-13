@@ -128,7 +128,7 @@ module "compute" {
   secret_db_credentials_arn = module.security.secret_db_credentials_arn
   secret_cloudinary_arn     = module.security.secret_cloudinary_arn
   secret_jwt_arn            = module.security.secret_jwt_arn
-  secret_n8n_arn            = module.security.secret_n8n_arn
+  secret_smtp_arn           = module.security.secret_smtp_arn
 
   sqs_reportes_queue_url            = module.messaging.sqs_reportes_url
   sqs_notificaciones_queue_url      = module.messaging.sqs_notificaciones_url

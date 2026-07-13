@@ -26,6 +26,17 @@ spring:
     multipart:
       max-file-size: 5MB      # Límite por archivo
       max-request-size: 10MB  # Límite total por petición
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 server:
   port: ${PORT:8080}
@@ -35,10 +46,8 @@ cloudinary:
     api-key: ${CLOUDINARY_API_KEY}
     api-secret: ${CLOUDINARY_API_SECRET}
 
-n8n:
-    webhook:
-      new-report: ${N8N_NEW_REPORT}
-      new-task: ${N8N_NEW_TASK}
+mail:
+    from: ${MAIL_FROM}
 
 aws:
   region: ${AWS_REGION:us-east-1}

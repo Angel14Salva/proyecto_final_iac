@@ -51,6 +51,6 @@ output "secret_jwt_arn" {
   value = aws_secretsmanager_secret.jwt.arn
 }
 
-output "secret_n8n_arn" {
-  value = aws_secretsmanager_secret.n8n.arn
+output "secret_smtp_arn" {
+  value = aws_secretsmanager_secret.smtp.arn
 }

@@ -72,8 +72,25 @@ variable "secret_jwt_arn" {
   type = string
 }
 
-variable "secret_n8n_arn" {
+variable "secret_smtp_arn" {
   type = string
+}
+
+variable "smtp_host" {
+  description = "Servidor SMTP para el envio de notificaciones por email"
+  type        = string
+  default     = "email-smtp.us-east-1.amazonaws.com"
+}
+
+variable "smtp_port" {
+  type    = string
+  default = "587"
+}
+
+variable "mail_from" {
+  description = "Direccion 'from' con la que el backend envia las notificaciones"
+  type        = string
+  default     = "notificaciones@segat.com"
 }
 
 variable "sqs_reportes_queue_url" {
