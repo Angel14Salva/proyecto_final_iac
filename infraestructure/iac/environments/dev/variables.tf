@@ -117,7 +117,7 @@ variable "sqs_dlq_max_receive" {
 
 variable "alert_email" {
   type    = string
-  default = "equipo-tecnico@segat.gob.pe"
+  default = "salvadorluis290@gmail.com"
 }
 
 variable "replication_bucket_reportes" {
