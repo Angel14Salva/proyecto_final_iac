@@ -13,15 +13,11 @@
 data "aws_caller_identity" "current" {}
 
 resource "aws_ecr_repository" "segat_backend" {
-  # MUTABLE: el flujo de trabajo actual reconstruye y sube ":latest" en
-  # cada cambio (sin tags versionados por commit todavia) -- con
-  # IMMUTABLE, ECR rechaza el push sin avisar en la terminal de forma
-  # obvia, y el "force-new-deployment" termina redesplegando la imagen
-  # vieja sin que nadie se de cuenta. Mejora futura: usar tags por SHA de
-  # commit (coincide con lo que ya hace el pipeline de GitHub Actions) y
-  # volver a IMMUTABLE.
+  # IMMUTABLE: el pipeline ya no reusa ":latest" -- cada build se tagea con
+  # el SHA del commit (unico por push) y registra su propia revision del
+  # task definition, asi que no hay ninguna tag que necesite sobreescribirse.
   name                 = "${var.project_name}/backend"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
   image_scanning_configuration { scan_on_push = true }
   encryption_configuration {
     encryption_type = "KMS"
@@ -341,7 +337,7 @@ resource "aws_ecs_task_definition" "segat_backend" {
 
   container_definitions = jsonencode([{
     name         = "${var.project_name}-backend"
-    image        = "${aws_ecr_repository.segat_backend.repository_url}:latest"
+    image        = "${aws_ecr_repository.segat_backend.repository_url}:${var.backend_image_tag}"
     essential    = true
     portMappings = [{ containerPort = 8080, protocol = "tcp" }]
 
@@ -432,6 +428,15 @@ resource "aws_ecs_service" "segat_backend" {
     aws_lb_listener.http_redirect,
     aws_lb_listener.https,
   ]
+
+  # El pipeline de CI registra sus propias revisiones del task definition
+  # (misma family, tag de imagen por SHA de commit) y actualiza el servicio
+  # el mismo directamente -- sin esto, cualquier "terraform apply" por un
+  # cambio no relacionado forzaria el servicio de vuelta a la revision de
+  # bootstrap (var.backend_image_tag), redesplegando una imagen vieja.
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
 
   tags = { Name = "${var.project_name}-ecs-service" }
 }

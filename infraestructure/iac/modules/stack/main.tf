@@ -182,11 +182,9 @@ module "vpc_link" {
 module "dns" {
   source = "../dns"
 
-  project_name          = var.project_name
-  environment           = var.environment
-  domain_name           = var.domain_name
-  alb_external_dns_name = module.compute.alb_external_dns_name
-  alb_external_zone_id  = module.compute.alb_external_zone_id
+  project_name = var.project_name
+  environment  = var.environment
+  domain_name  = var.domain_name
 }
 
 module "cdn" {
@@ -269,6 +267,8 @@ module "oidc" {
 
   ecr_repository_arn          = module.compute.ecr_repository_arn
   ecs_service_arn             = module.compute.ecs_service_arn
+  ecs_execution_role_arn      = module.security.ecs_execution_role_arn
+  ecs_task_role_arn           = module.security.ecs_task_role_arn
   s3_frontend_bucket_arn      = module.cdn.s3_frontend_bucket_arn
   cloudfront_distribution_arn = module.cdn.cloudfront_distribution_arn
 

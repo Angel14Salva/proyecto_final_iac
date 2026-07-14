@@ -129,6 +129,12 @@ variable "ecs_task_memory" {
   default = 1024
 }
 
+variable "backend_image_tag" {
+  description = "Tag de bootstrap para la primera revision del task definition que gestiona Terraform. Con ECR en IMMUTABLE, el pipeline de CI registra sus propias revisiones (tag por SHA de commit) y la service la ignora via lifecycle.ignore_changes -- este valor solo importa la primera vez que se crea el recurso o si se reemplaza a mano."
+  type        = string
+  default     = "69843bd6913ba6522d1a94bd79add529262ab001"
+}
+
 variable "ecs_desired_count" {
   type    = number
   default = 2

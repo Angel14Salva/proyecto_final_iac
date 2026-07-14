@@ -90,20 +90,43 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build y push de la imagen (tags = latest + SHA del commit)
+      - name: Build y push de la imagen (tag = SHA del commit)
         env:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           ECR_REPOSITORY: segat/backend
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" .
+          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
-      - name: Forzar redeploy del servicio ECS con la imagen nueva
+      # ECR es IMMUTABLE: no hay una tag ":latest" que sobreescribir, asi que
+      # cada deploy registra su propia revision del task definition (misma
+      # family, solo cambia la imagen) y apunta el servicio a ella. El
+      # aws_ecs_service de Terraform ignora este atributo (lifecycle.ignore_changes)
+      # para no revertirlo en el proximo "terraform apply".
+      - name: Registrar nueva revision del task definition
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          ECR_REPOSITORY: segat/backend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition segat-backend \
+            --query 'taskDefinition' \
+            --output json > current-task-def.json
+
+          jq --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            '.containerDefinitions[0].image = $IMAGE
+             | del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                   .compatibilities, .registeredAt, .registeredBy)' \
+            current-task-def.json > new-task-def.json
+
+          aws ecs register-task-definition --cli-input-json file://new-task-def.json --no-cli-pager
+
+      - name: Desplegar la nueva revision en el servicio ECS
         run: |
           aws ecs update-service \
             --cluster segat-cluster \
             --service segat-backend-service \
-            --force-new-deployment \
+            --task-definition segat-backend \
             --no-cli-pager

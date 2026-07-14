@@ -18,6 +18,14 @@ variable "ecs_service_arn" {
   type = string
 }
 
+variable "ecs_execution_role_arn" {
+  type = string
+}
+
+variable "ecs_task_role_arn" {
+  type = string
+}
+
 variable "s3_frontend_bucket_arn" {
   type = string
 }

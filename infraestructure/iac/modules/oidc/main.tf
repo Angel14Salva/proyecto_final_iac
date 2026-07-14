@@ -88,6 +88,31 @@ resource "aws_iam_role_policy" "github_actions_ecr_push" {
         Effect   = "Allow"
         Action   = ["ecs:UpdateService", "ecs:DescribeServices"]
         Resource = var.ecs_service_arn
+      },
+      {
+        # RegisterTaskDefinition/DescribeTaskDefinition no soportan permisos
+        # a nivel de recurso (la ARN de una revision nueva no existe todavia
+        # al momento de autorizar la llamada) -- AWS exige Resource = "*"
+        # para estas dos acciones.
+        Sid      = "EcsRegisterTaskDefinition"
+        Effect   = "Allow"
+        Action   = ["ecs:RegisterTaskDefinition", "ecs:DescribeTaskDefinition"]
+        Resource = "*"
+      },
+      {
+        # Registrar una task definition exige poder "pasar" los roles de
+        # ejecucion/tarea que va a usar ECS -- sin esto, RegisterTaskDefinition
+        # falla con AccessDenied aunque el Sid de arriba lo permita.
+        Sid    = "PassRoleForEcsTasks"
+        Effect = "Allow"
+        Action = "iam:PassRole"
+        Resource = [
+          var.ecs_execution_role_arn,
+          var.ecs_task_role_arn,
+        ]
+        Condition = {
+          StringEquals = { "iam:PassedToService" = "ecs-tasks.amazonaws.com" }
+        }
       }
     ]
   })
