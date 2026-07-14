@@ -6,6 +6,14 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+  mail:
+    host: localhost
+    port: 3025
+    username: test
+    password: test
+
+mail:
+  from: no-reply@example.com
 
 application:
   security:
