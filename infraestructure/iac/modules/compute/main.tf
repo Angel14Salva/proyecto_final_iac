@@ -299,13 +299,13 @@ resource "aws_lb_listener" "http_redirect" {
   load_balancer_arn = aws_lb.external.arn
   port              = 80
   protocol          = "HTTP"
+  # Reenvia directo (no redirige a HTTPS): CloudFront le habla al ALB por
+  # este puerto para /api/*, porque el ALB usa un certificado autofirmado que
+  # CloudFront no puede validar en un origen custom. El cliente real sigue
+  # viendo HTTPS de punta a punta via CloudFront.
   default_action {
-    type = "redirect"
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ecs.arn
   }
 }
 
@@ -390,11 +390,11 @@ resource "aws_ecs_task_definition" "segat_backend" {
     }
 
     healthCheck = {
-      command     = ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      command     = ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
       interval    = 30
       timeout     = 5
       retries     = 3
-      startPeriod = 60
+      startPeriod = 120
     }
   }])
 
@@ -422,6 +422,11 @@ resource "aws_ecs_service" "segat_backend" {
 
   deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
+
+  # El arranque de Spring Boot (JVM + Hibernate + pool de conexiones) toma ~75s;
+  # sin grace period el ALB marca la tarea unhealthy antes de que termine de levantar
+  # y ECS la mata en un loop infinito de reemplazo.
+  health_check_grace_period_seconds = 180
 
   depends_on = [
     aws_lb_listener.http_redirect,

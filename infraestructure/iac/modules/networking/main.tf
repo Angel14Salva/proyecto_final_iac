@@ -140,6 +140,17 @@ resource "aws_security_group" "alb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  # CloudFront le habla al ALB por HTTP en /api/* (el ALB usa un certificado
+  # autofirmado que CloudFront no puede validar en un origen custom). Sin
+  # esta regla el puerto 80 nunca tuvo entrada abierta y las conexiones se
+  # descartan en silencio (504 Gateway Timeout).
+  ingress {
+    description = "HTTP desde CloudFront (origin /api/*)"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   egress {
     description = "Salida hacia los Fargate Tasks (HTTPS via NLB/VPC Link)"
     from_port   = 443

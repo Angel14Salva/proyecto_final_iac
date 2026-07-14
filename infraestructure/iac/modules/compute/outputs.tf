@@ -19,6 +19,10 @@ output "ecs_service_name" {
   value = aws_ecs_service.segat_backend.name
 }
 
+output "ecs_service_arn" {
+  value = aws_ecs_service.segat_backend.id
+}
+
 output "alb_external_arn" {
   value = aws_lb.external.arn
 }
