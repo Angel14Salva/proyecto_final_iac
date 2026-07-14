@@ -32,8 +32,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "frontend" {
   bucket = aws_s3_bucket.frontend.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "aws:kms"
-      kms_master_key_id = "alias/aws/s3"
+      sse_algorithm = "AES256"
     }
   }
 }
@@ -175,10 +174,16 @@ resource "aws_cloudfront_distribution" "main" {
     domain_name = var.alb_external_dns_name
     origin_id   = "${var.project_name}-alb-origin"
 
+    # http-only: el ALB presenta un certificado autofirmado (no hay dominio
+    # real registrado para pedir uno valido via ACM) y CloudFront rechaza
+    # certificados no confiables en origenes custom sin excepcion posible.
+    # Este tramo es trafico interno de AWS (CloudFront -> ALB), no expuesto a
+    # internet; el cliente real sigue viendo HTTPS de punta a punta via
+    # CloudFront. El listener :80 del ALB reenvia directo (no redirige).
     custom_origin_config {
       http_port              = 80
       https_port             = 443
-      origin_protocol_policy = "https-only"
+      origin_protocol_policy = "http-only"
       origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
@@ -229,23 +234,29 @@ resource "aws_cloudfront_distribution" "main" {
     response_headers_policy_id = aws_cloudfront_response_headers_policy.segat.id
   }
 
-  # /api/* — proxy hacia el backend (ALB con failover), igual que antes.
+  # /api/* — proxy hacia el backend (ALB externo, origen unico).
   ordered_cache_behavior {
     path_pattern = "/api/*"
     # CloudFront no permite metodos de escritura (POST/PUT/PATCH/DELETE) en un
     # cache behavior que apunta a un origin_group (failover) -- "InvalidArgument:
     # AllowedMethods cannot include POST, PUT, PATCH, or DELETE for a cached
-    # behavior associated with an origin group". Se mantiene el failover; las
-    # escrituras deben ir directo al ALB o via API Gateway, no por esta URL.
-    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    # behavior associated with an origin group". Por eso apunta a un origen
+    # unico (el ALB externo) en vez del origin_group: se pierde el failover
+    # automatico al ALB interno para esta ruta, pero el login y cualquier
+    # escritura de la API dejan de estar bloqueados.
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = "${var.project_name}-origin-group"
+    target_origin_id       = "${var.project_name}-alb-origin"
     viewer_protocol_policy = "redirect-to-https"
     compress                = true
 
+    # User-Agent debe reenviarse: sin el, el origen (y su WAF) siempre ve
+    # "Amazon CloudFront" como User-Agent en vez del cliente real, y el WAF
+    # Bot Control bloquea esas peticiones por "User-Agent no-browser" -- eso
+    # bloqueaba a CUALQUIER cliente que pasara por esta ruta, no solo bots.
     forwarded_values {
       query_string = true
-      headers      = ["Authorization", "Host"]
+      headers      = ["Authorization", "Host", "User-Agent"]
       cookies {
         forward = "all"
       }
@@ -260,17 +271,6 @@ resource "aws_cloudfront_distribution" "main" {
   # SPA: rutas del frontend manejadas por JS del lado cliente (sin servidor
   # de rutas). Si S3 devuelve 403/404 para una ruta como /reportes, se
   # reenvia a index.html para que el router del frontend la resuelva.
-  custom_error_response {
-    error_code         = 403
-    response_code      = 200
-    response_page_path = "/index.html"
-  }
-  custom_error_response {
-    error_code         = 404
-    response_code      = 200
-    response_page_path = "/index.html"
-  }
-
   restrictions {
     geo_restriction {
       restriction_type = "whitelist"
