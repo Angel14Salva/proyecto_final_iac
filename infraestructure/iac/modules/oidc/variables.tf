@@ -14,6 +14,10 @@ variable "ecr_repository_arn" {
   type = string
 }
 
+variable "ecs_service_arn" {
+  type = string
+}
+
 variable "s3_frontend_bucket_arn" {
   type = string
 }

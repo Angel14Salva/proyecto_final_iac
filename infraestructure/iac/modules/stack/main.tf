@@ -268,6 +268,7 @@ module "oidc" {
   github_repo  = var.github_repo
 
   ecr_repository_arn          = module.compute.ecr_repository_arn
+  ecs_service_arn             = module.compute.ecs_service_arn
   s3_frontend_bucket_arn      = module.cdn.s3_frontend_bucket_arn
   cloudfront_distribution_arn = module.cdn.cloudfront_distribution_arn
 

@@ -79,6 +79,12 @@ resource "aws_iam_role_policy" "github_actions_ecr_push" {
           "ecr:BatchGetImage"
         ]
         Resource = var.ecr_repository_arn
+      },
+      {
+        Sid      = "EcsForceDeploy"
+        Effect   = "Allow"
+        Action   = ["ecs:UpdateService", "ecs:DescribeServices"]
+        Resource = var.ecs_service_arn
       }
     ]
   })
