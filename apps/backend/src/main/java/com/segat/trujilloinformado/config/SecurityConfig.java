@@ -39,7 +39,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://127.0.0.1:5500", "http://localhost:5500", "https://front-agile-m2of-git-preproduction-angels-projects-53759d77.vercel.app", "https://front-agile-m2of.vercel.app", "https://www.trujilloinformado.app"));
+        config.setAllowedOrigins(List.of("http://127.0.0.1:5500", "http://localhost:5500", "https://front-agile-m2of-git-preproduction-angels-projects-53759d77.vercel.app", "https://front-agile-m2of.vercel.app", "https://www.trujilloinformado.app", "https://d2rpnxkisho4aa.cloudfront.net"));
         config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization","Content-Type"));
         config.setAllowCredentials(true);
