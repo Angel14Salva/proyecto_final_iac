@@ -73,7 +73,7 @@ jobs:
     name: Build y push de imagen a ECR
     needs: build-test
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AWS_GHA_ROLE_ARN != '' }}
+    if: ${{ github.ref == 'refs/heads/feature' && github.event_name == 'push' && vars.AWS_GHA_ROLE_ARN != '' }}
     permissions:
       id-token: write
       contents: read
@@ -90,11 +90,20 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build y push de la imagen (tag = SHA del commit)
+      - name: Build y push de la imagen (tags = latest + SHA del commit)
         env:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           ECR_REPOSITORY: segat/backend
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" .
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+      - name: Forzar redeploy del servicio ECS con la imagen nueva
+        run: |
+          aws ecs update-service \
+            --cluster segat-cluster \
+            --service segat-backend-service \
+            --force-new-deployment \
+            --no-cli-pager

@@ -3,7 +3,7 @@ name: Frontend CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature]
     paths:
       - "apps/frontend/**"
       - ".github/workflows/frontend-ci.yml"
@@ -49,10 +49,10 @@ jobs:
   deploy-s3-cloudfront:
     name: Deploy a S3 + invalidar CloudFront
     needs: build-validate
-    # Igual que el pipeline del backend: solo corre en push a main y solo si
+    # Igual que el pipeline del backend: solo corre en push a feature y solo si
     # el rol OIDC ya fue creado (terraform apply de github_oidc.tf) y cargado
     # como variable del repo.
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AWS_GHA_FRONTEND_ROLE_ARN != '' }}
+    if: ${{ github.ref == 'refs/heads/feature' && github.event_name == 'push' && vars.AWS_GHA_FRONTEND_ROLE_ARN != '' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
