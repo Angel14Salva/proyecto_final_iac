@@ -213,13 +213,13 @@ resource "aws_security_group" "ecs_tasks" {
 }
 
 resource "aws_security_group_rule" "ecs_tasks_from_alb" {
-  type                      = "ingress"
-  from_port                 = 8080
-  to_port                   = 8080
-  protocol                  = "tcp"
-  security_group_id         = aws_security_group.ecs_tasks.id
-  source_security_group_id  = aws_security_group.alb.id
-  description                = "Puerto 8080 solo desde el ALB"
+  type                     = "ingress"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.ecs_tasks.id
+  source_security_group_id = aws_security_group.alb.id
+  description              = "Puerto 8080 solo desde el ALB"
 }
 
 resource "aws_security_group" "rds" {

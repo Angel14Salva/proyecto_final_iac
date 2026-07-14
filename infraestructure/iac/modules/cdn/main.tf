@@ -219,7 +219,7 @@ resource "aws_cloudfront_distribution" "main" {
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "${var.project_name}-frontend-origin"
     viewer_protocol_policy = "redirect-to-https"
-    compress                = true
+    compress               = true
 
     forwarded_values {
       query_string = false
@@ -248,7 +248,7 @@ resource "aws_cloudfront_distribution" "main" {
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "${var.project_name}-alb-origin"
     viewer_protocol_policy = "redirect-to-https"
-    compress                = true
+    compress               = true
 
     # User-Agent debe reenviarse: sin el, el origen (y su WAF) siempre ve
     # "Amazon CloudFront" como User-Agent en vez del cliente real, y el WAF

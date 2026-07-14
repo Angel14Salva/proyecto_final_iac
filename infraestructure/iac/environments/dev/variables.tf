@@ -150,7 +150,7 @@ variable "domain_name" {
   # IMPORTANTE: NO "dev.segat.com" -- la Hosted Zone y el certificado
   # autofirmado ya desplegados usan "segat.com" (sin sufijo de ambiente).
   # Cambiarlo recrea la zona DNS (nameservers nuevos) y el certificado.
-  default     = "segat.com"
+  default = "segat.com"
 }
 
 variable "github_repo" {
