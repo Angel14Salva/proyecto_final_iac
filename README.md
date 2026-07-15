@@ -80,9 +80,9 @@ Variables/secrets a configurar en GitHub (`Settings > Secrets and variables > Ac
 
 | Nombre | Tipo | Para qué |
 |---|---|---|
-| `SONAR_HOST_URL` | Variable | URL pública donde el runner pueda alcanzar tu SonarQube. Mientras sea self-hosted en `localhost`, este paso se queda desactivado — quedó así a propósito (ver Fase 4/5 de la conversación). |
-| `SONAR_TOKEN` | Secret | Token de análisis generado en la UI de Sonar. |
 | `AWS_GHA_ROLE_ARN` | Variable | ARN del rol IAM que GitHub Actions asume vía OIDC para poder hacer push a ECR. Lo genera `infraestructure/iac/modules/oidc` (ver siguiente sección) — **todavía no aplicado**. |
+
+El análisis de calidad de código corre en un workflow aparte (`sonarqube.yml`), contra SonarCloud en vez de un SonarQube self-hosted (self-hosted en `localhost` no es alcanzable por los runners de GitHub). Requiere los secrets `SONAR_TOKEN`, `SONAR_PROJECT_KEY` y `SONAR_ORGANIZATION` (ver sonarcloud.io → tu proyecto).
 
 ### OIDC de GitHub Actions hacia AWS (pendiente de aplicar)
 
