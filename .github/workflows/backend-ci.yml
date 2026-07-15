@@ -11,6 +11,7 @@ on:
     paths:
       - "apps/backend/**"
       - ".github/workflows/backend-ci.yml"
+  workflow_dispatch: {}
 
 defaults:
   run:
@@ -73,7 +74,7 @@ jobs:
     name: Build y push de imagen a ECR
     needs: build-test
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/feature' && github.event_name == 'push' && vars.AWS_GHA_ROLE_ARN != '' }}
+    if: ${{ github.ref == 'refs/heads/feature' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.AWS_GHA_ROLE_ARN != '' }}
     permissions:
       id-token: write
       contents: read

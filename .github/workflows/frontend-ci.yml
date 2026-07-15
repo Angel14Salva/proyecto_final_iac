@@ -12,6 +12,7 @@ on:
     paths:
       - "apps/frontend/**"
       - ".github/workflows/frontend-ci.yml"
+  workflow_dispatch: {}
 
 defaults:
   run:
@@ -52,7 +53,7 @@ jobs:
     # Igual que el pipeline del backend: solo corre en push a feature y solo si
     # el rol OIDC ya fue creado (terraform apply de github_oidc.tf) y cargado
     # como variable del repo.
-    if: ${{ github.ref == 'refs/heads/feature' && github.event_name == 'push' && vars.AWS_GHA_FRONTEND_ROLE_ARN != '' }}
+    if: ${{ github.ref == 'refs/heads/feature' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.AWS_GHA_FRONTEND_ROLE_ARN != '' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
