@@ -274,3 +274,29 @@ module "oidc" {
 
   manage_oidc_provider = var.manage_oidc_provider
 }
+
+# ---------------------------------------------------------------------------
+# Capa 7 — depende de networking, security, compute
+# ---------------------------------------------------------------------------
+module "monitoring" {
+  source = "../monitoring"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+
+  vpc_id              = module.networking.vpc_id
+  subnet_private_a_id = module.networking.subnet_private_a_id
+  subnet_private_b_id = module.networking.subnet_private_b_id
+  subnet_public_a_id  = module.networking.subnet_public_a_id
+  subnet_public_b_id  = module.networking.subnet_public_b_id
+
+  ecs_cluster_id         = module.compute.ecs_cluster_id
+  ecs_execution_role_arn = module.security.ecs_execution_role_arn
+  kms_secrets_key_arn    = module.security.kms_secrets_key_arn
+
+  grafana_admin_password   = var.grafana_admin_password
+  prometheus_desired_count = var.prometheus_desired_count
+  loki_desired_count       = var.loki_desired_count
+  grafana_desired_count    = var.grafana_desired_count
+}

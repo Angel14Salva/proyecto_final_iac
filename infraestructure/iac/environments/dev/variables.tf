@@ -185,3 +185,9 @@ variable "manage_oidc_provider" {
   type        = bool
   default     = true
 }
+
+variable "grafana_admin_password" {
+  description = "Password de Grafana admin - pasar via TF_VAR_grafana_admin_password"
+  type        = string
+  sensitive   = true
+}

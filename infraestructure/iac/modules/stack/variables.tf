@@ -48,8 +48,31 @@ variable "subnet_public_b_cidr" {
 
 variable "hibernate_ddl_auto" {
   description = "Modo de validacion de esquema de Hibernate. 'validate' en uso normal. Cambiar a 'update' temporalmente solo para crear el esquema inicial en una base nueva."
+  type        = bool
+  default     = true
+}
+
+# --- Monitoreo ---
+
+variable "grafana_admin_password" {
+  description = "Password del usuario admin de Grafana"
   type        = string
-  default     = "validate"
+  sensitive   = true
+}
+
+variable "prometheus_desired_count" {
+  type    = number
+  default = 1
+}
+
+variable "loki_desired_count" {
+  type    = number
+  default = 1
+}
+
+variable "grafana_desired_count" {
+  type    = number
+  default = 1
 }
 
 variable "ecs_task_cpu" {

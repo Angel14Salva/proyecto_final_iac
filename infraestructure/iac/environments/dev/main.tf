@@ -55,4 +55,6 @@ module "segat" {
   manage_apigw_account_settings = var.manage_apigw_account_settings
   manage_config_recorder        = var.manage_config_recorder
   manage_oidc_provider          = var.manage_oidc_provider
+
+  grafana_admin_password = var.grafana_admin_password
 }
