@@ -54,12 +54,12 @@ variable "subnet_public_b_cidr" {
 
 variable "ecs_task_cpu" {
   type    = number
-  default = 512
+  default = 1024
 }
 
 variable "ecs_task_memory" {
   type    = number
-  default = 1024
+  default = 2048
 }
 
 variable "ecs_desired_count" {
