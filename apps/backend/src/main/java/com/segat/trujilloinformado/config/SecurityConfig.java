@@ -46,7 +46,7 @@ public class SecurityConfig {
         // con 403 si no esta en la whitelist -- con un dominio fijo, ese 403 volveria a
         // aparecer en cada redeploy de la infra. El patron cubre cualquier distribucion
         // sin necesitar un redeploy del backend para actualizarlo.
-        config.setAllowedOriginPatterns(List.of("https://*.cloudfront.net"));
+        config.setAllowedOriginPatterns(List.of("https://*.cloudfront.net", "https://*.app.github.dev"));
         config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization","Content-Type"));
         config.setAllowCredentials(true);
