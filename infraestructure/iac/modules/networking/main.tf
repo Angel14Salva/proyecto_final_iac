@@ -134,9 +134,16 @@ resource "aws_route_table_association" "private_c2" {
 }
 
 resource "aws_security_group" "alb" {
+  # checkov:skip=CKV2_AWS_5: SI esta asociado -- a aws_lb.external y
+  # aws_lb.internal (modules.compute, via var.sg_alb_id/var.sg_ecs_tasks_id).
+  # Checkov no traza la asociacion porque el ALB vive en un modulo distinto.
   name        = "${local.name_prefix}-sg-alb"
   description = "Trafico HTTP y HTTPS hacia el ALB"
   vpc_id      = aws_vpc.main.id
+  # checkov:skip=CKV_AWS_260: El puerto 80 desde 0.0.0.0/0 es a proposito --
+  # CloudFront le habla al ALB por HTTP en /api/* (el ALB usa un certificado
+  # autofirmado que CloudFront no puede validar en un origen custom). El
+  # cliente real sigue viendo HTTPS de punta a punta via CloudFront.
   ingress {
     description = "HTTPS desde internet"
     from_port   = 443
@@ -184,6 +191,10 @@ resource "aws_security_group" "alb" {
 # cada plan (no la reconoce como propia). Por eso TODAS las reglas de este
 # SG viven como aws_security_group_rule separados, incluida esta.
 resource "aws_security_group" "ecs_tasks" {
+  # checkov:skip=CKV2_AWS_5: SI esta asociado -- a network_configuration del
+  # servicio ECS (aws_ecs_service.segat_backend en modules.compute, via
+  # var.sg_ecs_tasks_id) y al NLB del VPC Link (modules.vpc_link). Checkov no
+  # traza la asociacion porque ambos viven en modulos distintos.
   name        = "${local.name_prefix}-sg-ecs-tasks"
   description = "Trafico hacia Fargate solo desde el ALB"
   vpc_id      = aws_vpc.main.id
@@ -227,6 +238,9 @@ resource "aws_security_group_rule" "ecs_tasks_from_alb" {
 }
 
 resource "aws_security_group" "rds" {
+  # checkov:skip=CKV2_AWS_5: SI esta asociado -- a aws_db_instance.postgresql
+  # (modules.database, via var.sg_rds_id). Checkov no traza la asociacion
+  # porque el RDS vive en un modulo distinto al del security group.
   name        = "${local.name_prefix}-sg-rds"
   description = "PostgreSQL accesible solo desde los contenedores Fargate"
   vpc_id      = aws_vpc.main.id
@@ -241,6 +255,9 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_security_group" "redis" {
+  # checkov:skip=CKV2_AWS_5: SI esta asociado -- a aws_elasticache_cluster.redis
+  # (modules.database, via var.sg_redis_id). Checkov no traza la asociacion
+  # porque el cluster Redis vive en un modulo distinto al del security group.
   name        = "${local.name_prefix}-sg-redis"
   description = "Redis accesible solo desde los contenedores Fargate"
   vpc_id      = aws_vpc.main.id

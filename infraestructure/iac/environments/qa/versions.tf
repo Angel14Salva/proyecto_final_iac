@@ -20,8 +20,13 @@ terraform {
     }
   }
 
-  # backend "s3" { ... } -- configurar backend remoto aqui (o via -backend-config)
-  # antes de hacer terraform init. Mientras tanto, el state queda local.
+  backend "s3" {
+    bucket         = "segat-terraform-state-production-662252246273"
+    key            = "environments/qa/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "segat-terraform-locks"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
