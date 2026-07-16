@@ -42,8 +42,15 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
 }
 
 # Rol que solo puede ser asumido por workflows de GitHub Actions corriendo
-# sobre main o feature de este repositorio especifico (ni PRs, ni otras
-# ramas, ni otros repos).
+# en el job de cd.yml que corresponde a este entorno. GitHub cambia el
+# formato del claim "sub" del token OIDC cuando el job que lo genera declara
+# "environment: <nombre>" (como hace backend-deploy en cd.yml, para poder
+# leer las variables/secrets del GitHub Environment correcto): en vez de
+# "repo:<owner>/<repo>:ref:refs/heads/<rama>" el token trae
+# "repo:<owner>/<repo>:environment:<nombre>". Antes este trust policy solo
+# aceptaba el formato por rama, y por eso el AssumeRoleWithWebIdentity
+# fallaba con "Not authorized" aunque el rol y el proveedor OIDC existieran
+# bien -- el token real nunca calzaba con la condicion.
 resource "aws_iam_role" "github_actions_ecr_push" {
   name = "${local.name_prefix}-gha-ecr-push"
 
@@ -56,9 +63,7 @@ resource "aws_iam_role" "github_actions_ecr_push" {
       Condition = {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-        }
-        StringLike = {
-          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:ref:refs/heads/${local.trusted_branch}"
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:environment:${var.environment}"
         }
       }
     }]
@@ -194,6 +199,9 @@ resource "aws_iam_role_policy" "github_actions_frontend_deploy" {
 # real (VPC, RDS, ECS, Cognito, WAF, etc.), no solo hace deploy de la app
 # sobre infraestructura ya existente.
 # ---------------------------------------------------------------------------
+# Igual que github_actions_ecr_push arriba: usa el claim "sub" con formato
+# "environment:" porque terraform-apply (en cd.yml) tambien corre dentro de
+# un job con "environment: <nombre>" declarado.
 resource "aws_iam_role" "github_actions_terraform_apply" {
   name = "${local.name_prefix}-gha-terraform-apply"
 
@@ -206,9 +214,7 @@ resource "aws_iam_role" "github_actions_terraform_apply" {
       Condition = {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-        }
-        StringLike = {
-          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:ref:refs/heads/${local.trusted_branch}"
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:environment:${var.environment}"
         }
       }
     }]
