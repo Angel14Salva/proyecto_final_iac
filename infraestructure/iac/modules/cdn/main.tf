@@ -20,6 +20,13 @@ locals {
 # S3 — assets estaticos del frontend (apps/frontend)
 # ---------------------------------------------------------------------------
 resource "aws_s3_bucket" "frontend" {
+  # checkov:skip=CKV_AWS_145: A proposito SSE-S3 (AES256), no SSE-KMS -- este
+  # bucket es el origen de CloudFront via Origin Access Control (OAC), y
+  # CloudFront OAC NO puede descifrar objetos cifrados con la key administrada
+  # "alias/aws/s3" (su key policy no se puede editar para darle kms:Decrypt a
+  # CloudFront), asi que los assets del frontend devolverian error. Usar una
+  # CMK propia lo arreglaria pero agrega costo de KMS; SSE-S3 funciona con OAC
+  # sin costo. Ver aws_s3_bucket_server_side_encryption_configuration.frontend.
   bucket = "${local.name_prefix}-frontend-${data.aws_caller_identity.current.account_id}"
   tags   = { Name = "${local.name_prefix}-s3-frontend" }
 }
@@ -35,6 +42,9 @@ resource "aws_s3_bucket_public_access_block" "frontend" {
 resource "aws_s3_bucket_server_side_encryption_configuration" "frontend" {
   bucket = aws_s3_bucket.frontend.id
   rule {
+    # SSE-S3 (AES256) a proposito -- CloudFront OAC no puede leer objetos
+    # SSE-KMS cifrados con la key administrada aws/s3. Ver el comentario en
+    # aws_s3_bucket.frontend (checkov:skip=CKV_AWS_145).
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
