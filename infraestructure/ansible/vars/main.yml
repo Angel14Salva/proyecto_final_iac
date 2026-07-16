@@ -1,9 +1,0 @@
-# Variables globales del proyecto SEGAT
-# target_env selecciona el entorno de infraestructure/iac/environments/ a
-# operar -- pasar con -e target_env=qa (o prod). Default: dev.
-target_env: dev
-project_name: segat
-environment: "{{ target_env }}"
-aws_region: us-east-1
-terraform_dir: "{{ playbook_dir }}/../iac/environments/{{ target_env }}"
-checkov_image: "bridgecrew/checkov:3"
