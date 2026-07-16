@@ -147,10 +147,7 @@ variable "replication_bucket_frontend" {
 variable "domain_name" {
   description = "Dominio principal del proyecto SEGAT"
   type        = string
-  # IMPORTANTE: NO "dev.segat.com" -- la Hosted Zone y el certificado
-  # autofirmado ya desplegados usan "segat.com" (sin sufijo de ambiente).
-  # Cambiarlo recrea la zona DNS (nameservers nuevos) y el certificado.
-  default = "segat.com"
+  default     = "dev.segat.com"
 }
 
 variable "github_repo" {

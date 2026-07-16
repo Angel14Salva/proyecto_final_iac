@@ -5,6 +5,10 @@
 # VPC Multi-AZ, subredes, NAT Gateway, Security Groups
 # =============================================================================
 
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+}
+
 resource "aws_vpc" "main" {
   # checkov:skip=CKV2_AWS_12: El security group por defecto SI esta bloqueado
   # -- ver aws_default_security_group.default (sin ingress/egress) mas abajo
@@ -12,7 +16,7 @@ resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
-  tags                 = { Name = "${var.project_name}-vpc" }
+  tags                 = { Name = "${local.name_prefix}-vpc" }
 }
 
 data "aws_availability_zones" "available" {
@@ -24,7 +28,7 @@ resource "aws_subnet" "public_a" {
   cidr_block              = var.subnet_public_cidr
   availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = false
-  tags                    = { Name = "${var.project_name}-subnet-public-a", Tier = "Public" }
+  tags                    = { Name = "${local.name_prefix}-subnet-public-a", Tier = "Public" }
 }
 
 resource "aws_subnet" "public_b" {
@@ -32,53 +36,53 @@ resource "aws_subnet" "public_b" {
   cidr_block              = var.subnet_public_b_cidr
   availability_zone       = data.aws_availability_zones.available.names[1]
   map_public_ip_on_launch = false
-  tags                    = { Name = "${var.project_name}-subnet-public-b", Tier = "Public" }
+  tags                    = { Name = "${local.name_prefix}-subnet-public-b", Tier = "Public" }
 }
 
 resource "aws_subnet" "private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.subnet_private_a_cidr
   availability_zone = data.aws_availability_zones.available.names[0]
-  tags              = { Name = "${var.project_name}-subnet-private-a", Tier = "Private-Compute", AZ = "AZ-A" }
+  tags              = { Name = "${local.name_prefix}-subnet-private-a", Tier = "Private-Compute", AZ = "AZ-A" }
 }
 
 resource "aws_subnet" "private_b" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.subnet_private_b_cidr
   availability_zone = data.aws_availability_zones.available.names[1]
-  tags              = { Name = "${var.project_name}-subnet-private-b", Tier = "Private-Compute", AZ = "AZ-B" }
+  tags              = { Name = "${local.name_prefix}-subnet-private-b", Tier = "Private-Compute", AZ = "AZ-B" }
 }
 
 resource "aws_subnet" "private_c" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.subnet_private_c_cidr
   availability_zone = data.aws_availability_zones.available.names[0]
-  tags              = { Name = "${var.project_name}-subnet-private-c", Tier = "Private-Data", AZ = "AZ-A" }
+  tags              = { Name = "${local.name_prefix}-subnet-private-c", Tier = "Private-Data", AZ = "AZ-A" }
 }
 
 resource "aws_subnet" "private_c2" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.subnet_private_c2_cidr
   availability_zone = data.aws_availability_zones.available.names[1]
-  tags              = { Name = "${var.project_name}-subnet-private-c2", Tier = "Private-Data", AZ = "AZ-B" }
+  tags              = { Name = "${local.name_prefix}-subnet-private-c2", Tier = "Private-Data", AZ = "AZ-B" }
 }
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "${var.project_name}-igw" }
+  tags   = { Name = "${local.name_prefix}-igw" }
 }
 
 resource "aws_eip" "nat" {
   domain     = "vpc"
   depends_on = [aws_internet_gateway.main]
-  tags       = { Name = "${var.project_name}-eip-nat" }
+  tags       = { Name = "${local.name_prefix}-eip-nat" }
 }
 
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.public_a.id
   depends_on    = [aws_internet_gateway.main]
-  tags          = { Name = "${var.project_name}-nat-gw" }
+  tags          = { Name = "${local.name_prefix}-nat-gw" }
 }
 
 resource "aws_route_table" "public" {
@@ -87,7 +91,7 @@ resource "aws_route_table" "public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.main.id
   }
-  tags = { Name = "${var.project_name}-rt-public" }
+  tags = { Name = "${local.name_prefix}-rt-public" }
 }
 
 resource "aws_route_table" "private" {
@@ -96,7 +100,7 @@ resource "aws_route_table" "private" {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.main.id
   }
-  tags = { Name = "${var.project_name}-rt-private" }
+  tags = { Name = "${local.name_prefix}-rt-private" }
 }
 
 resource "aws_route_table_association" "public_a" {
@@ -130,7 +134,7 @@ resource "aws_route_table_association" "private_c2" {
 }
 
 resource "aws_security_group" "alb" {
-  name        = "${var.project_name}-sg-alb"
+  name        = "${local.name_prefix}-sg-alb"
   description = "Trafico HTTP y HTTPS hacia el ALB"
   vpc_id      = aws_vpc.main.id
   ingress {
@@ -170,7 +174,7 @@ resource "aws_security_group" "alb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags = { Name = "${var.project_name}-sg-alb" }
+  tags = { Name = "${local.name_prefix}-sg-alb" }
 }
 
 # Sin reglas inline a proposito: modules.vpc_link agrega una regla de
@@ -180,7 +184,7 @@ resource "aws_security_group" "alb" {
 # cada plan (no la reconoce como propia). Por eso TODAS las reglas de este
 # SG viven como aws_security_group_rule separados, incluida esta.
 resource "aws_security_group" "ecs_tasks" {
-  name        = "${var.project_name}-sg-ecs-tasks"
+  name        = "${local.name_prefix}-sg-ecs-tasks"
   description = "Trafico hacia Fargate solo desde el ALB"
   vpc_id      = aws_vpc.main.id
   egress {
@@ -209,7 +213,7 @@ resource "aws_security_group" "ecs_tasks" {
     protocol    = "tcp"
     cidr_blocks = [var.vpc_cidr]
   }
-  tags = { Name = "${var.project_name}-sg-ecs-tasks" }
+  tags = { Name = "${local.name_prefix}-sg-ecs-tasks" }
 }
 
 resource "aws_security_group_rule" "ecs_tasks_from_alb" {
@@ -223,7 +227,7 @@ resource "aws_security_group_rule" "ecs_tasks_from_alb" {
 }
 
 resource "aws_security_group" "rds" {
-  name        = "${var.project_name}-sg-rds"
+  name        = "${local.name_prefix}-sg-rds"
   description = "PostgreSQL accesible solo desde los contenedores Fargate"
   vpc_id      = aws_vpc.main.id
   ingress {
@@ -233,11 +237,11 @@ resource "aws_security_group" "rds" {
     protocol        = "tcp"
     security_groups = [aws_security_group.ecs_tasks.id]
   }
-  tags = { Name = "${var.project_name}-sg-rds" }
+  tags = { Name = "${local.name_prefix}-sg-rds" }
 }
 
 resource "aws_security_group" "redis" {
-  name        = "${var.project_name}-sg-redis"
+  name        = "${local.name_prefix}-sg-redis"
   description = "Redis accesible solo desde los contenedores Fargate"
   vpc_id      = aws_vpc.main.id
   ingress {
@@ -247,19 +251,19 @@ resource "aws_security_group" "redis" {
     protocol        = "tcp"
     security_groups = [aws_security_group.ecs_tasks.id]
   }
-  tags = { Name = "${var.project_name}-sg-redis" }
+  tags = { Name = "${local.name_prefix}-sg-redis" }
 }
 
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "${var.project_name}-default-sg-bloqueado" }
+  tags   = { Name = "${local.name_prefix}-default-sg-bloqueado" }
 }
 
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
-  name              = "/aws/vpc/flowlogs/${var.project_name}"
+  name              = "/aws/vpc/flowlogs/${local.name_prefix}"
   retention_in_days = 365
   kms_key_id        = var.kms_secrets_key_arn
-  tags              = { Name = "${var.project_name}-vpc-flow-logs" }
+  tags              = { Name = "${local.name_prefix}-vpc-flow-logs" }
 }
 
 resource "aws_flow_log" "main" {
@@ -267,6 +271,6 @@ resource "aws_flow_log" "main" {
   traffic_type    = "ALL"
   iam_role_arn    = var.ecs_execution_role_arn
   log_destination = aws_cloudwatch_log_group.vpc_flow_logs.arn
-  tags            = { Name = "${var.project_name}-flow-log" }
+  tags            = { Name = "${local.name_prefix}-flow-log" }
 }
 

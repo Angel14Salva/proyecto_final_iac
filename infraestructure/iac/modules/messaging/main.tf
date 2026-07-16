@@ -7,15 +7,19 @@
 
 data "aws_caller_identity" "current" {}
 
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+}
+
 resource "aws_sqs_queue" "reportes_dlq" {
-  name                      = "${var.project_name}-reportes-dlq"
+  name                      = "${local.name_prefix}-reportes-dlq"
   message_retention_seconds = 1209600
   kms_master_key_id         = aws_kms_key.sqs.arn
-  tags                      = { Name = "${var.project_name}-sqs-reportes-dlq" }
+  tags                      = { Name = "${local.name_prefix}-sqs-reportes-dlq" }
 }
 
 resource "aws_sqs_queue" "reportes" {
-  name                       = "${var.project_name}-cola-reportes"
+  name                       = "${local.name_prefix}-cola-reportes"
   visibility_timeout_seconds = var.sqs_visibility_timeout
   message_retention_seconds  = var.sqs_message_retention
   receive_wait_time_seconds  = 20
@@ -24,18 +28,18 @@ resource "aws_sqs_queue" "reportes" {
     deadLetterTargetArn = aws_sqs_queue.reportes_dlq.arn
     maxReceiveCount     = var.sqs_dlq_max_receive
   })
-  tags = { Name = "${var.project_name}-sqs-reportes" }
+  tags = { Name = "${local.name_prefix}-sqs-reportes" }
 }
 
 resource "aws_sqs_queue" "notificaciones_dlq" {
-  name                      = "${var.project_name}-notificaciones-dlq"
+  name                      = "${local.name_prefix}-notificaciones-dlq"
   message_retention_seconds = 1209600
   kms_master_key_id         = aws_kms_key.sqs.arn
-  tags                      = { Name = "${var.project_name}-sqs-notificaciones-dlq" }
+  tags                      = { Name = "${local.name_prefix}-sqs-notificaciones-dlq" }
 }
 
 resource "aws_sqs_queue" "notificaciones" {
-  name                       = "${var.project_name}-cola-notificaciones"
+  name                       = "${local.name_prefix}-cola-notificaciones"
   visibility_timeout_seconds = var.sqs_visibility_timeout
   message_retention_seconds  = var.sqs_message_retention
   receive_wait_time_seconds  = 20
@@ -44,13 +48,13 @@ resource "aws_sqs_queue" "notificaciones" {
     deadLetterTargetArn = aws_sqs_queue.notificaciones_dlq.arn
     maxReceiveCount     = var.sqs_dlq_max_receive
   })
-  tags = { Name = "${var.project_name}-sqs-notificaciones" }
+  tags = { Name = "${local.name_prefix}-sqs-notificaciones" }
 }
 
 resource "aws_sns_topic" "negocio" {
-  name              = "${var.project_name}-sns-negocio"
+  name              = "${local.name_prefix}-sns-negocio"
   kms_master_key_id = "alias/aws/sns"
-  tags              = { Name = "${var.project_name}-sns-negocio" }
+  tags              = { Name = "${local.name_prefix}-sns-negocio" }
 }
 
 resource "aws_sns_topic_subscription" "negocio_to_notificaciones" {
@@ -107,13 +111,13 @@ resource "aws_kms_key" "sns_alertas" {
       }
     ]
   })
-  tags = { Name = "${var.project_name}-kms-sns-alertas" }
+  tags = { Name = "${local.name_prefix}-kms-sns-alertas" }
 }
 
 resource "aws_sns_topic" "alertas" {
-  name              = "${var.project_name}-sns-alertas"
+  name              = "${local.name_prefix}-sns-alertas"
   kms_master_key_id = aws_kms_key.sns_alertas.arn
-  tags              = { Name = "${var.project_name}-sns-alertas" }
+  tags              = { Name = "${local.name_prefix}-sns-alertas" }
 }
 
 resource "aws_sns_topic_subscription" "alertas_email" {
@@ -162,11 +166,11 @@ resource "aws_kms_key" "sqs" {
       }
     ]
   })
-  tags = { Name = "${var.project_name}-kms-sqs" }
+  tags = { Name = "${local.name_prefix}-kms-sqs" }
 }
 
 resource "aws_kms_alias" "sqs" {
-  name          = "alias/${var.project_name}/sqs"
+  name          = "alias/${local.name_prefix}/sqs"
   target_key_id = aws_kms_key.sqs.key_id
 }
 
