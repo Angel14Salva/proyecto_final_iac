@@ -7,8 +7,12 @@
 
 data "aws_caller_identity" "current" {}
 
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+}
+
 resource "aws_db_parameter_group" "postgresql" {
-  name   = "${var.project_name}-pg-params"
+  name   = "${local.name_prefix}-pg-params"
   family = "postgres15"
   parameter {
     name  = "log_statement"
@@ -23,17 +27,17 @@ resource "aws_db_parameter_group" "postgresql" {
     value        = "1"
     apply_method = "pending-reboot"
   }
-  tags = { Name = "${var.project_name}-pg-params" }
+  tags = { Name = "${local.name_prefix}-pg-params" }
 }
 
 resource "aws_db_subnet_group" "rds" {
-  name       = "${var.project_name}-rds-subnet-group"
+  name       = "${local.name_prefix}-rds-subnet-group"
   subnet_ids = [var.subnet_private_c_id, var.subnet_private_c2_id]
-  tags       = { Name = "${var.project_name}-rds-subnet-group" }
+  tags       = { Name = "${local.name_prefix}-rds-subnet-group" }
 }
 
 resource "aws_db_instance" "postgresql" {
-  identifier                          = "${var.project_name}-postgresql"
+  identifier                          = "${local.name_prefix}-postgresql"
   engine                              = "postgres"
   engine_version                      = "15.7"
   instance_class                      = "db.t3.micro"
@@ -58,17 +62,17 @@ resource "aws_db_instance" "postgresql" {
   auto_minor_version_upgrade          = true
   monitoring_interval                 = 60
   monitoring_role_arn                 = var.rds_monitoring_role_arn
-  tags                                = { Name = "${var.project_name}-postgresql" }
+  tags                                = { Name = "${local.name_prefix}-postgresql" }
 }
 
 resource "aws_elasticache_subnet_group" "redis" {
-  name       = "${var.project_name}-redis-subnet-group"
+  name       = "${local.name_prefix}-redis-subnet-group"
   subnet_ids = [var.subnet_private_c_id, var.subnet_private_c2_id]
-  tags       = { Name = "${var.project_name}-redis-subnet-group" }
+  tags       = { Name = "${local.name_prefix}-redis-subnet-group" }
 }
 
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id               = "${var.project_name}-redis"
+  cluster_id               = "${local.name_prefix}-redis"
   engine                   = "redis"
   node_type                = "cache.t3.micro"
   num_cache_nodes          = 1
@@ -78,11 +82,11 @@ resource "aws_elasticache_cluster" "redis" {
   subnet_group_name        = aws_elasticache_subnet_group.redis.name
   security_group_ids       = [var.sg_redis_id]
   snapshot_retention_limit = 1
-  tags                     = { Name = "${var.project_name}-redis-cache" }
+  tags                     = { Name = "${local.name_prefix}-redis-cache" }
 }
 
 resource "aws_dynamodb_table" "gps_locations" {
-  name         = "${var.project_name}-gps-locations"
+  name         = "${local.name_prefix}-gps-locations"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "reporte_id"
   range_key    = "timestamp"
@@ -111,11 +115,11 @@ resource "aws_dynamodb_table" "gps_locations" {
     enabled = true
   }
 
-  tags = { Name = "${var.project_name}-dynamodb-gps" }
+  tags = { Name = "${local.name_prefix}-dynamodb-gps" }
 }
 
 resource "aws_dynamodb_table" "notifications" {
-  name         = "${var.project_name}-notifications"
+  name         = "${local.name_prefix}-notifications"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "notification_id"
   range_key    = "user_id"
@@ -139,7 +143,7 @@ resource "aws_dynamodb_table" "notifications" {
     enabled = true
   }
 
-  tags = { Name = "${var.project_name}-dynamodb-notifications" }
+  tags = { Name = "${local.name_prefix}-dynamodb-notifications" }
 }
 
 resource "aws_vpc_endpoint" "s3" {
@@ -147,12 +151,12 @@ resource "aws_vpc_endpoint" "s3" {
   service_name      = "com.amazonaws.${var.aws_region}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [var.route_table_private_id]
-  tags              = { Name = "${var.project_name}-vpc-endpoint-s3" }
+  tags              = { Name = "${local.name_prefix}-vpc-endpoint-s3" }
 }
 
 resource "aws_s3_bucket" "reportes" {
-  bucket = "${var.project_name}-reportes-fotos-${var.environment}-${data.aws_caller_identity.current.account_id}"
-  tags   = { Name = "${var.project_name}-s3-reportes" }
+  bucket = "${local.name_prefix}-reportes-fotos-${data.aws_caller_identity.current.account_id}"
+  tags   = { Name = "${local.name_prefix}-s3-reportes" }
 }
 
 resource "aws_s3_bucket_replication_configuration" "reportes" {
@@ -228,7 +232,7 @@ resource "aws_kms_key" "dynamodb" {
   deletion_window_in_days = 7
   enable_key_rotation     = true
   policy                  = data.aws_iam_policy_document.dynamodb_kms_policy.json
-  tags                    = { Name = "${var.project_name}-kms-dynamodb" }
+  tags                    = { Name = "${local.name_prefix}-kms-dynamodb" }
 }
 
 data "aws_iam_policy_document" "dynamodb_kms_policy" {
@@ -257,11 +261,11 @@ resource "aws_vpc_endpoint" "dynamodb" {
   service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [var.route_table_private_id]
-  tags              = { Name = "${var.project_name}-vpc-endpoint-dynamodb" }
+  tags              = { Name = "${local.name_prefix}-vpc-endpoint-dynamodb" }
 }
 
 resource "aws_kms_alias" "dynamodb" {
-  name          = "alias/${var.project_name}/dynamodb"
+  name          = "alias/${local.name_prefix}/dynamodb"
   target_key_id = aws_kms_key.dynamodb.key_id
 }
 

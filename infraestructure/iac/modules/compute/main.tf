@@ -12,31 +12,35 @@
 
 data "aws_caller_identity" "current" {}
 
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+}
+
 resource "aws_ecr_repository" "segat_backend" {
   # IMMUTABLE: el pipeline ya no reusa ":latest" -- cada build se tagea con
   # el SHA del commit (unico por push) y registra su propia revision del
   # task definition, asi que no hay ninguna tag que necesite sobreescribirse.
-  name                 = "${var.project_name}/backend"
+  name                 = "${local.name_prefix}/backend"
   image_tag_mutability = "IMMUTABLE"
   image_scanning_configuration { scan_on_push = true }
   encryption_configuration {
     encryption_type = "KMS"
   }
-  tags = { Name = "${var.project_name}-ecr-backend" }
+  tags = { Name = "${local.name_prefix}-ecr-backend" }
 }
 
 resource "aws_ecs_cluster" "main" {
-  name = "${var.project_name}-cluster"
+  name = "${local.name_prefix}-cluster"
   setting {
     name  = "containerInsights"
     value = "enabled"
   }
-  tags = { Name = "${var.project_name}-ecs-cluster" }
+  tags = { Name = "${local.name_prefix}-ecs-cluster" }
 }
 
 # ALB EXTERNO — accesible desde internet, en subredes PÚBLICAS
 resource "aws_lb" "external" {
-  name               = "${var.project_name}-alb-external"
+  name               = "${local.name_prefix}-alb-external"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.sg_alb_id]
@@ -57,11 +61,11 @@ resource "aws_lb" "external" {
   # habilitar access_logs si eso todavia no esta listo ("Access Denied for bucket")
   depends_on = [aws_s3_bucket_policy.alb_logs, aws_s3_bucket_ownership_controls.alb_logs]
 
-  tags = { Name = "${var.project_name}-alb-external" }
+  tags = { Name = "${local.name_prefix}-alb-external" }
 }
 
 resource "aws_lb" "internal" {
-  name               = "${var.project_name}-alb-internal"
+  name               = "${local.name_prefix}-alb-internal"
   internal           = true
   load_balancer_type = "application"
   security_groups    = [var.sg_ecs_tasks_id]
@@ -78,13 +82,13 @@ resource "aws_lb" "internal" {
 
   depends_on = [aws_s3_bucket_policy.alb_logs, aws_s3_bucket_ownership_controls.alb_logs]
 
-  tags = { Name = "${var.project_name}-alb-internal" }
+  tags = { Name = "${local.name_prefix}-alb-internal" }
 }
 
 resource "aws_lb_target_group" "internal" {
   # Mismo motivo que aws_lb_target_group.ecs: el backend sirve HTTP plano,
   # no HTTPS, en el puerto 8080.
-  name        = "${var.project_name}-tg-internal-http"
+  name        = "${local.name_prefix}-tg-internal-http"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -102,7 +106,7 @@ resource "aws_lb_target_group" "internal" {
     unhealthy_threshold = 3
     matcher             = "200"
   }
-  tags = { Name = "${var.project_name}-tg-internal-http" }
+  tags = { Name = "${local.name_prefix}-tg-internal-http" }
 }
 
 resource "aws_lb_listener" "internal_http" {
@@ -138,9 +142,9 @@ resource "aws_s3_bucket" "alb_logs" {
   # aws_s3_bucket_server_side_encryption_configuration.alb_logs mas abajo) --
   # restriccion documentada de AWS, no de permisos. Checkov evalua este check
   # sobre el bucket en si, no sobre el recurso de encriptacion separado.
-  bucket        = "${var.project_name}-alb-logs-${var.environment}-${data.aws_caller_identity.current.account_id}"
+  bucket        = "${local.name_prefix}-alb-logs-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
-  tags          = { Name = "${var.project_name}-s3-alb-logs" }
+  tags          = { Name = "${local.name_prefix}-s3-alb-logs" }
 }
 
 resource "aws_s3_bucket_replication_configuration" "alb_logs" {
@@ -268,7 +272,7 @@ resource "aws_lb_target_group" "ecs" {
   # HTTPS) todavia existe, ni borrar el viejo mientras sigue enganchado al
   # listener -- un nombre nuevo deja que Terraform cree este primero,
   # reapunte el listener, y recien ahi borre el anterior, sin choque.
-  name        = "${var.project_name}-tg-ecs-http"
+  name        = "${local.name_prefix}-tg-ecs-http"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -287,7 +291,7 @@ resource "aws_lb_target_group" "ecs" {
     unhealthy_threshold = 3
     matcher             = "200"
   }
-  tags = { Name = "${var.project_name}-tg-ecs-http" }
+  tags = { Name = "${local.name_prefix}-tg-ecs-http" }
 }
 
 # Listener HTTP en puerto 80 — redirige a HTTPS
@@ -320,14 +324,14 @@ resource "aws_lb_listener" "https" {
 }
 
 resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/${var.project_name}/backend"
+  name              = "/ecs/${local.name_prefix}/backend"
   retention_in_days = 365
   kms_key_id        = var.kms_secrets_key_arn
-  tags              = { Name = "${var.project_name}-ecs-logs" }
+  tags              = { Name = "${local.name_prefix}-ecs-logs" }
 }
 
 resource "aws_ecs_task_definition" "segat_backend" {
-  family                   = "${var.project_name}-backend"
+  family                   = "${local.name_prefix}-backend"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.ecs_task_cpu
@@ -336,7 +340,7 @@ resource "aws_ecs_task_definition" "segat_backend" {
   task_role_arn            = var.ecs_task_role_arn
 
   container_definitions = jsonencode([{
-    name         = "${var.project_name}-backend"
+    name         = "${local.name_prefix}-backend"
     image        = "${aws_ecr_repository.segat_backend.repository_url}:${var.backend_image_tag}"
     essential    = true
     portMappings = [{ containerPort = 8080, protocol = "tcp" }]
@@ -394,11 +398,11 @@ resource "aws_ecs_task_definition" "segat_backend" {
     }
   }])
 
-  tags = { Name = "${var.project_name}-task-definition" }
+  tags = { Name = "${local.name_prefix}-task-definition" }
 }
 
 resource "aws_ecs_service" "segat_backend" {
-  name            = "${var.project_name}-backend-service"
+  name            = "${local.name_prefix}-backend-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.segat_backend.arn
   desired_count   = var.ecs_desired_count
@@ -412,7 +416,7 @@ resource "aws_ecs_service" "segat_backend" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.ecs.arn
-    container_name   = "${var.project_name}-backend"
+    container_name   = "${local.name_prefix}-backend"
     container_port   = 8080
   }
 
@@ -438,7 +442,7 @@ resource "aws_ecs_service" "segat_backend" {
     ignore_changes = [task_definition]
   }
 
-  tags = { Name = "${var.project_name}-ecs-service" }
+  tags = { Name = "${local.name_prefix}-ecs-service" }
 }
 
 resource "aws_appautoscaling_target" "ecs_target" {
@@ -450,7 +454,7 @@ resource "aws_appautoscaling_target" "ecs_target" {
 }
 
 resource "aws_appautoscaling_policy" "scale_cpu" {
-  name               = "${var.project_name}-scale-cpu"
+  name               = "${local.name_prefix}-scale-cpu"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs_target.resource_id
   scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
