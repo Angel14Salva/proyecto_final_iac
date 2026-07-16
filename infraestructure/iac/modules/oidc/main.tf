@@ -94,7 +94,11 @@ resource "aws_iam_role_policy" "github_actions_ecr_push" {
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
           "ecr:PutImage",
-          "ecr:BatchGetImage"
+          "ecr:BatchGetImage",
+          # cd.yml chequea si la imagen de este commit ya existe en ECR
+          # antes de reconstruirla (evita rebuilds innecesarios) -- eso
+          # llama "aws ecr describe-images", que necesita este permiso.
+          "ecr:DescribeImages"
         ]
         Resource = var.ecr_repository_arn
       },
