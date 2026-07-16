@@ -35,9 +35,7 @@ variable "cloudfront_distribution_arn" {
 }
 
 variable "environment" {
-  description = "Entorno de despliegue (no se usa en nombres de recursos en este modulo -- se mantiene el naming legado para no romper recursos ya aplicados)"
-  type        = string
-  default     = "production"
+  type = string
 }
 
 variable "manage_oidc_provider" {
