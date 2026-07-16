@@ -84,6 +84,11 @@ resource "aws_api_gateway_stage" "prod" {
   # checkov:skip=CKV2_AWS_51: La autenticacion ya la resuelve Cognito
   # (COGNITO_USER_POOLS en el authorizer); exigir ademas certificado de
   # cliente (mTLS) es redundante para este caso de uso.
+  # checkov:skip=CKV2_AWS_77: Este stage SI esta protegido contra Log4Shell --
+  # aws_wafv2_web_acl_association.api_gateway (mas abajo en este archivo)
+  # asocia el mismo WAF regional que protege al ALB externo (modules.firewall),
+  # que incluye la regla "AWSManagedRulesKnownBadInputsRuleSet". Checkov no
+  # traza la asociacion porque el WAF se define en un modulo distinto.
   deployment_id = aws_api_gateway_deployment.segat.id
   rest_api_id   = aws_api_gateway_rest_api.segat.id
   stage_name    = var.environment

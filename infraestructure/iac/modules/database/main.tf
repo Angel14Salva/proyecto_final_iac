@@ -37,6 +37,11 @@ resource "aws_db_subnet_group" "rds" {
 }
 
 resource "aws_db_instance" "postgresql" {
+  # checkov:skip=CKV_AWS_157: Multi-AZ apagado a proposito para minimizar
+  # costo (Multi-AZ ~duplica el precio del RDS). Es un proyecto academico:
+  # se acepta perder el failover automatico entre AZs a cambio del ahorro.
+  # Los datos siguen protegidos por backups (backup_retention_period) y
+  # deletion_protection -- Multi-AZ es HA/uptime, no durabilidad de datos.
   identifier                          = "${local.name_prefix}-postgresql"
   engine                              = "postgres"
   engine_version                      = "15.7"
@@ -53,7 +58,7 @@ resource "aws_db_instance" "postgresql" {
   backup_retention_period             = 1
   skip_final_snapshot                 = true
   deletion_protection                 = true
-  multi_az                            = true
+  multi_az                            = false
   copy_tags_to_snapshot               = true
   iam_database_authentication_enabled = true
   performance_insights_enabled        = true
