@@ -1,0 +1,322 @@
+name: CD
+
+# Pipeline de entrega continua por entorno segun la rama:
+#   feature -> dev, develop -> qa, main -> prod.
+#
+# Un solo workflow (antes eran dos separados: terraform-cd.yml y
+# backend-cd.yml) para poder garantizar el orden con "needs": si el push
+# toca infraestructure/iac/** Y apps/backend/** a la vez, el deploy del
+# backend espera a que Terraform termine, en vez de correr en paralelo sin
+# garantia de orden. Asi, en la primera promocion a un entorno nuevo,
+# Terraform crea el cluster/servicio ECS y recien despues el backend publica
+# la imagen real, sin pasos manuales entre medio. El servicio ECS tiene
+# ignore_changes=[task_definition], asi que un apply posterior no revierte
+# la imagen ya desplegada.
+#
+# Dispara con push directo (no "workflow_run"): ese evento solo se activa si
+# el workflow existe en la rama default del repo, y por eso nunca corria
+# mientras el trabajo vivia en feature/develop. Push directo funciona igual
+# en cualquier rama.
+run-name: "CD: ${{ github.ref_name }}"
+
+on:
+  push:
+    branches: [feature, develop, main]
+    paths:
+      - "infraestructure/iac/**"
+      - "apps/backend/**"
+      - ".github/workflows/cd.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Entorno destino
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+
+permissions:
+  contents: read
+
+# Serializa corridas sobre la misma rama (evita que dos pushes seguidos
+# intenten "terraform apply" a la vez contra el mismo state -- el lock de
+# DynamoDB lo hubiera evitado igual, pero como fallo confuso). No cancela
+# una corrida en progreso: nunca se debe cortar un apply a mitad de camino.
+concurrency:
+  group: cd-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  resolve-environment:
+    name: Resolver entorno y cambios
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.map.outputs.environment }}
+      iac_changed: ${{ steps.filter.outputs.iac }}
+      backend_changed: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolver entorno segun la rama (o el input manual)
+        id: map
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ inputs.environment }}"
+          elif [ "${{ github.ref_name }}" = "feature" ]; then
+            ENVIRONMENT="dev"
+          elif [ "${{ github.ref_name }}" = "develop" ]; then
+            ENVIRONMENT="qa"
+          elif [ "${{ github.ref_name }}" = "main" ]; then
+            ENVIRONMENT="prod"
+          else
+            echo "Rama no soportada: ${{ github.ref_name }}"
+            exit 1
+          fi
+
+          echo "environment=${ENVIRONMENT}" >> "$GITHUB_OUTPUT"
+          echo "### Desplegando a \`${ENVIRONMENT}\` (rama \`${{ github.ref_name }}\`)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Detectar que cambio (iac vs backend)
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            iac:
+              - 'infraestructure/iac/**'
+            backend:
+              - 'apps/backend/**'
+
+  # Gate propio de sintaxis -- no depende de que "Terraform CI" haya corrido
+  # antes (workflow_run), valida por su cuenta antes del apply.
+  validate:
+    name: terraform fmt + validate
+    runs-on: ubuntu-latest
+    needs: resolve-environment
+    if: needs.resolve-environment.outputs.iac_changed == 'true' || github.event_name == 'workflow_dispatch'
+    defaults:
+      run:
+        working-directory: infraestructure/iac/environments/${{ needs.resolve-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: terraform init (sin backend)
+        run: terraform init -backend=false
+
+      - name: terraform validate
+        run: terraform validate
+
+  # Gate obligatorio: ningun hallazgo de Checkov (soft_fail=false, a
+  # diferencia del job "checkov" de terraform-ci.yml que es solo informativo)
+  # puede pasar a "terraform-apply".
+  checkov:
+    name: Checkov (gate obligatorio antes de apply)
+    runs-on: ubuntu-latest
+    needs: resolve-environment
+    if: needs.resolve-environment.outputs.iac_changed == 'true' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkov (hard fail)
+        uses: bridgecrewio/checkov-action@v12.3113.0
+        with:
+          directory: infraestructure/iac/environments/${{ needs.resolve-environment.outputs.environment }}
+          framework: terraform
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+          soft_fail: false
+
+      - name: Publicar resultados en GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: results.sarif
+
+  terraform-apply:
+    name: Terraform plan + apply
+    runs-on: ubuntu-latest
+    needs: [resolve-environment, validate, checkov]
+    if: needs.resolve-environment.outputs.iac_changed == 'true' || github.event_name == 'workflow_dispatch'
+    # Activa las variables/secrets propios del Environment (Settings >
+    # Environments) que coincide con el entorno resuelto arriba.
+    environment: ${{ needs.resolve-environment.outputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: infraestructure/iac/environments/${{ needs.resolve-environment.outputs.environment }}
+    env:
+      AWS_REGION: us-east-1
+      AWS_ROLE_ARN: ${{ vars.AWS_GHA_TERRAFORM_ROLE_ARN }}
+      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validar variables de despliegue
+        shell: bash
+        run: |
+          missing=0
+          if [ -z "$AWS_ROLE_ARN" ]; then
+            echo "AWS_GHA_TERRAFORM_ROLE_ARN no esta configurada en el Environment '${{ needs.resolve-environment.outputs.environment }}' (Settings > Environments > ${{ needs.resolve-environment.outputs.environment }} > Variables)"
+            missing=1
+          fi
+          if [ -z "$TF_VAR_db_password" ]; then
+            echo "DB_PASSWORD no esta configurado en el Environment '${{ needs.resolve-environment.outputs.environment }}' (Settings > Environments > ${{ needs.resolve-environment.outputs.environment }} > Secrets)"
+            missing=1
+          fi
+          exit "$missing"
+
+      - name: Configurar credenciales AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+
+      - name: terraform init
+        run: terraform init -input=false
+
+      - name: terraform plan
+        run: terraform plan -input=false -out=tfplan
+
+      - name: terraform apply
+        run: terraform apply -input=false -auto-approve tfplan
+
+  backend-deploy:
+    name: Deploy backend
+    runs-on: ubuntu-latest
+    needs: [resolve-environment, terraform-apply]
+    # Corre tras terraform-apply (o si se salto por no haber cambios de
+    # infra), pero no si terraform fallo o se cancelo, y solo si de verdad
+    # cambio algo en apps/backend/** (o es un dispatch manual).
+    if: >-
+      always()
+      && needs.resolve-environment.result == 'success'
+      && needs.terraform-apply.result != 'failure'
+      && needs.terraform-apply.result != 'cancelled'
+      && (needs.resolve-environment.outputs.backend_changed == 'true' || github.event_name == 'workflow_dispatch')
+    environment: ${{ needs.resolve-environment.outputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/backend
+    env:
+      AWS_REGION: us-east-1
+      AWS_ROLE_ARN: ${{ vars.AWS_GHA_ROLE_ARN }}
+      ECS_CLUSTER_NAME: ${{ vars.ECS_CLUSTER_NAME }}
+      ECS_SERVICE_NAME: ${{ vars.ECS_SERVICE_NAME }}
+      ECS_TASK_DEFINITION_FAMILY: ${{ vars.ECS_TASK_DEFINITION_FAMILY }}
+      ECR_REPOSITORY_NAME: ${{ vars.ECR_REPOSITORY_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validar variables de despliegue
+        shell: bash
+        run: |
+          missing=0
+          for name in AWS_ROLE_ARN ECS_CLUSTER_NAME ECS_SERVICE_NAME ECS_TASK_DEFINITION_FAMILY ECR_REPOSITORY_NAME; do
+            if [ -z "${!name}" ]; then
+              echo "$name no esta configurada en el Environment '${{ needs.resolve-environment.outputs.environment }}' (Settings > Environments > ${{ needs.resolve-environment.outputs.environment }} > Variables)"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Configurar credenciales AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login a Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image URI
+        shell: bash
+        run: echo "IMAGE_URI=${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY_NAME}:${{ github.sha }}" >> "$GITHUB_ENV"
+
+      # Evita reconstruir la misma imagen si el commit ya se desplego antes en
+      # otro entorno (ej. el mismo SHA promovido de dev a qa).
+      - name: Verificar si la imagen ya existe en ECR
+        id: check-image
+        shell: bash
+        run: |
+          set +e
+          output="$(aws ecr describe-images \
+            --repository-name "${ECR_REPOSITORY_NAME}" \
+            --image-ids imageTag="${{ github.sha }}" \
+            --output json 2>&1)"
+          status="$?"
+          set -e
+
+          if [ "$status" -eq 0 ]; then
+            echo "La imagen ya existe en ECR: ${IMAGE_URI}"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$output" == *"ImageNotFoundException"* ]]; then
+            echo "La imagen no existe todavia en ECR: ${IMAGE_URI}"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$output"
+            exit "$status"
+          fi
+
+      - name: Build y push de la imagen
+        if: steps.check-image.outputs.exists != 'true'
+        shell: bash
+        run: |
+          docker build -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+
+      - name: Descargar la definicion de tarea actual desde ECS
+        shell: bash
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "${ECS_TASK_DEFINITION_FAMILY}" \
+            --query taskDefinition > task-definition.json
+
+      # Reemplaza el jq + register-task-definition/update-service manual por
+      # las acciones oficiales de AWS -- mismo resultado, mas robusto y
+      # mantenido por AWS. El nombre del contenedor coincide siempre con la
+      # family (ambos son "${local.name_prefix}-backend" en Terraform).
+      - name: Inyectar la nueva imagen en la definicion
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: apps/backend/task-definition.json
+          container-name: ${{ env.ECS_TASK_DEFINITION_FAMILY }}
+          # No se usa env.IMAGE_URI aqui a proposito: esa variable se crea en
+          # tiempo de ejecucion via GITHUB_ENV en el step "Set image URI", y
+          # el linter de Actions no puede verificar variables asi (solo las
+          # declaradas en un bloque env: estatico) -- se reconstruye el mismo
+          # valor con contextos que si puede validar.
+          image: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:${{ github.sha }}
+
+      - name: Desplegar nueva version en ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          cluster: ${{ env.ECS_CLUSTER_NAME }}
+          service: ${{ env.ECS_SERVICE_NAME }}
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          wait-for-service-stability: true
