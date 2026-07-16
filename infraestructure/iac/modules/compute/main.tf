@@ -40,6 +40,14 @@ resource "aws_ecs_cluster" "main" {
 
 # ALB EXTERNO — accesible desde internet, en subredes PÚBLICAS
 resource "aws_lb" "external" {
+  # checkov:skip=CKV2_AWS_20: El listener :80 (aws_lb_listener.http_redirect,
+  # mas abajo) reenvia a proposito en vez de redirigir a HTTPS -- ver su
+  # comentario. Trafico HTTP legitimo (CloudFront -> ALB en /api/*), no un
+  # descuido.
+  # checkov:skip=CKV2_AWS_28: Este ALB SI esta protegido por WAF
+  # (aws_wafv2_web_acl_association.alb en modules.firewall, que recibe
+  # alb_external_arn como variable) -- Checkov no traza la asociacion porque
+  # vive en un modulo Terraform distinto al que declara el ALB.
   name               = "${local.name_prefix}-alb-external"
   internal           = false
   load_balancer_type = "application"
@@ -272,6 +280,8 @@ resource "aws_lb_target_group" "ecs" {
   # HTTPS) todavia existe, ni borrar el viejo mientras sigue enganchado al
   # listener -- un nombre nuevo deja que Terraform cree este primero,
   # reapunte el listener, y recien ahi borre el anterior, sin choque.
+  # checkov:skip=CKV_AWS_378: HTTP a proposito -- el backend Spring Boot
+  # sirve HTTP plano en 8080 (sin server.ssl), el cifrado termina en el ALB.
   name        = "${local.name_prefix}-tg-ecs-http"
   port        = 8080
   protocol    = "HTTP"
@@ -296,6 +306,11 @@ resource "aws_lb_target_group" "ecs" {
 
 # Listener HTTP en puerto 80 — redirige a HTTPS
 resource "aws_lb_listener" "http_redirect" {
+  # checkov:skip=CKV_AWS_2: Este listener a proposito NO es HTTPS -- ver
+  # comentario de "default_action" abajo (CloudFront le habla al ALB por este
+  # puerto en /api/* porque el ALB usa un certificado autofirmado).
+  # checkov:skip=CKV_AWS_103: Idem -- este listener no hace TLS, es HTTP plano
+  # a proposito, no aplica la version minima de TLS.
   load_balancer_arn = aws_lb.external.arn
   port              = 80
   protocol          = "HTTP"
