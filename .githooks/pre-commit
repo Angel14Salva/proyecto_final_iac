@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Chequeos rápidos antes de crear el commit: compila el backend si hay
+# cambios en Java, y valida formato de Terraform si hay cambios en .tf
+set -e
+
+staged_backend=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^apps/backend/.*\.java$' || true)
+staged_terraform=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^infraestructure/iac/.*\.tf$' || true)
+
+if [ -n "$staged_backend" ]; then
+  echo "[pre-commit] Compilando backend..."
+  if ! (cd apps/backend && ./mvnw -q -DskipTests compile); then
+    echo "[pre-commit] ERROR: el backend no compila. Corrige antes de commitear." >&2
+    exit 1
+  fi
+fi
+
+if [ -n "$staged_terraform" ]; then
+  if command -v terraform >/dev/null 2>&1; then
+    echo "[pre-commit] Verificando formato de Terraform..."
+    if ! terraform -chdir=infraestructure/iac fmt -check -recursive -diff; then
+      echo "[pre-commit] ERROR: hay archivos .tf sin formatear. Corre 'terraform fmt -recursive' en infraestructure/iac." >&2
+      exit 1
+    fi
+  else
+    echo "[pre-commit] Aviso: terraform no está instalado, se omite el chequeo de formato." >&2
+  fi
+fi
+
+exit 0

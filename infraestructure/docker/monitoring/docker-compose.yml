@@ -1,0 +1,85 @@
+# =============================================================================
+# docker-compose.yml — Prometheus + Grafana + Loki/Promtail (Fases 6 y 7:
+# monitoreo y trazabilidad, solo local)
+# Uso: docker compose -f infraestructure/docker/monitoring/docker-compose.yml up -d
+# Prometheus en http://localhost:9090, Grafana en http://localhost:3000,
+# Loki en http://localhost:3100
+#
+# Independiente del stack del backend (apps/backend/docker-compose.yml):
+# Prometheus scrapea via host.docker.internal:8080, asi que le da lo mismo si
+# el backend corre dockerizado o con "mvnw spring-boot:run" directo en el host.
+# Promtail si necesita que el backend corra dockerizado: descubre logs de
+# contenedores via el socket de Docker (docker_sd_configs).
+# =============================================================================
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: segat-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: segat-grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  loki:
+    image: grafana/loki:3.2.1
+    container_name: segat-loki
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3100/ready || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  promtail:
+    image: grafana/promtail:3.2.1
+    container_name: segat-promtail
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      loki:
+        condition: service_healthy
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:

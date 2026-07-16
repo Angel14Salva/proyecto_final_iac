@@ -1,6 +1,0 @@
-# Variables globales del proyecto SEGAT
-project_name: segat
-environment: production
-aws_region: us-east-1
-terraform_dir: "{{ playbook_dir }}/../terraform"
-checkov_image: "bridgecrew/checkov:3"

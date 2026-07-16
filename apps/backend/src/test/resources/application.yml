@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: trujillo-informado
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  mail:
+    host: localhost
+    port: 3025
+    username: test
+    password: test
+
+mail:
+  from: no-reply@example.com
+
+aws:
+  region: us-east-1
+  sqs:
+    reportes-queue-url: https://sqs.us-east-1.amazonaws.com/000000000000/test-reportes
+    notificaciones-queue-url: https://sqs.us-east-1.amazonaws.com/000000000000/test-notificaciones
+  sns:
+    negocio-topic-arn: arn:aws:sns:us-east-1:000000000000:test-negocio
+  dynamodb:
+    gps-table: test-gps-locations
+    notifications-table: test-notifications
+
+application:
+  security:
+    jwt:
+      # JwtService decodifica esto como Base64 estandar (Decoders.BASE64) para
+      # construir la llave HMAC -- tiene que ser Base64 valido, no un string cualquiera
+      secret: P7Ht4204XWCcsAMJqjsJyjCO6jUJR5WQ6701ilqn1vU=
+      expiration: 3600000
+      refresh-token:
+        expiration: 86400000
+
+cloudinary:
+  cloud-name: test
+  api-key: test
+  api-secret: test
+
+n8n:
+  webhook:
+    new-report: http://localhost:9999/webhook/new-report
+    new-task: http://localhost:9999/webhook/new-task

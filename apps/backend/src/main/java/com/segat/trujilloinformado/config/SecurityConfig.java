@@ -40,6 +40,13 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://127.0.0.1:5500", "http://localhost:5500", "https://front-agile-m2of-git-preproduction-angels-projects-53759d77.vercel.app", "https://front-agile-m2of.vercel.app", "https://www.trujilloinformado.app"));
+        // Patron en vez de dominio exacto: cada vez que se recrea la infraestructura,
+        // CloudFront asigna un dominio nuevo (*.cloudfront.net). El navegador manda el
+        // header Origin incluso en peticiones same-origin, y Spring Security lo rechaza
+        // con 403 si no esta en la whitelist -- con un dominio fijo, ese 403 volveria a
+        // aparecer en cada redeploy de la infra. El patron cubre cualquier distribucion
+        // sin necesitar un redeploy del backend para actualizarlo.
+        config.setAllowedOriginPatterns(List.of("https://*.cloudfront.net", "https://*.app.github.dev"));
         config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization","Content-Type"));
         config.setAllowCredentials(true);

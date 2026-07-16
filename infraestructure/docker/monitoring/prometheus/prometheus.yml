@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "trujillo-informado-backend"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      # No se agrega un label "application" aca a proposito: el backend ya
+      # expone ese tag el mismo (management.metrics.tags.application en
+      # application.yml), agregarlo tambien aca pisaria ese valor al scrapear.
+      - targets: ["host.docker.internal:8080"]
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

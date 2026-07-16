@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# Pre-push hook: corre tests de integracion solo si Docker esta disponible.
+#
+# IMPORTANTE: "docker info" respondiendo OK no garantiza que Testcontainers
+# pueda usar ese Docker. En Windows con Docker Desktop reciente, docker-java
+# (la libreria que usa Testcontainers) puede fallar contra el named pipe
+# aunque el CLI de Docker funcione perfecto (BadRequestException / "Could
+# not find a valid Docker environment") -- es un problema de compatibilidad
+# de la maquina, no del codigo. Por eso este hook SOLO AVISA si los tests
+# fallan, nunca bloquea el push: el gate real y confiable corre en GitHub
+# Actions (Linux, sin este problema de pipes).
+
+echo "[pre-push] Verificando entorno Docker..."
+
+if ! docker info > /dev/null 2>&1; then
+  echo "[pre-push] Docker no esta disponible en esta maquina."
+  echo "[pre-push] Los tests de integracion se ejecutaran en GitHub Actions."
+  echo "[pre-push] Push continuando..."
+  exit 0
+fi
+
+echo "[pre-push] Docker disponible. Ejecutando tests del backend..."
+
+cd apps/backend || exit 1
+
+./mvnw -B clean verify -q
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+  echo "[pre-push] AVISO: hay tests fallando (o Testcontainers no pudo conectar a Docker"
+  echo "[pre-push] en esta maquina). El push continua -- GitHub Actions es el gate real."
+fi
+
+exit 0

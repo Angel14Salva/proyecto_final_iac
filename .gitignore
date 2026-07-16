@@ -1,3 +1,15 @@
 results.xml/
 awscliv2.zip
 aws/
+apps/frontend/node_modules/
+
+# Terraform: nunca versionar state (contiene secretos en texto plano),
+# archivos de plan, backups automaticos, ni el directorio de providers
+# descargados (son binarios pesados y especificos de cada maquina).
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.backup
+full_plan.txt
+plan_output.txt

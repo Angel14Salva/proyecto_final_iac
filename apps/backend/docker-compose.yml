@@ -10,10 +10,42 @@ services:
     ports:
       - "8080:8080"
     environment:
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/reportes_db
       SPRING_DATASOURCE_USERNAME: dev_user
       SPRING_DATASOURCE_PASSWORD: dev_pass
       APP_ENV: development
+      # Tiene que ser Base64 valido: JwtService lo decodifica con Decoders.BASE64
+      # para construir la llave HMAC (un string con guiones como este rompia con
+      # "Illegal base64 character: '-'" en cuanto se generaba el primer token)
+      JWT_SECRET: re2vKy49qPoLKPWe9n6+ZMYgA0dyiGiw4Rdk5zAfWnw=
+      JWT_EXPIRATION: 86400000
+      JWT_REFRESH_EXPIRATION: 604800000
+      # Valores dummy: Cloudinary/n8n no funcionan de verdad en local salvo que se sobreescriban con credenciales reales
+      CLOUDINARY_CLOUD_NAME: dev-placeholder
+      CLOUDINARY_API_KEY: dev-placeholder
+      CLOUDINARY_API_SECRET: dev-placeholder
+      N8N_NEW_REPORT: http://localhost:5678/webhook/new-report
+      N8N_NEW_TASK: http://localhost:5678/webhook/new-task
+      # Dummy tambien: sin esto Spring falla al arrancar porque
+      # MailSenderAutoConfiguration y los @Value de AwsConfig/SqsReporteProducer/
+      # SnsNegocioPublisher/GpsServiceImpl no logran resolver el placeholder.
+      # No hay credenciales AWS reales en el Codespace, asi que los clientes SQS/
+      # SNS/DynamoDB se crean bien (no validan nada al construirse) pero cualquier
+      # llamada real a esos servicios va a fallar en tiempo de ejecucion -- las
+      # tres estan en try/catch que solo loguea, no relanza, asi que no tumba
+      # el request (ver comentario en SnsNegocioPublisher.java).
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USERNAME: dev-placeholder@example.com
+      SMTP_PASSWORD: dev-placeholder
+      MAIL_FROM: dev-placeholder@example.com
+      AWS_REGION: us-east-1
+      SQS_REPORTES_URL: https://sqs.us-east-1.amazonaws.com/000000000000/dev-placeholder-reportes
+      SQS_NOTIFICACIONES_URL: https://sqs.us-east-1.amazonaws.com/000000000000/dev-placeholder-notificaciones
+      SNS_NEGOCIO_ARN: arn:aws:sns:us-east-1:000000000000:dev-placeholder-negocio
+      DYNAMODB_GPS_TABLE: dev-placeholder-gps
+      DYNAMODB_NOTIFICATIONS_TABLE: dev-placeholder-notifications
     depends_on:
       postgres:
         condition: service_healthy

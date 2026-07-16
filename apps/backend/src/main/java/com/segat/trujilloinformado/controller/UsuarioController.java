@@ -2,6 +2,7 @@ package com.segat.trujilloinformado.controller;
 
 import com.segat.trujilloinformado.model.dto.TrabajadorDto;
 import com.segat.trujilloinformado.model.dto.usuario.UpdateProfileRequest;
+import com.segat.trujilloinformado.model.dto.usuario.UsuarioPerfilDto;
 import com.segat.trujilloinformado.model.entity.Usuario;
 import com.segat.trujilloinformado.service.IUsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,14 @@ public class UsuarioController {
 
         try {
             Usuario updatedUser = usuarioService.updateProfile(userEmail, request);
-            return ResponseEntity.ok(updatedUser);
+            return ResponseEntity.ok(UsuarioPerfilDto.builder()
+                    .id(updatedUser.getId())
+                    .email(updatedUser.getEmail())
+                    .firstname(updatedUser.getFirstname())
+                    .lastname(updatedUser.getLastname())
+                    .phone(updatedUser.getPhone())
+                    .role(updatedUser.getRole())
+                    .build());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

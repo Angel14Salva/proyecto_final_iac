@@ -1,0 +1,276 @@
+
+
+# =============================================================================
+# modules/database/main.tf
+# RDS PostgreSQL + ElastiCache Redis + DynamoDB + S3 (reportes)
+# =============================================================================
+
+data "aws_caller_identity" "current" {}
+
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+}
+
+resource "aws_db_parameter_group" "postgresql" {
+  name   = "${local.name_prefix}-pg-params"
+  family = "postgres15"
+  parameter {
+    name  = "log_statement"
+    value = "all"
+  }
+  parameter {
+    name  = "log_min_duration_statement"
+    value = "1000"
+  }
+  parameter {
+    name         = "rds.force_ssl"
+    value        = "1"
+    apply_method = "pending-reboot"
+  }
+  tags = { Name = "${local.name_prefix}-pg-params" }
+}
+
+resource "aws_db_subnet_group" "rds" {
+  name       = "${local.name_prefix}-rds-subnet-group"
+  subnet_ids = [var.subnet_private_c_id, var.subnet_private_c2_id]
+  tags       = { Name = "${local.name_prefix}-rds-subnet-group" }
+}
+
+resource "aws_db_instance" "postgresql" {
+  # checkov:skip=CKV_AWS_157: Multi-AZ apagado a proposito para minimizar
+  # costo (Multi-AZ ~duplica el precio del RDS). Es un proyecto academico:
+  # se acepta perder el failover automatico entre AZs a cambio del ahorro.
+  # Los datos siguen protegidos por backups (backup_retention_period) y
+  # deletion_protection -- Multi-AZ es HA/uptime, no durabilidad de datos.
+  identifier                          = "${local.name_prefix}-postgresql"
+  engine                              = "postgres"
+  engine_version                      = "15.7"
+  instance_class                      = "db.t3.micro"
+  allocated_storage                   = 20
+  storage_type                        = "gp2"
+  storage_encrypted                   = true
+  db_name                             = var.db_name
+  username                            = var.db_username
+  password                            = var.db_password
+  db_subnet_group_name                = aws_db_subnet_group.rds.name
+  parameter_group_name                = aws_db_parameter_group.postgresql.name
+  vpc_security_group_ids              = [var.sg_rds_id]
+  backup_retention_period             = 1
+  skip_final_snapshot                 = true
+  deletion_protection                 = true
+  multi_az                            = false
+  copy_tags_to_snapshot               = true
+  iam_database_authentication_enabled = true
+  performance_insights_enabled        = true
+  performance_insights_kms_key_id     = data.aws_kms_key.rds.arn
+  enabled_cloudwatch_logs_exports     = ["postgresql", "upgrade"]
+  auto_minor_version_upgrade          = true
+  monitoring_interval                 = 60
+  monitoring_role_arn                 = var.rds_monitoring_role_arn
+  tags                                = { Name = "${local.name_prefix}-postgresql" }
+}
+
+resource "aws_elasticache_subnet_group" "redis" {
+  name       = "${local.name_prefix}-redis-subnet-group"
+  subnet_ids = [var.subnet_private_c_id, var.subnet_private_c2_id]
+  tags       = { Name = "${local.name_prefix}-redis-subnet-group" }
+}
+
+resource "aws_elasticache_cluster" "redis" {
+  cluster_id               = "${local.name_prefix}-redis"
+  engine                   = "redis"
+  node_type                = "cache.t3.micro"
+  num_cache_nodes          = 1
+  parameter_group_name     = "default.redis7"
+  engine_version           = "7.0"
+  port                     = 6379
+  subnet_group_name        = aws_elasticache_subnet_group.redis.name
+  security_group_ids       = [var.sg_redis_id]
+  snapshot_retention_limit = 1
+  tags                     = { Name = "${local.name_prefix}-redis-cache" }
+}
+
+resource "aws_dynamodb_table" "gps_locations" {
+  name         = "${local.name_prefix}-gps-locations"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "reporte_id"
+  range_key    = "timestamp"
+
+  attribute {
+    name = "reporte_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "timestamp"
+    type = "S"
+  }
+
+  ttl {
+    attribute_name = "expiration_time"
+    enabled        = true
+  }
+
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.dynamodb.arn
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  tags = { Name = "${local.name_prefix}-dynamodb-gps" }
+}
+
+resource "aws_dynamodb_table" "notifications" {
+  name         = "${local.name_prefix}-notifications"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "notification_id"
+  range_key    = "user_id"
+
+  attribute {
+    name = "notification_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "user_id"
+    type = "S"
+  }
+
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.dynamodb.arn
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  tags = { Name = "${local.name_prefix}-dynamodb-notifications" }
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [var.route_table_private_id]
+  tags              = { Name = "${local.name_prefix}-vpc-endpoint-s3" }
+}
+
+resource "aws_s3_bucket" "reportes" {
+  bucket = "${local.name_prefix}-reportes-fotos-${data.aws_caller_identity.current.account_id}"
+  tags   = { Name = "${local.name_prefix}-s3-reportes" }
+}
+
+resource "aws_s3_bucket_replication_configuration" "reportes" {
+  count      = var.enable_s3_replication ? 1 : 0
+  depends_on = [aws_s3_bucket_versioning.reportes]
+  role       = var.s3_replication_role_arn
+  bucket     = aws_s3_bucket.reportes.id
+  rule {
+    id     = "replicacion-reportes"
+    status = "Enabled"
+    destination {
+      bucket        = "arn:aws:s3:::${var.replication_bucket_reportes}"
+      storage_class = "STANDARD"
+    }
+  }
+}
+
+resource "aws_s3_bucket_notification" "reportes" {
+  bucket      = aws_s3_bucket.reportes.id
+  eventbridge = true
+}
+
+resource "aws_s3_bucket_public_access_block" "reportes" {
+  bucket                  = aws_s3_bucket.reportes.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "reportes" {
+  bucket = aws_s3_bucket.reportes.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = "alias/aws/s3"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "reportes" {
+  bucket = aws_s3_bucket.reportes.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_logging" "reportes" {
+  bucket        = aws_s3_bucket.reportes.id
+  target_bucket = aws_s3_bucket.reportes.id
+  target_prefix = "access-logs/"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "reportes" {
+  bucket = aws_s3_bucket.reportes.id
+  rule {
+    id     = "expire-old-reports"
+    status = "Enabled"
+    filter {}
+    expiration { days = 365 }
+    noncurrent_version_expiration { noncurrent_days = 90 }
+    abort_incomplete_multipart_upload { days_after_initiation = 7 }
+  }
+}
+
+data "aws_kms_key" "rds" {
+  key_id = "alias/aws/rds"
+}
+
+resource "aws_kms_key" "dynamodb" {
+  # CKV2_AWS_64: policy explicita requerida por Checkov para KMS keys
+  description             = "KMS CMK para cifrado de tablas DynamoDB del proyecto SEGAT"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.dynamodb_kms_policy.json
+  tags                    = { Name = "${local.name_prefix}-kms-dynamodb" }
+}
+
+data "aws_iam_policy_document" "dynamodb_kms_policy" {
+  # checkov:skip=CKV_AWS_109: Statement estandar "Enable IAM User Permissions"
+  # que AWS recomienda para toda key KMS (le da control administrativo a la
+  # cuenta root, sin lo cual la key queda inadministrable). Se usa el mismo
+  # patron en las otras 4 KMS keys del proyecto (sqs, secrets, sns_alertas).
+  # checkov:skip=CKV_AWS_111: Idem -- es el statement de administracion, no
+  # de uso operativo de la key.
+  # checkov:skip=CKV_AWS_356: Idem -- el "*" aqui es el recurso propio de la
+  # key (no hay ARN aun en el momento de crear su propia policy).
+  statement {
+    sid    = "Enable IAM User Permissions"
+    effect = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [var.route_table_private_id]
+  tags              = { Name = "${local.name_prefix}-vpc-endpoint-dynamodb" }
+}
+
+resource "aws_kms_alias" "dynamodb" {
+  name          = "alias/${local.name_prefix}/dynamodb"
+  target_key_id = aws_kms_key.dynamodb.key_id
+}
+
