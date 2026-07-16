@@ -1,36 +1,41 @@
 // src/js/index.js
 import { loginUser } from './utils/api/apiService.js';
+import { saveSession, homeForRole, isAuthenticated, getRole } from './utils/auth/auth.js';
 
 function init() {
+    // Si ya hay una sesión activa, no tiene sentido mostrar el login de nuevo.
+    if (isAuthenticated()) {
+        window.location.href = homeForRole(getRole());
+        return;
+    }
+
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
+    const submitBtn = document.getElementById('login-submit');
 
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Evita que la página se recargue
-            errorMessage.textContent = ''; // Limpia errores previos
+    if (!loginForm) return;
 
-            // 1. Obtenemos los valores del formulario
-            const email = event.target.email.value;
-            const password = event.target.password.value;
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorMessage.classList.remove('visible');
+        errorMessage.textContent = '';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Ingresando…';
 
-            try {
-                // 2. Llamamos a la función de la API
-                const data = await loginUser(email, password);
+        const email = event.target.email.value.trim();
+        const password = event.target.password.value;
 
-                // 3. Si todo sale bien, por ahora solo mostramos el token en la consola
-                console.log('Login exitoso. El backend devolvió:', data);
-                alert('¡Login exitoso! Revisa la consola (F12) para ver la respuesta.');
-
-                // En el siguiente paso, aquí guardaremos el token y redirigiremos.
-
-            } catch (error) {
-                // 4. Si algo sale mal (ej: contraseña incorrecta), mostramos un error
-                console.error('Error de login:', error);
-                errorMessage.textContent = 'Correo o contraseña incorrectos.';
-            }
-        });
-    }
+        try {
+            const authResponse = await loginUser(email, password);
+            saveSession(authResponse);
+            window.location.href = homeForRole(authResponse.role);
+        } catch (error) {
+            errorMessage.textContent = 'Correo o contraseña incorrectos.';
+            errorMessage.classList.add('visible');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Acceder';
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', init);

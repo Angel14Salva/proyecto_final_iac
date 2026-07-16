@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de zona — Trujillo Informado</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <main class="page">
+        <div class="page-header">
+            <div class="eyebrow">Panel del supervisor</div>
+            <h1>Reportes de mi zona</h1>
+        </div>
+
+        <div class="stat-grid" style="margin-bottom:1.5rem;" id="stat-grid">
+            <div class="stat-card"><div class="stat-value">—</div><div class="stat-label">Total</div></div>
+            <div class="stat-card accent-ochre"><div class="stat-value">—</div><div class="stat-label">Pendientes</div></div>
+            <div class="stat-card accent-green"><div class="stat-value">—</div><div class="stat-label">Resueltos</div></div>
+        </div>
+
+        <div class="filter-bar" style="margin-bottom:1.25rem;">
+            <div class="field">
+                <label for="f-estados">Estado</label>
+                <select id="f-estados" multiple size="3">
+                    <option value="PENDIENTE">Pendiente</option>
+                    <option value="EN_PROGRESO">En progreso</option>
+                    <option value="RESUELTO">Resuelto</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="f-tipos">Tipo</label>
+                <select id="f-tipos" multiple size="3">
+                    <option value="RESIDUOS_SOLIDOS">Residuos sólidos</option>
+                    <option value="MALEZA">Maleza</option>
+                    <option value="BARRIDO">Barrido</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="f-inicio">Desde</label>
+                <input type="date" id="f-inicio">
+            </div>
+            <div class="field">
+                <label for="f-fin">Hasta</label>
+                <input type="date" id="f-fin">
+            </div>
+            <button class="btn btn-primary btn-sm" id="apply-filters-btn" type="button">Filtrar</button>
+            <button class="btn btn-secondary btn-sm" id="export-pdf-btn" type="button">Exportar PDF</button>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Ciudadano</th>
+                        <th>Dirección</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th>Asignado a</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="reports-table-body"></tbody>
+            </table>
+        </div>
+        <div id="pagination-wrapper" class="pagination"></div>
+    </main>
+
+    <!-- Modal: asignar tarea -->
+    <div class="modal-backdrop" id="assign-modal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="mb-0">Asignar tarea</h2>
+                <button class="modal-close" id="close-assign-modal" type="button">&times;</button>
+            </div>
+            <form id="assign-form">
+                <input type="hidden" id="assign-report-id">
+                <div class="field">
+                    <label for="assign-worker">Trabajador</label>
+                    <select id="assign-worker" required></select>
+                </div>
+                <div class="field">
+                    <label for="assign-type">Tipo de tarea</label>
+                    <select id="assign-type" required>
+                        <option value="RESIDUOS_SOLIDOS">Residuos sólidos</option>
+                        <option value="MALEZA">Maleza</option>
+                        <option value="BARRIDO">Barrido</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="assign-description">Instrucciones</label>
+                    <textarea id="assign-description" placeholder="Notas para el trabajador (opcional)"></textarea>
+                </div>
+                <p id="assign-form-error" class="error-message"></p>
+                <button type="submit" class="btn btn-primary btn-block" id="assign-submit-btn">Asignar</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="../js/pages/supervisor.js"></script>
+</body>
+</html>

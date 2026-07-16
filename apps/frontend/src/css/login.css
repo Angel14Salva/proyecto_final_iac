@@ -1,72 +1,79 @@
-/* Estilos para la página de login */
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f0f2f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+/* src/css/login.css — usa los tokens de design-system.css */
+
+body.login-body{
+  min-height: 100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(600px 300px at 15% -10%, var(--green-soft), transparent),
+    radial-gradient(500px 260px at 110% 10%, var(--ochre-soft), transparent),
+    var(--paper);
 }
 
-.login-container {
-    background-color: white;
-    padding: 2.5rem 3rem;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    box-sizing: border-box;
+.login-shell{
+  width:100%;
+  max-width: 900px;
+  display:grid;
+  grid-template-columns: 1.05fr 1fr;
+  background: var(--surface);
+  border-radius: var(--radius-l);
+  overflow:hidden;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--line);
 }
 
-h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 2rem;
-    color: #1c1e21;
+.login-side{
+  background: var(--ink);
+  color:#fff;
+  padding: 2.5rem 2.25rem;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:relative;
+}
+.login-side::after{
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(220px 220px at 85% 90%, rgba(47,107,79,.45), transparent 70%),
+    radial-gradient(180px 180px at 10% 15%, rgba(185,130,42,.35), transparent 70%);
+  pointer-events:none;
+}
+.login-side-content{ position:relative; }
+.login-brand{ font-family: var(--font-display); font-size:1.5rem; font-weight:700; }
+.login-brand small{ display:block; font-family: var(--font-body); font-weight:500; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:#b9c4b4; margin-top:.3rem; }
+.login-pitch{ margin-top:1.6rem; font-size:.95rem; line-height:1.55; color:#dfe6da; max-width: 34ch; }
+.login-roles{ position:relative; display:flex; flex-direction:column; gap:.6rem; margin-top:1.75rem; }
+.login-role-item{ display:flex; align-items:center; gap:.6rem; font-size:.82rem; color:#cfd8ca; }
+.login-role-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+.login-form-area{
+  padding: 2.5rem 2.25rem;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
-}
+.login-form-area h1{ margin-bottom: .25rem; }
+.login-form-area .subtitle{ color: var(--muted); font-size:.9rem; margin-bottom: 1.75rem; }
 
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #4b4f56;
-    font-weight: 500;
+.error-message{
+  color: var(--red);
+  background: var(--red-soft);
+  border-radius: var(--radius-s);
+  padding: .6rem .8rem;
+  font-size: .85rem;
+  margin: 0 0 1rem 0;
+  display:none;
 }
+.error-message.visible{ display:block; }
 
-.form-group input {
-    width: 100%;
-    padding: 0.9rem;
-    border: 1px solid #dddfe2;
-    border-radius: 8px;
-    font-size: 1rem;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
-}
+.login-footer-link{ margin-top:1.5rem; text-align:center; font-size:.88rem; color: var(--muted); }
 
-.form-group input:focus {
-    outline: none;
-    border-color: #5a7a8a;
-}
-
-button {
-    width: 100%;
-    padding: 0.9rem;
-    border: none;
-    border-radius: 8px;
-    background-color: #28a745; /* Verde brillante del diseño */
-    color: white;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-button:hover {
-    background-color: #218838; /* Un verde un poco más oscuro */
+@media (max-width: 720px){
+  .login-shell{ grid-template-columns: 1fr; }
+  .login-side{ padding: 1.75rem; }
+  .login-pitch, .login-roles{ display:none; }
 }
