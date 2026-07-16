@@ -57,35 +57,12 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  # Regla 2: Proteccion contra bots conocidos y scrapers
-  rule {
-    name     = "AWSManagedRulesBotControlRuleSet"
-    priority = 2
-    override_action {
-      none {}
-    }
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesBotControlRuleSet"
-        vendor_name = "AWS"
-        managed_rule_group_configs {
-          aws_managed_rules_bot_control_rule_set {
-            inspection_level = "COMMON"
-            # Explicito para que no quede en "computed": sin esto, AWS
-            # devuelve el valor real (true) en cada refresh pero nuestro HCL
-            # no lo declaraba, generando un diff perpetuo "0 to add, 1 to
-            # change" que nunca converge por mas veces que se aplique.
-            enable_machine_learning = true
-          }
-        }
-      }
-    }
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${local.name_prefix}BotControlMetric"
-      sampled_requests_enabled   = true
-    }
-  }
+  # NOTA: se quito la regla "AWSManagedRulesBotControlRuleSet" (Bot Control)
+  # a proposito para minimizar costo -- Bot Control cobra un cargo mensual
+  # fijo extra + un cargo por peticion inspeccionada, y no lo exige ningun
+  # check de Checkov. La proteccion base la siguen dando CommonRuleSet,
+  # RateLimitPerIP, AnonymousIpList y KnownBadInputs (abajo). Los "priority"
+  # dejan un hueco en 2 a proposito; WAF no exige que sean contiguos.
 
   # Regla 3: Limitacion de tasa (rate limiting) — max 2000 req/5min por IP
   rule {
@@ -178,9 +155,12 @@ resource "aws_wafv2_web_acl_association" "alb" {
 
 # Logs del WAF hacia CloudWatch
 resource "aws_cloudwatch_log_group" "waf" {
+  # checkov:skip=CKV_AWS_338: Retencion a 30 dias a proposito para minimizar
+  # el costo de almacenamiento en CloudWatch (proyecto academico). El check
+  # exige >=1 anio; no se justifica aqui.
   # Los log groups del WAF DEBEN tener el prefijo "aws-waf-logs-"
   name              = "aws-waf-logs-${local.name_prefix}"
-  retention_in_days = 365
+  retention_in_days = 30
   kms_key_id        = var.kms_secrets_key_arn
   tags              = { Name = "${local.name_prefix}-waf-logs" }
 }
@@ -253,9 +233,12 @@ resource "aws_wafv2_web_acl" "cloudfront" {
 # us-east-1 (misma region que el WAF con scope CLOUDFRONT).
 resource "aws_cloudwatch_log_group" "waf_cloudfront" {
   provider = aws.us_east_1
+  # checkov:skip=CKV_AWS_338: Retencion a 30 dias a proposito para minimizar
+  # el costo de almacenamiento en CloudWatch (proyecto academico). El check
+  # exige >=1 anio; no se justifica aqui.
   # Los log groups del WAF DEBEN tener el prefijo "aws-waf-logs-"
   name              = "aws-waf-logs-${local.name_prefix}-cloudfront"
-  retention_in_days = 365
+  retention_in_days = 30
   kms_key_id        = var.kms_secrets_key_arn
   tags              = { Name = "${local.name_prefix}-waf-cloudfront-logs" }
 }
