@@ -277,8 +277,11 @@ resource "aws_default_security_group" "default" {
 }
 
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  # checkov:skip=CKV_AWS_338: Retencion a 30 dias a proposito para minimizar
+  # el costo de almacenamiento en CloudWatch (los VPC flow logs son
+  # voluminosos). El check exige >=1 anio; no se justifica aqui.
   name              = "/aws/vpc/flowlogs/${local.name_prefix}"
-  retention_in_days = 365
+  retention_in_days = 30
   kms_key_id        = var.kms_secrets_key_arn
   tags              = { Name = "${local.name_prefix}-vpc-flow-logs" }
 }

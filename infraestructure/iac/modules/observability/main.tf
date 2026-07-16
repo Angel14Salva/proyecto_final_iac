@@ -189,8 +189,13 @@ resource "aws_cloudtrail" "main" {
 }
 
 resource "aws_cloudwatch_log_group" "cloudtrail" {
+  # checkov:skip=CKV_AWS_338: Retencion a 30 dias a proposito para minimizar
+  # el costo de almacenamiento en CloudWatch (proyecto academico). El check
+  # exige >=1 anio. El historial de CloudTrail a largo plazo igual queda en
+  # el bucket S3 (aws_cloudtrail.main -> cloudtrail_logs), esto es solo el
+  # espejo en CloudWatch Logs.
   name              = "/aws/cloudtrail/${local.name_prefix}"
-  retention_in_days = 365
+  retention_in_days = 30
   kms_key_id        = var.kms_secrets_key_arn
   tags              = { Name = "${local.name_prefix}-cloudtrail-logs" }
 }
