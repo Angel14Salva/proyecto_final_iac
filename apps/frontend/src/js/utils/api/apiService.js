@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../../config.js';
 **/
 
  export async function loginUser(email, password) {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/v1/auth/autenticar`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -24,7 +24,7 @@ import { API_BASE_URL } from '../../config.js';
 
 
 export async function fetchReportes(page, size) {
-    const url = `${API_BASE_URL}/reportes?page=${page}&size=${size}`;
+    const url = `${API_BASE_URL}/v1/reportes?page=${page}&size=${size}`;
     
     try {
         const response = await fetch(url);
@@ -48,7 +48,7 @@ export async function fetchTareasAsignadas(page, size) {
         throw new Error('No se encontró token de autenticación.');
     }
 
-    const url = `${API_BASE_URL}/tareas/asignadas?page=${page}&size=${size}&sort=fechaAsignacion,desc`;
+    const url = `${API_BASE_URL}/v1/tareas/me?page=${page}&size=${size}&sort=fechaAsignacion,desc`;
     
     const response = await fetch(url, {
         method: 'GET',

@@ -6,6 +6,25 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+  mail:
+    host: localhost
+    port: 3025
+    username: test
+    password: test
+
+mail:
+  from: no-reply@example.com
+
+aws:
+  region: us-east-1
+  sqs:
+    reportes-queue-url: https://sqs.us-east-1.amazonaws.com/000000000000/test-reportes
+    notificaciones-queue-url: https://sqs.us-east-1.amazonaws.com/000000000000/test-notificaciones
+  sns:
+    negocio-topic-arn: arn:aws:sns:us-east-1:000000000000:test-negocio
+  dynamodb:
+    gps-table: test-gps-locations
+    notifications-table: test-notifications
 
 application:
   security:

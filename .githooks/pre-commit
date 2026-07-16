@@ -4,7 +4,7 @@
 set -e
 
 staged_backend=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^apps/backend/.*\.java$' || true)
-staged_terraform=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^infraestructure/terraform/.*\.tf$' || true)
+staged_terraform=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^infraestructure/iac/.*\.tf$' || true)
 
 if [ -n "$staged_backend" ]; then
   echo "[pre-commit] Compilando backend..."
@@ -17,8 +17,8 @@ fi
 if [ -n "$staged_terraform" ]; then
   if command -v terraform >/dev/null 2>&1; then
     echo "[pre-commit] Verificando formato de Terraform..."
-    if ! terraform -chdir=infraestructure/terraform fmt -check -diff; then
-      echo "[pre-commit] ERROR: hay archivos .tf sin formatear. Corre 'terraform fmt' en infraestructure/terraform." >&2
+    if ! terraform -chdir=infraestructure/iac fmt -check -recursive -diff; then
+      echo "[pre-commit] ERROR: hay archivos .tf sin formatear. Corre 'terraform fmt -recursive' en infraestructure/iac." >&2
       exit 1
     fi
   else

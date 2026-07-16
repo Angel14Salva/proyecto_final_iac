@@ -24,7 +24,7 @@ git config core.hooksPath .githooks
 ```
 
 Qué hace cada uno:
-- **pre-commit**: si hay cambios en `apps/backend/**/*.java`, compila el backend; si hay cambios en `infraestructure/terraform/**/*.tf`, valida `terraform fmt`.
+- **pre-commit**: si hay cambios en `apps/backend/**/*.java`, compila el backend; si hay cambios en `infraestructure/iac/**/*.tf`, valida `terraform fmt`.
 - **commit-msg**: exige [Conventional Commits](https://www.conventionalcommits.org/) (`tipo(scope): descripción`, ej. `fix(CKV2_AWS_46): ...`).
 - **pre-push**: corre `mvn test` y **solo avisa** si algo falla (modo advertencia temporal hasta que la Fase 3 del roadmap de CI/CD deje los tests de integración funcionando standalone; después pasará a bloquear el push).
 
@@ -55,23 +55,42 @@ Dos workflows en `.github/workflows/`:
 Ambos corren en push a `main`, `develop` y `feature` (y en PRs a `main`), filtrados por `paths:` para no dispararse de más:
 
 - **backend-ci.yml**: corre `mvn verify` (build + tests unitarios/integración + JaCoCo) en un runner Linux — ahí Testcontainers funciona nativo, sin el problema de named pipes que vimos en Windows. El análisis de Sonar y el build+push de la imagen a ECR son **pasos opcionales**: solo corren si están configuradas las variables/secrets correspondientes (ver abajo); si no existen, el job se salta en vez de romper el pipeline. El build+push a ECR además **solo corre en push a `main`** — nunca desde `develop`/`feature`, aunque el resto del job (build+test) sí valida ahí.
-- **terraform-ci.yml**: corre `terraform fmt -check` + `terraform validate` (sin backend remoto, así que no hace `plan`/`apply` — el estado sigue siendo local/manual vía Ansible por ahora) y un scan de Checkov que sube resultados a GitHub Code Scanning.
+- **terraform-ci.yml**: corre `terraform fmt -check` + `terraform validate` (sin backend remoto, así que no hace `plan`/`apply` — el estado sigue siendo local/manual vía Ansible por ahora) en matrix sobre los 3 entornos (`dev`, `qa`, `prod`) de `infraestructure/iac/environments/`, más un scan de Checkov que sube resultados a GitHub Code Scanning.
+
+## Entornos de infraestructura (dev / qa / prod)
+
+`infraestructure/iac/environments/` trae los 3 entornos, cada uno un root module delgado que llama una sola vez al wiring compartido de los 14 módulos (`infraestructure/iac/modules/stack/`) — así el wiring de módulos nunca puede divergir entre entornos, solo los valores (CIDR, dominio, `environment`). Los tres se despliegan en la misma cuenta de AWS; todos los nombres de recurso llevan el prefijo `${project_name}-${environment}` para no chocar entre sí.
+
+| Entorno | `environment` | VPC CIDR | Dominio |
+|---|---|---|---|
+| dev  | `dev`  | `10.0.0.0/16` | `dev.segat.com` |
+| qa   | `qa`   | `10.1.0.0/16` | `qa.segat.com`  |
+| prod | `prod` | `10.2.0.0/16` | `segat.com`     |
+
+Tres recursos son singletons de cuenta (AWS solo permite uno por cuenta/región o por URL, sin importar el nombre): `aws_api_gateway_account`, `aws_config_configuration_recorder` y `aws_iam_openid_connect_provider` (GitHub Actions). Solo `dev` los crea (`manage_apigw_account_settings` / `manage_config_recorder` / `manage_oidc_provider` en `true`); `qa` y `prod` los dejan en `false` para no pisarse entre sí — sus roles IAM igual funcionan porque referencian el ARN predecible del provider en vez de crear uno nuevo. Si `dev` se destruye, hay que pasar esos flags a otro entorno.
+
+```bash
+cd infraestructure/iac/environments/dev   # o qa / prod
+terraform init
+terraform plan -out=tfplan   # pide TF_VAR_db_password
+terraform apply tfplan
+```
 
 Variables/secrets a configurar en GitHub (`Settings > Secrets and variables > Actions`) para activar los pasos opcionales:
 
 | Nombre | Tipo | Para qué |
 |---|---|---|
-| `SONAR_HOST_URL` | Variable | URL pública donde el runner pueda alcanzar tu SonarQube. Mientras sea self-hosted en `localhost`, este paso se queda desactivado — quedó así a propósito (ver Fase 4/5 de la conversación). |
-| `SONAR_TOKEN` | Secret | Token de análisis generado en la UI de Sonar. |
-| `AWS_GHA_ROLE_ARN` | Variable | ARN del rol IAM que GitHub Actions asume vía OIDC para poder hacer push a ECR. Lo genera `infraestructure/terraform/github_oidc.tf` (ver siguiente sección) — **todavía no aplicado**. |
+| `AWS_GHA_ROLE_ARN` | Variable | ARN del rol IAM que GitHub Actions asume vía OIDC para poder hacer push a ECR. Lo genera `infraestructure/iac/modules/oidc` (ver siguiente sección) — **todavía no aplicado**. |
+
+El análisis de calidad de código corre en un workflow aparte (`sonarqube.yml`), contra SonarCloud en vez de un SonarQube self-hosted (self-hosted en `localhost` no es alcanzable por los runners de GitHub). Requiere los secrets `SONAR_TOKEN`, `SONAR_PROJECT_KEY` y `SONAR_ORGANIZATION` (ver sonarcloud.io → tu proyecto).
 
 ### OIDC de GitHub Actions hacia AWS (pendiente de aplicar)
 
-[github_oidc.tf](infraestructure/terraform/github_oidc.tf) define el proveedor OIDC + el rol IAM que le daría a GitHub Actions permiso para hacer `docker push` a ECR sin guardar credenciales AWS de larga duración en GitHub, restringido a `repo:Angel14Salva/proyecto_final_iac` en la rama `main`. Este archivo **no se aplicó todavía** (no se corrió `terraform apply`) porque toca infraestructura real de AWS — hay que revisarlo y aplicarlo a propósito:
+[modules/oidc](infraestructure/iac/modules/oidc/main.tf) define el proveedor OIDC + los roles IAM que le darían a GitHub Actions permiso para hacer `docker push` a ECR y desplegar el frontend sin guardar credenciales AWS de larga duración en GitHub, restringido a `repo:Angel14Salva/proyecto_final_iac` en la rama `main`. Se crea automáticamente al aplicar cualquier entorno (forma parte de `modules/stack`) — no es un archivo aparte que se aplique por separado. Ningún entorno se aplicó todavía (no se corrió `terraform apply` real) porque toca infraestructura real de AWS — hay que revisarlo y aplicarlo a propósito:
 
 ```bash
-cd infraestructure/terraform
-terraform plan   # revisar que solo crea el OIDC provider + el rol + su policy
+cd infraestructure/iac/environments/dev   # o qa / prod
+terraform plan   # revisar los recursos antes de aplicar
 terraform apply
 ```
 

@@ -1,0 +1,187 @@
+name: Backend CD
+
+# Se dispara cuando "Backend CI" termina (workflow_run) en push -- no en PR --
+# sobre feature/develop/main, o manualmente eligiendo el entorno destino.
+# GitHub lee este archivo desde la rama por defecto del repo, asi que el
+# workflow_run recien queda activo despues de mergearlo ahi (limitacion de
+# GitHub, no de esta config).
+on:
+  workflow_run:
+    workflows: ["Backend CI"]
+    types: [completed]
+    branches: [feature, develop, main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Entorno destino
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  resolve-environment:
+    name: Resolver entorno
+    runs-on: ubuntu-latest
+    # "event == push" descarta los workflow_run disparados por un PR (ej. un
+    # PR de feature -> develop tiene head_branch = feature, y sin este check
+    # dispararia por error un deploy a dev con solo abrir el PR).
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success') }}
+    outputs:
+      environment: ${{ steps.resolve.outputs.environment }}
+      deploy_sha: ${{ steps.resolve.outputs.deploy_sha }}
+    steps:
+      - name: Resolver entorno y commit a desplegar
+        id: resolve
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ inputs.environment }}"
+            DEPLOY_SHA="${{ github.sha }}"
+          elif [ "${{ github.event.workflow_run.head_branch }}" = "feature" ]; then
+            ENVIRONMENT="dev"
+            DEPLOY_SHA="${{ github.event.workflow_run.head_sha }}"
+          elif [ "${{ github.event.workflow_run.head_branch }}" = "develop" ]; then
+            ENVIRONMENT="qa"
+            DEPLOY_SHA="${{ github.event.workflow_run.head_sha }}"
+          elif [ "${{ github.event.workflow_run.head_branch }}" = "main" ]; then
+            ENVIRONMENT="prod"
+            DEPLOY_SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            echo "Rama no soportada: ${{ github.event.workflow_run.head_branch }}"
+            exit 1
+          fi
+
+          echo "environment=${ENVIRONMENT}" >> "$GITHUB_OUTPUT"
+          echo "deploy_sha=${DEPLOY_SHA}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy backend
+    runs-on: ubuntu-latest
+    needs: resolve-environment
+    # Activa las variables propias del Environment (Settings > Environments)
+    # que coincide con el nombre resuelto arriba -- "vars.X" abajo las lee
+    # automaticamente (las de Environment pisan a las del repo si hay choque).
+    environment: ${{ needs.resolve-environment.outputs.environment }}
+    defaults:
+      run:
+        working-directory: apps/backend
+    env:
+      AWS_REGION: us-east-1
+      AWS_ROLE_ARN: ${{ vars.AWS_GHA_ROLE_ARN }}
+      ECS_CLUSTER_NAME: ${{ vars.ECS_CLUSTER_NAME }}
+      ECS_SERVICE_NAME: ${{ vars.ECS_SERVICE_NAME }}
+      ECS_TASK_DEFINITION_FAMILY: ${{ vars.ECS_TASK_DEFINITION_FAMILY }}
+      ECR_REPOSITORY_NAME: ${{ vars.ECR_REPOSITORY_NAME }}
+      DEPLOY_SHA: ${{ needs.resolve-environment.outputs.deploy_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - name: Validar variables de despliegue
+        shell: bash
+        run: |
+          missing=0
+          for name in AWS_ROLE_ARN ECS_CLUSTER_NAME ECS_SERVICE_NAME ECS_TASK_DEFINITION_FAMILY ECR_REPOSITORY_NAME; do
+            if [ -z "${!name}" ]; then
+              echo "$name no esta configurada en el Environment '${{ needs.resolve-environment.outputs.environment }}' (Settings > Environments > ${{ needs.resolve-environment.outputs.environment }} > Variables)"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Configurar credenciales AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login a Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image URI
+        shell: bash
+        run: echo "IMAGE_URI=${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY_NAME}:${DEPLOY_SHA}" >> "$GITHUB_ENV"
+
+      # Evita reconstruir la misma imagen si el commit ya se desplego antes en
+      # otro entorno (ej. el mismo SHA promovido de dev a qa).
+      - name: Verificar si la imagen ya existe en ECR
+        id: check-image
+        shell: bash
+        run: |
+          set +e
+          output="$(aws ecr describe-images \
+            --repository-name "${ECR_REPOSITORY_NAME}" \
+            --image-ids imageTag="${DEPLOY_SHA}" \
+            --output json 2>&1)"
+          status="$?"
+          set -e
+
+          if [ "$status" -eq 0 ]; then
+            echo "La imagen ya existe en ECR: ${IMAGE_URI}"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$output" == *"ImageNotFoundException"* ]]; then
+            echo "La imagen no existe todavia en ECR: ${IMAGE_URI}"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$output"
+            exit "$status"
+          fi
+
+      - name: Build y push de la imagen
+        if: steps.check-image.outputs.exists != 'true'
+        shell: bash
+        run: |
+          docker build -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+
+      # ECR es IMMUTABLE: no hay tag ":latest" que sobreescribir, asi que cada
+      # deploy registra su propia revision del task definition (misma family,
+      # solo cambia la imagen). aws_ecs_service en Terraform ignora este
+      # atributo (lifecycle.ignore_changes) para no revertirlo en el proximo
+      # "terraform apply".
+      - name: Registrar nueva revision del task definition
+        shell: bash
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "${ECS_TASK_DEFINITION_FAMILY}" \
+            --query "taskDefinition" \
+            --output json > current-task-def.json
+
+          jq --arg image "$IMAGE_URI" '
+            .containerDefinitions |= map(.image = $image)
+            | del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                  .compatibilities, .registeredAt, .registeredBy)
+          ' current-task-def.json > new-task-def.json
+
+          NEW_TASK_DEFINITION="$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-def.json \
+            --query "taskDefinition.taskDefinitionArn" \
+            --output text)"
+
+          echo "NEW_TASK_DEFINITION=${NEW_TASK_DEFINITION}" >> "$GITHUB_ENV"
+
+      - name: Actualizar el servicio ECS
+        shell: bash
+        run: |
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER_NAME}" \
+            --service "${ECS_SERVICE_NAME}" \
+            --task-definition "${NEW_TASK_DEFINITION}" \
+            --force-new-deployment \
+            --no-cli-pager
+
+      - name: Esperar a que el servicio quede estable
+        shell: bash
+        run: |
+          aws ecs wait services-stable \
+            --cluster "${ECS_CLUSTER_NAME}" \
+            --services "${ECS_SERVICE_NAME}"

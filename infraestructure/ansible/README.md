@@ -15,15 +15,19 @@ infraestructura SEGAT en AWS usando Terraform y Checkov.
 
 ## Uso
 
+Por defecto todos los playbooks operan sobre `infraestructure/iac/environments/dev`.
+Para apuntar a otro entorno, pasa `target_env`:
+
 ```bash
-# Validar seguridad del código
+# Validar seguridad del código (entorno dev por defecto)
 ansible-playbook validate.yml
 
-# Desplegar infraestructura
-ansible-playbook deploy.yml
+# Desplegar infraestructura de un entorno especifico
+ansible-playbook deploy.yml -e target_env=qa
+ansible-playbook deploy.yml -e target_env=prod
 
-# Destruir infraestructura
-ansible-playbook destroy.yml
+# Destruir infraestructura de un entorno especifico
+ansible-playbook destroy.yml -e target_env=qa
 ```
 
 ## Requisitos

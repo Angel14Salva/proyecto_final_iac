@@ -1,3 +1,4 @@
+
 package com.segat.trujilloinformado.service.impl;
 
 import com.segat.trujilloinformado.model.dao.NotificationLogDao;
@@ -7,33 +8,44 @@ import com.segat.trujilloinformado.model.entity.Tarea;
 import com.segat.trujilloinformado.model.entity.Usuario;
 import com.segat.trujilloinformado.service.INotificationService;
 import com.segat.trujilloinformado.service.IUsuarioService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 
+/**
+ * Envia notificaciones por email directamente via SMTP (JavaMailSender).
+ * Reemplaza la version anterior que dependia de webhooks de n8n -- se quito
+ * n8n del proyecto para no tener que levantar y mantener una instancia
+ * aparte solo para reenviar estos dos mensajes.
+ * <p>
+ * WhatsApp queda fuera de alcance por ahora: la API de WhatsApp Business
+ * exige una plantilla de mensaje pre-aprobada por Meta para mensajes que
+ * inicia el negocio (no el usuario), y el equipo no tiene esa aprobacion
+ * todavia. Si se agrega mas adelante, este mismo patron (metodo privado que
+ * arma el mensaje + try/catch que no relanza) sirve de base.
+ */
+@Slf4j
 @Service
 public class NotificationServiceImpl implements INotificationService {
-    private final RestTemplate restTemplate;
+
+    private final JavaMailSender mailSender;
     private final NotificationLogDao logRepository;
 
     @Autowired
     private IUsuarioService usuarioService;
 
-    @Value("${n8n.webhook.new-report}")
-    private String newReport;
+    @Value("${mail.from}")
+    private String mailFrom;
 
-    @Value("${n8n.webhook.new-task}")
-    private String newTask;
-
-    public NotificationServiceImpl(NotificationLogDao logRepository) {
-        this.restTemplate = new RestTemplate();
+    public NotificationServiceImpl(JavaMailSender mailSender, NotificationLogDao logRepository) {
+        this.mailSender = mailSender;
         this.logRepository = logRepository;
     }
 
@@ -43,18 +55,17 @@ public class NotificationServiceImpl implements INotificationService {
      */
     @Async
     public void sendNewReportNotification(Reporte reporte) {
-        // 1. Obtener el supervisor y su teléfono
-        // (Asumo que puedes obtener el supervisor desde la zona del reporte)
         Integer zoneNumber = reporte.getZone().getNumber();
-        Usuario supervisor = usuarioService.findByZoneNumber(zoneNumber).orElseThrow(() -> new IllegalStateException("La supervisor asignado a la zona " + zoneNumber + " no existe."));; // O lógica similar
-        String supervisorPhone = supervisor.getPhone(); // Tu modelo Usuario debe tener 'phone'
+        Usuario supervisor = usuarioService.findByZoneNumber(zoneNumber)
+                .orElseThrow(() -> new IllegalStateException("El supervisor asignado a la zona " + zoneNumber + " no existe."));
+        String supervisorEmail = supervisor.getEmail();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
                 .withZone(ZoneId.of("America/Lima"));
         String formattedDate = reporte.getCreatedAt() != null ? formatter.format(reporte.getCreatedAt()) : "";
 
-        // 2. Formatear el mensaje
-        String message = String.format(
+        String asunto = "Nuevo reporte pendiente #" + reporte.getId();
+        String mensaje = String.format(
                 "¡Nuevo Reporte Pendiente! ID: %d, Tipo: %s, Estado: %s, Ubicación: %s, Fecha: %s",
                 reporte.getId(),
                 reporte.getType().toString(),
@@ -63,80 +74,70 @@ public class NotificationServiceImpl implements INotificationService {
                 formattedDate
         );
 
-        // 3. Crear el log inicial
-        NotificationLog log = NotificationLog.builder()
+        // NOTA: se reutiliza la columna "recipientPhone" para guardar el
+        // email del destinatario. El proyecto usa ddl-auto=validate sin
+        // Flyway/Liquibase, asi que agregar una columna nueva (por ejemplo
+        // recipient_email) exigiria un ALTER TABLE manual coordinado contra
+        // la base real -- fuera de alcance de este cambio. Renombrar el
+        // campo queda como mejora futura si se agrega una herramienta de
+        // migraciones.
+        NotificationLog notificationLog = NotificationLog.builder()
                 .reporte(reporte)
-                .recipientPhone(supervisorPhone)
-                .messageContent(message)
+                .recipientPhone(supervisorEmail)
+                .messageContent(mensaje)
                 .status("PENDING")
                 .build();
-        logRepository.save(log);
-
-        // 4. Preparar los datos para el webhook de n8n
-        Map<String, String> payload = new HashMap<>();
-        payload.put("supervisorPhone", supervisorPhone);
-        payload.put("reporteId", String.valueOf(reporte.getId()));
-        payload.put("tipo", reporte.getType().toString());
-        payload.put("estado", "Pendiente"); // Criterio 3: Indicar "Pendiente"
-        payload.put("ubicacion", reporte.getAddress());
-        payload.put("fechaRegistro", reporte.getCreatedAt().toString());
+        logRepository.save(notificationLog);
 
         try {
-            // 5. Enviar a n8n
-            restTemplate.postForObject(newReport, payload, String.class);
-
-            // 6. Actualizar el log a ÉXITO
-            log.setStatus("SENT");
-            logRepository.save(log);
-
+            enviarCorreo(supervisorEmail, asunto, mensaje);
+            notificationLog.setStatus("SENT");
         } catch (Exception e) {
-            // 7. Actualizar el log a FALLIDO
-            log.setStatus("FAILED");
-            logRepository.save(log);
-            // Manejar el error (log.error("..."))
+            notificationLog.setStatus("FAILED");
+            log.error("No se pudo enviar el correo de nuevo reporte al supervisor {}: {}", supervisorEmail, e.getMessage());
+        } finally {
+            logRepository.save(notificationLog);
         }
     }
 
     @Async
     public void sendNewTaskNotification(Tarea tarea) {
-        // Criterio 3: Obtener el teléfono del trabajador
-        String workerPhone = tarea.getWorker().getPhone();
+        String workerEmail = tarea.getWorker().getEmail();
 
-        // Formatear el mensaje (puedes hacerlo aquí o en n8n)
-        String message = String.format(
+        String asunto = "Nueva tarea asignada #" + tarea.getId();
+        String mensaje = String.format(
                 "¡Nueva Tarea Asignada! ID: %d, Tipo: %s, Ubicación: %s",
                 tarea.getId(),
                 tarea.getType().toString(),
-                tarea.getAddress() // La ubicación está en el reporte
+                tarea.getAddress()
         );
 
-        // Criterio 4: Registrar en el historial
-        NotificationLog log = NotificationLog.builder()
-                .reporte(tarea.getReport()) // Asocia el log al reporte principal
-                .recipientPhone(workerPhone)
-                .messageContent(message)
+        NotificationLog notificationLog = NotificationLog.builder()
+                .reporte(tarea.getReport())
+                .recipientPhone(workerEmail)
+                .messageContent(mensaje)
                 .status("PENDING")
                 .build();
-        logRepository.save(log);
-
-        // Preparar el payload para n8n
-        Map<String, String> payload = new HashMap<>();
-        payload.put("workerPhone", workerPhone);
-        payload.put("taskId", String.valueOf(tarea.getId()));
-        payload.put("tipo", tarea.getType().toString());
-        payload.put("ubicacion", tarea.getReport().getAddress());
-        payload.put("fechaAsignacion", tarea.getCreatedAt().toString());
+        logRepository.save(notificationLog);
 
         try {
-            // Enviar a la NUEVA URL de n8n
-            restTemplate.postForObject(newTask, payload, String.class);
-            log.setStatus("SENT");
-            logRepository.save(log);
-
+            enviarCorreo(workerEmail, asunto, mensaje);
+            notificationLog.setStatus("SENT");
         } catch (Exception e) {
-            log.setStatus("FAILED");
-            logRepository.save(log);
-            // log.error("Error al enviar notificación de tarea a n8n", e);
+            notificationLog.setStatus("FAILED");
+            log.error("No se pudo enviar el correo de nueva tarea al trabajador {}: {}", workerEmail, e.getMessage());
+        } finally {
+            logRepository.save(notificationLog);
         }
     }
+
+    private void enviarCorreo(String destinatario, String asunto, String cuerpo) {
+        SimpleMailMessage mensaje = new SimpleMailMessage();
+        mensaje.setFrom(mailFrom);
+        mensaje.setTo(destinatario);
+        mensaje.setSubject(asunto);
+        mensaje.setText(cuerpo);
+        mailSender.send(mensaje);
+    }
 }
+

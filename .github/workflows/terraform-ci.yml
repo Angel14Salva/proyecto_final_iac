@@ -4,22 +4,24 @@ on:
   push:
     branches: [main, develop, feature]
     paths:
-      - "infraestructure/terraform/**"
+      - "infraestructure/iac/**"
       - ".github/workflows/terraform-ci.yml"
   pull_request:
     branches: [main]
     paths:
-      - "infraestructure/terraform/**"
+      - "infraestructure/iac/**"
       - ".github/workflows/terraform-ci.yml"
-
-defaults:
-  run:
-    working-directory: infraestructure/terraform
 
 jobs:
   validate:
-    name: fmt + validate
+    name: fmt + validate (${{ matrix.environment }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, qa, prod]
+    defaults:
+      run:
+        working-directory: infraestructure/iac/environments/${{ matrix.environment }}
     steps:
       - uses: actions/checkout@v4
 
@@ -51,7 +53,7 @@ jobs:
       - name: Checkov
         uses: bridgecrewio/checkov-action@v12.3113.0
         with:
-          directory: infraestructure/terraform
+          directory: infraestructure/iac
           framework: terraform
           output_format: cli,sarif
           # output_file_path se escribe relativo a la raiz del repo (GITHUB_WORKSPACE),
