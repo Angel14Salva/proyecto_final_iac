@@ -339,8 +339,11 @@ resource "aws_lb_listener" "https" {
 }
 
 resource "aws_cloudwatch_log_group" "ecs" {
+  # checkov:skip=CKV_AWS_338: Retencion a 30 dias a proposito para minimizar
+  # el costo de almacenamiento en CloudWatch (proyecto academico). El check
+  # exige >=1 anio; no se justifica guardar tanto historial de logs aqui.
   name              = "/ecs/${local.name_prefix}/backend"
-  retention_in_days = 365
+  retention_in_days = 30
   kms_key_id        = var.kms_secrets_key_arn
   tags              = { Name = "${local.name_prefix}-ecs-logs" }
 }
