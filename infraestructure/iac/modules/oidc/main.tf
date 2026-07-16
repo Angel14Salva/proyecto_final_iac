@@ -187,3 +187,112 @@ resource "aws_iam_role_policy" "github_actions_frontend_deploy" {
   })
 }
 
+# ---------------------------------------------------------------------------
+# Rol para el pipeline de "Terraform CD" (plan + apply automatico de
+# infraestructure/iac/environments/<env>). Necesita permisos mucho mas
+# amplios que los roles de arriba porque crea/modifica la infraestructura
+# real (VPC, RDS, ECS, Cognito, WAF, etc.), no solo hace deploy de la app
+# sobre infraestructura ya existente.
+# ---------------------------------------------------------------------------
+resource "aws_iam_role" "github_actions_terraform_apply" {
+  name = "${local.name_prefix}-gha-terraform-apply"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = local.oidc_provider_arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:ref:refs/heads/${local.trusted_branch}"
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${local.name_prefix}-role-gha-terraform-apply" }
+}
+
+# PowerUserAccess cubre casi todos los servicios que estos modulos usan
+# (VPC, ECS, RDS, ElastiCache, DynamoDB, S3, CloudFront, Route53, ACM,
+# Cognito, API Gateway, WAFv2, KMS, SNS, SQS, Secrets Manager, CloudTrail,
+# Config) pero excluye a proposito la administracion de IAM -- eso se cubre
+# aparte con la policy de abajo, acotada solo a los recursos de este entorno.
+resource "aws_iam_role_policy_attachment" "terraform_apply_power_user" {
+  role       = aws_iam_role.github_actions_terraform_apply.name
+  policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
+}
+
+# PowerUserAccess deliberadamente no incluye IAM. Los 14 modulos SI crean
+# roles/policies (modules.security, modules.oidc, etc.), asi que el pipeline
+# necesita permisos de IAM -- acotados por Resource a los roles/policies con
+# el prefijo de ESTE entorno (${local.name_prefix}-*), no a cualquier IAM de
+# la cuenta.
+resource "aws_iam_role_policy" "terraform_apply_iam" {
+  # checkov:skip=CKV_AWS_289: Este rol EXISTE para administrar IAM -- los 14
+  # modulos de infraestructure/iac crean roles/policies (modules.security,
+  # este mismo modulo, etc.), asi que el pipeline de Terraform CD no puede
+  # funcionar sin poder crear/modificar roles. El riesgo de escalada esta
+  # acotado por Resource a "${local.name_prefix}-*" (solo los roles propios
+  # de ESTE entorno, no cualquier IAM de la cuenta) y por el trust policy de
+  # este mismo rol (solo lo asume el workflow de GitHub Actions corriendo en
+  # local.trusted_branch, ver arriba).
+  # checkov:skip=CKV_AWS_355: El unico Sid con Resource = "*" es
+  # "CreateServiceLinkedRoles" -- iam:CreateServiceLinkedRole es una accion
+  # que AWS exige autorizar con Resource = "*" (el ARN del service-linked
+  # role no existe todavia al momento de autorizar la llamada), documentado
+  # asi por AWS para ECS/RDS/Elasticache/Config y otros servicios usados
+  # aqui.
+  name = "${local.name_prefix}-gha-terraform-apply-iam"
+  role = aws_iam_role.github_actions_terraform_apply.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ManageOwnEnvironmentRoles"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:UpdateRole",
+          "iam:UpdateAssumeRolePolicy", "iam:TagRole", "iam:UntagRole",
+          "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy",
+          "iam:ListRolePolicies", "iam:ListAttachedRolePolicies",
+          "iam:AttachRolePolicy", "iam:DetachRolePolicy", "iam:PassRole",
+        ]
+        Resource = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.name_prefix}-*",
+        ]
+      },
+      {
+        # El provider OIDC (aws_iam_openid_connect_provider) solo lo
+        # administra el entorno con manage_oidc_provider=true -- este
+        # Sid solo importa en ese entorno; en los demas la policy se crea
+        # igual (misma policy en los 3 entornos) pero nunca se usa.
+        Sid    = "ManageOidcProvider"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateOpenIDConnectProvider", "iam:DeleteOpenIDConnectProvider",
+          "iam:GetOpenIDConnectProvider", "iam:UpdateOpenIDConnectProviderThumbprint",
+          "iam:TagOpenIDConnectProvider", "iam:UntagOpenIDConnectProvider",
+          "iam:AddClientIDToOpenIDConnectProvider",
+        ]
+        Resource = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"]
+      },
+      {
+        # Varios servicios administrados (ECS, RDS, Elasticache, Config,
+        # etc.) crean su propio service-linked role la primera vez que se
+        # usan -- AWS exige Resource = "*" para esta accion especifica,
+        # el ARN del rol no se puede acotar de antemano.
+        Sid      = "CreateServiceLinkedRoles"
+        Effect   = "Allow"
+        Action   = "iam:CreateServiceLinkedRole"
+        Resource = "*"
+      },
+    ]
+  })
+}
+

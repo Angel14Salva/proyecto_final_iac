@@ -116,6 +116,11 @@ output "github_actions_frontend_role_arn" {
   value       = module.segat.github_actions_frontend_role_arn
 }
 
+output "github_actions_terraform_role_arn" {
+  description = "ARN del rol que GitHub Actions asume via OIDC para terraform plan/apply — copiar a la variable AWS_GHA_TERRAFORM_ROLE_ARN del GitHub Environment de este entorno"
+  value       = module.segat.github_actions_terraform_role_arn
+}
+
 output "route53_name_servers" {
   description = "Name servers de la Hosted Zone — configurar en el registrador del dominio"
   value       = module.segat.route53_name_servers
