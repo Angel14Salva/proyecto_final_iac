@@ -12,12 +12,16 @@
 
 data "aws_caller_identity" "current" {}
 
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+}
+
 # ---------------------------------------------------------------------------
 # S3 — assets estaticos del frontend (apps/frontend)
 # ---------------------------------------------------------------------------
 resource "aws_s3_bucket" "frontend" {
-  bucket = "${var.project_name}-frontend-${var.environment}-${data.aws_caller_identity.current.account_id}"
-  tags   = { Name = "${var.project_name}-s3-frontend" }
+  bucket = "${local.name_prefix}-frontend-${data.aws_caller_identity.current.account_id}"
+  tags   = { Name = "${local.name_prefix}-s3-frontend" }
 }
 
 resource "aws_s3_bucket_public_access_block" "frontend" {
@@ -88,7 +92,7 @@ resource "aws_s3_bucket_replication_configuration" "frontend" {
 # principal pueda leer objetos de este bucket (reemplazo moderno de OAI)
 # ---------------------------------------------------------------------------
 resource "aws_cloudfront_origin_access_control" "frontend" {
-  name                              = "${var.project_name}-frontend-oac"
+  name                              = "${local.name_prefix}-frontend-oac"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -122,7 +126,7 @@ resource "aws_s3_bucket_policy" "frontend" {
 # CloudFront
 # ---------------------------------------------------------------------------
 resource "aws_cloudfront_response_headers_policy" "segat" {
-  name    = "${var.project_name}-response-headers-policy"
+  name    = "${local.name_prefix}-response-headers-policy"
   comment = "Headers de seguridad para SEGAT"
 
   security_headers_config {
@@ -166,13 +170,13 @@ resource "aws_cloudfront_distribution" "main" {
   # esta distribucion via Origin Access Control.
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_id                = "${var.project_name}-frontend-origin"
+    origin_id                = "${local.name_prefix}-frontend-origin"
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
   }
 
   origin {
     domain_name = var.alb_external_dns_name
-    origin_id   = "${var.project_name}-alb-origin"
+    origin_id   = "${local.name_prefix}-alb-origin"
 
     # http-only: el ALB presenta un certificado autofirmado (no hay dominio
     # real registrado para pedir uno valido via ACM) y CloudFront rechaza
@@ -190,7 +194,7 @@ resource "aws_cloudfront_distribution" "main" {
 
   origin {
     domain_name = var.alb_internal_dns_name
-    origin_id   = "${var.project_name}-alb-internal-origin"
+    origin_id   = "${local.name_prefix}-alb-internal-origin"
 
     custom_origin_config {
       http_port              = 80
@@ -201,15 +205,15 @@ resource "aws_cloudfront_distribution" "main" {
   }
 
   origin_group {
-    origin_id = "${var.project_name}-origin-group"
+    origin_id = "${local.name_prefix}-origin-group"
     failover_criteria {
       status_codes = [500, 502, 503, 504]
     }
     member {
-      origin_id = "${var.project_name}-alb-origin"
+      origin_id = "${local.name_prefix}-alb-origin"
     }
     member {
-      origin_id = "${var.project_name}-alb-internal-origin"
+      origin_id = "${local.name_prefix}-alb-internal-origin"
     }
   }
 
@@ -217,7 +221,7 @@ resource "aws_cloudfront_distribution" "main" {
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = "${var.project_name}-frontend-origin"
+    target_origin_id       = "${local.name_prefix}-frontend-origin"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
 
@@ -246,7 +250,7 @@ resource "aws_cloudfront_distribution" "main" {
     # escritura de la API dejan de estar bloqueados.
     allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = "${var.project_name}-alb-origin"
+    target_origin_id       = "${local.name_prefix}-alb-origin"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
 
@@ -292,6 +296,6 @@ resource "aws_cloudfront_distribution" "main" {
     prefix          = "cloudfront/"
   }
 
-  tags = { Name = "${var.project_name}-cloudfront" }
+  tags = { Name = "${local.name_prefix}-cloudfront" }
 }
 
