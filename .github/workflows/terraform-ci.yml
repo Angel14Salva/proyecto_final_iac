@@ -7,7 +7,7 @@ on:
       - "infraestructure/iac/**"
       - ".github/workflows/terraform-ci.yml"
   pull_request:
-    branches: [main]
+    branches: [main, develop, feature]
     paths:
       - "infraestructure/iac/**"
       - ".github/workflows/terraform-ci.yml"

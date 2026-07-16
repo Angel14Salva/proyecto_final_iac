@@ -74,7 +74,7 @@ variable "ecs_min_count" {
 
 variable "ecs_max_count" {
   type    = number
-  default = 6
+  default = 4
 }
 
 variable "db_name" {

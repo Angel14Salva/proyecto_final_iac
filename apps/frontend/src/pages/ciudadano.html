@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis reportes — Trujillo Informado</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <main class="page">
+        <div class="page-header row-between">
+            <div>
+                <div class="eyebrow">Panel del ciudadano</div>
+                <h1>Mis reportes</h1>
+            </div>
+            <button class="btn btn-primary" id="new-report-btn" type="button">+ Nuevo reporte</button>
+        </div>
+
+        <div class="filter-bar" style="margin-bottom:1.25rem;">
+            <div class="field">
+                <label for="filter-estado">Estado</label>
+                <select id="filter-estado">
+                    <option value="">Todos</option>
+                    <option value="PENDIENTE">Pendiente</option>
+                    <option value="EN_PROGRESO">En progreso</option>
+                    <option value="RESUELTO">Resuelto</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Zona</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Calificación</th>
+                    </tr>
+                </thead>
+                <tbody id="report-table-body"></tbody>
+            </table>
+        </div>
+        <div id="pagination-wrapper" class="pagination"></div>
+    </main>
+
+    <!-- Modal: nuevo reporte -->
+    <div class="modal-backdrop" id="new-report-modal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="mb-0">Nuevo reporte</h2>
+                <button class="modal-close" id="close-modal-btn" type="button">&times;</button>
+            </div>
+            <form id="new-report-form">
+                <div class="field">
+                    <label for="report-type">Tipo de incidencia</label>
+                    <select id="report-type" required>
+                        <option value="RESIDUOS_SOLIDOS">Residuos sólidos</option>
+                        <option value="MALEZA">Maleza</option>
+                        <option value="BARRIDO">Barrido</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="report-description">Descripción</label>
+                    <textarea id="report-description" required placeholder="Describe brevemente lo que observaste…"></textarea>
+                </div>
+                <div class="field">
+                    <label>Ubicación</label>
+                    <button type="button" class="btn btn-secondary btn-sm" id="use-location-btn">📍 Usar mi ubicación actual</button>
+                    <div id="location-status" class="hint" style="margin-top:.4rem;"></div>
+                </div>
+                <div class="row" style="gap:.75rem;">
+                    <div class="field" style="flex:1;">
+                        <label for="report-lat">Latitud</label>
+                        <input type="number" id="report-lat" step="0.000001" placeholder="Ej. -8.111990" required>
+                    </div>
+                    <div class="field" style="flex:1;">
+                        <label for="report-lng">Longitud</label>
+                        <input type="number" id="report-lng" step="0.000001" placeholder="Ej. -79.028820" required>
+                    </div>
+                </div>
+                <p class="hint" style="margin-top:-.5rem;">Si el botón de ubicación no funciona (o quieres probar otra zona), puedes escribir las coordenadas directamente aquí.</p>
+                <div class="field">
+                    <label for="report-address">Dirección de referencia</label>
+                    <input type="text" id="report-address" placeholder="Ej. Jr. Pizarro 450, Trujillo" required>
+                </div>
+                <div class="field">
+                    <label for="report-photo">Foto (opcional)</label>
+                    <input type="file" id="report-photo" accept="image/*">
+                    <div id="photo-preview" class="photo-strip" style="margin-top:.5rem;"></div>
+                </div>
+                <p id="report-form-error" class="error-message"></p>
+                <button type="submit" class="btn btn-primary btn-block" id="submit-report-btn">Enviar reporte</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="../js/pages/ciudadano.js"></script>
+</body>
+</html>

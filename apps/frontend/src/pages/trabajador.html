@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis tareas — Trujillo Informado</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <main class="page">
+        <div class="page-header row-between">
+            <div>
+                <div class="eyebrow">Panel del trabajador</div>
+                <h1>Tareas asignadas</h1>
+            </div>
+            <button class="btn btn-secondary" id="refresh-btn" type="button">Actualizar vista</button>
+        </div>
+
+        <div class="filter-bar" style="margin-bottom:1.25rem;">
+            <div class="field">
+                <label for="filter-estado">Estado</label>
+                <select id="filter-estado">
+                    <option value="">Todas</option>
+                    <option value="PENDIENTE">Pendientes</option>
+                    <option value="EN_PROGRESO">En progreso</option>
+                    <option value="RESUELTO">Completadas</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Dirección</th>
+                        <th>Referencia</th>
+                        <th>Asignada</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tasks-table-body"></tbody>
+            </table>
+        </div>
+        <div id="pagination-wrapper" class="pagination"></div>
+    </main>
+
+    <!-- Modal: completar tarea -->
+    <div class="modal-backdrop" id="complete-modal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="mb-0">Completar tarea</h2>
+                <button class="modal-close" id="close-complete-modal" type="button">&times;</button>
+            </div>
+            <form id="complete-form">
+                <input type="hidden" id="complete-task-id">
+                <div class="field">
+                    <label for="complete-notes">Notas de resolución</label>
+                    <textarea id="complete-notes" required placeholder="¿Qué se hizo para resolver esta incidencia?"></textarea>
+                </div>
+                <div class="field">
+                    <label for="complete-photo">Foto de evidencia</label>
+                    <input type="file" id="complete-photo" accept="image/*">
+                    <div id="complete-photo-preview" class="photo-strip" style="margin-top:.5rem;"></div>
+                </div>
+                <p id="complete-form-error" class="error-message"></p>
+                <button type="submit" class="btn btn-primary btn-block" id="complete-submit-btn">Marcar como resuelta</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="../js/pages/trabajador.js"></script>
+</body>
+</html>

@@ -60,27 +60,27 @@ variable "hibernate_ddl_auto" {
 
 variable "ecs_task_cpu" {
   type    = number
-  default = 1024
+  default = 512
 }
 
 variable "ecs_task_memory" {
   type    = number
-  default = 2048
+  default = 1024
 }
 
 variable "ecs_desired_count" {
   type    = number
-  default = 2
+  default = 1
 }
 
 variable "ecs_min_count" {
   type    = number
-  default = 2
+  default = 1
 }
 
 variable "ecs_max_count" {
   type    = number
-  default = 6
+  default = 2
 }
 
 variable "db_name" {
